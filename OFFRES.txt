@@ -1,0 +1,9 @@
+OFFRES FOURNIES PAR LE CLIENT
+
+Pass 100F — Limité (Temps) — 1 utilisateur — 100 FCFA — quota 5 heures — validité 1 jour — upload max 5 Mo — download max 5 Mo.
+Pass 200F — Limité (Temps) — 1 utilisateur — 200 FCFA — quota 1 jour — validité 1 jour — upload max 5 Mo — download max 5 Mo.
+Pass 500F — Limité (Temps) — 1 utilisateur — 500 FCFA — quota 3 jours — validité 3 jours — upload max 5 Mo — download max 5 Mo.
+Pass 1000F — Limité (Temps) — 1 utilisateur — 1000 FCFA — quota 7 jours — validité 7 jours — upload max 5 Mo — download max 5 Mo.
+Pass 3000F — Limité (Temps) — 1 utilisateur — 3000 FCFA — quota 30 jours — validité 30 jours — upload max 5 Mo — download max 5 Mo.
+Pass Family — Limité (Temps) — 3 utilisateurs — 6000 FCFA — quota 30 jours — validité 30 jours — upload max 5 Mo — download max 5 Mo.
+VIP — Illimité — 1 utilisateur — montant affiché 0 — quota illimité — validité illimitée — upload max 5 Mo — download max 5 Mo.
