@@ -1,6 +1,8 @@
-AFROCONNECT — VERSION V3
-Palette volontairement alignée sur le logo officiel :
-- Vert : #059E14
-- Jaune : #FEBB00
-- Rouge : #F61C1D
-Le symbole du logo est utilisé en filigrane sans les coordonnées.
+AFROCONNECT FAI — V5
+Positionnement: Fournisseur d'Accès à Internet au Bénin.
+Mission: connecter les zones peu couvertes et difficiles d'accès.
+
+Charte: VERT / JAUNE / ROUGE + noir et blanc.
+Fichiers: index.html, style.css, script.js, logo-afroconnect.png.
+Compatible GitHub Pages.
+Contact: AfroConnect229@gmail.com | +229 01 96 10 92 44 | Bénin.
