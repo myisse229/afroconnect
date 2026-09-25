@@ -2,96 +2,86 @@
 <html lang="fr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AfroConnect — Fournisseur d'Accès à Internet au Bénin</title>
 <meta name="description" content="AfroConnect — Fournisseur d'Accès à Internet au Bénin. Connecter les zones peu couvertes et difficiles d'accès.">
-<title>AfroConnect | Fournisseur d'Accès à Internet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header>
+<header class="header">
   <a class="brand" href="#accueil"><img src="logo-afroconnect.png" alt="AfroConnect"></a>
-  <button class="menu" aria-label="Menu">☰</button>
   <nav>
-    <a href="#accueil">Accueil</a><a href="#apropos">À propos</a><a href="#solutions">Solutions</a>
-    <a href="#reseau">Notre réseau</a><a href="#manager">WiFi Manager</a><a href="#contact">Contact</a>
+    <a class="active" href="#accueil">Accueil</a>
+    <a href="#apropos">À propos</a>
+    <a href="#offres">Nos offres</a>
+    <a href="#reseau">Infrastructures</a>
+    <a href="#manager">WiFi Manager</a>
+    <a href="#projets">Projets</a>
+    <a href="#partenariats">Partenariats</a>
+    <a href="#contact">Contact</a>
   </nav>
-  <a class="top-btn" href="#contact">Nous contacter</a>
+  <a class="client" href="#contact">◯ &nbsp; Nous contacter</a>
+  <button class="menu" aria-label="Menu">☰</button>
 </header>
 
 <main>
 <section class="hero" id="accueil">
-  <div class="watermark"><img src="logo-afroconnect.png" alt=""></div>
-  <div class="grid"></div>
-  <div class="hero-inner">
-    <div class="eyebrow"><i></i> FOURNISSEUR D’ACCÈS À INTERNET • BÉNIN</div>
-    <h1>Connecter les zones<br><span>peu couvertes</span><br>et difficiles d’accès.</h1>
-    <p>AfroConnect développe et déploie des solutions de connectivité adaptées aux territoires où l’accès à Internet reste limité.</p>
-    <div class="buttons"><a class="btn yellow" href="#solutions">Nos solutions <b>→</b></a><a class="btn outline" href="#contact">Parler à AfroConnect</a></div>
-    <div class="hero-line"><span>🟢 Connectivité</span><span>🟡 Accessibilité</span><span>🔴 Innovation</span></div>
+  <div class="hero-photo"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-watermark"><img src="logo-afroconnect.png" alt=""></div>
+  <div class="hero-content">
+    <div class="eyebrow"><span></span> FOURNISSEUR D’ACCÈS À INTERNET AU BÉNIN</div>
+    <h1>AFRO<span>CON</span><b>NECT</b></h1>
+    <h2>Connecter les <mark>zones peu couvertes</mark><br>et <mark>difficiles d’accès.</mark></h2>
+    <p>Nous déployons des solutions de connectivité Internet fiables et adaptées aux besoins des particuliers, des entreprises et des communautés, même dans les zones les plus éloignées.</p>
+    <div class="hero-buttons"><a class="yellow-btn" href="#offres">◉ &nbsp; Découvrir nos offres &nbsp; →</a><a class="light-btn" href="#contact">◉ &nbsp; Nous contacter</a></div>
+  </div>
+  <div class="hero-features">
+    <div><strong class="green-dot">◉</strong><b>Couverture</b><span>Étendre l'accès Internet vers les zones peu ou mal desservies.</span></div>
+    <div><strong class="yellow-dot">●</strong><b>Accessibilité</b><span>Des solutions adaptées à chaque territoire et à chaque besoin.</span></div>
+    <div><strong class="red-dot">⚙</strong><b>Innovation</b><span>Des technologies fiables pour les environnements difficiles d'accès.</span></div>
+    <div><strong class="black-dot">◆</strong><b>Proximité</b><span>Au plus près des utilisateurs et des communautés.</span></div>
   </div>
 </section>
 
-<section class="section intro" id="apropos">
-  <div class="label">01 — À PROPOS</div>
-  <div class="two">
-    <h2>Un FAI engagé pour<br><span>réduire les zones blanches.</span></h2>
-    <div>
-      <p class="lead">Notre mission est de rapprocher Internet des personnes et des activités, y compris dans les territoires où le déploiement est plus complexe.</p>
-      <p>AfroConnect conçoit ses solutions en tenant compte des contraintes de terrain : distance, accessibilité, environnement et besoins locaux.</p>
-    </div>
+<section id="offres" class="section solutions">
+  <div class="section-title">
+    <div><div class="label">NOS SOLUTIONS</div><h2>Des services Internet<br><span>adaptés aux réalités du terrain.</span></h2></div>
   </div>
-  <div class="pillars">
-    <article><strong>01</strong><h3>Couverture</h3><p>Étendre l'accès vers les zones peu ou mal desservies.</p></article>
-    <article><strong>02</strong><h3>Accessibilité</h3><p>Adapter les solutions aux réalités de chaque territoire.</p></article>
-    <article><strong>03</strong><h3>Proximité</h3><p>Comprendre les besoins des utilisateurs et des professionnels.</p></article>
-  </div>
-</section>
-
-<section class="section dark" id="solutions">
-  <div class="label">02 — SOLUTIONS DE CONNECTIVITÉ</div>
-  <div class="heading-row"><h2>Des solutions pour<br><span>rester connecté.</span></h2><p>Une offre pensée autour de la connectivité, des réseaux et des usages.</p></div>
   <div class="cards">
-    <article><em>01</em><div class="symbol">⌁</div><h3>Accès Internet</h3><p>Des solutions d'accès adaptées aux besoins des particuliers, entreprises et organisations.</p></article>
-    <article><em>02</em><div class="symbol">◉</div><h3>Wi-Fi & Hotspots</h3><p>Déploiement de solutions Wi-Fi pour des espaces privés, professionnels ou publics.</p></article>
-    <article><em>03</em><div class="symbol">⌘</div><h3>Réseaux</h3><p>Conception et déploiement d'infrastructures réseau adaptées aux contraintes du terrain.</p></article>
-    <article><em>04</em><div class="symbol">✦</div><h3>Solutions sur mesure</h3><p>Une approche adaptée aux besoins spécifiques des zones difficiles d'accès.</p></article>
+    <article><div class="thumb t1"></div><div class="card-body"><i>◉</i><h3>Particuliers</h3><p>Des offres Internet pour le quotidien : maison, études, divertissement.</p></div></article>
+    <article><div class="thumb t2"></div><div class="card-body"><i>♟</i><h3>Entreprises</h3><p>Des solutions fiables pour les professionnels et les organisations.</p></div></article>
+    <article><div class="thumb t3"></div><div class="card-body"><i>⌖</i><h3>Zones rurales</h3><p>Des solutions adaptées aux zones peu couvertes et difficiles d'accès.</p></div></article>
+    <article><div class="thumb t4"></div><div class="card-body"><i>⌁</i><h3>Wi-Fi & Hotspots</h3><p>Mise en place de points d'accès publics et privés.</p></div></article>
+    <article><div class="thumb t5"></div><div class="card-body"><i>◉</i><h3>Réseaux & Infrastructures</h3><p>Conception, déploiement et gestion d'infrastructures réseau.</p></div></article>
+    <article><div class="thumb t6"></div><div class="card-body"><i>▣</i><h3>AfroConnect WiFi Manager</h3><p>Gestion des accès, des forfaits et des utilisateurs.</p></div></article>
   </div>
 </section>
 
-<section class="section network-section" id="reseau">
-  <div class="network-visual">
-    <div class="map-lines"></div><div class="tower">⌁</div>
-    <div class="node n1"></div><div class="node n2"></div><div class="node n3"></div>
-    <div class="visual-caption">AFROCONNECT<br><small>CONNECTER. INNOVER. RÉUSSIR.</small></div>
-  </div>
-  <div class="network-copy">
-    <div class="label">03 — NOTRE APPROCHE</div>
-    <h2>Quand le terrain est difficile, <span>la solution doit s’adapter.</span></h2>
-    <p class="lead">Nous privilégions une approche basée sur l'étude du terrain, la technologie disponible et les besoins réels des utilisateurs.</p>
-    <ul><li>Analyse des besoins et du territoire</li><li>Choix d'une architecture adaptée</li><li>Déploiement progressif</li><li>Suivi et amélioration du service</li></ul>
-  </div>
+<section class="section about" id="apropos">
+  <div class="label">À PROPOS</div>
+  <div class="split"><h2>Un FAI engagé pour<br><span>réduire les zones blanches.</span></h2><div><p class="lead">AfroConnect a pour mission de rapprocher Internet des personnes et des activités, notamment dans les zones peu couvertes et difficiles d'accès.</p><p>Nous partons du terrain pour choisir des technologies adaptées, déployer progressivement et faire évoluer les réseaux selon les besoins.</p></div></div>
+</section>
+
+<section class="section dark" id="reseau">
+  <div class="dark-grid"><div><div class="label">INFRASTRUCTURES</div><h2>Des réseaux pensés pour les <span>réalités du terrain.</span></h2><p class="lead">Quand l'accès est complexe, l'infrastructure doit être conçue avec précision.</p><ul><li>Étude des besoins et du territoire</li><li>Choix d'une architecture adaptée</li><li>Déploiement progressif</li><li>Suivi et évolution du réseau</li></ul></div><div class="infra-art"><div class="rings"></div><img src="logo-afroconnect.png" alt=""></div></div>
+</section>
+
+<section class="section project-partners">
+  <div class="pp-card project" id="projets"><div class="pp-copy"><div class="label">NOS PROJETS</div><h2>Étendre la connectivité<br>là où elle est <span>nécessaire.</span></h2><p>Des initiatives pour rapprocher Internet des territoires peu couverts.</p><a href="#contact" class="yellow-btn">Découvrir nos projets →</a></div></div>
+  <div class="pp-card partner" id="partenariats"><div class="pp-copy"><div class="label">PARTENARIATS</div><h2>Construire des collaborations <span>durables.</span></h2><p>Nous collaborons avec des acteurs qui souhaitent contribuer au développement de la connectivité.</p><a href="#contact" class="yellow-btn">Devenir partenaire →</a></div></div>
 </section>
 
 <section class="section manager" id="manager">
-  <div><div class="label">04 — OUTIL DE GESTION</div><h2>AfroConnect<br><span>WiFi Manager.</span></h2><p class="lead">Une plateforme développée pour faciliter la gestion des accès Wi-Fi, des utilisateurs et des forfaits.</p><div class="tags"><b>Gestion des accès</b><b>Forfaits</b><b>Utilisateurs</b><b>Administration</b></div></div>
-  <div class="manager-box"><div class="orb"></div><strong>WIFI<br>MANAGER</strong><small>GESTION • CONTRÔLE • SIMPLICITÉ</small></div>
+  <div><div class="label">AFROCONNECT WIFI MANAGER</div><h2>Une gestion Wi-Fi<br><span>plus simple.</span></h2><p class="lead">Une plateforme dédiée à la gestion des accès Wi-Fi, des utilisateurs et des forfaits.</p><div class="tags"><b>Accès</b><b>Utilisateurs</b><b>Forfaits</b><b>Administration</b></div></div>
+  <div class="manager-art"><div class="orbit"></div><strong>AFROCONNECT<br><span>WIFI MANAGER</span></strong></div>
 </section>
 
-<section class="section contact" id="contact">
-  <div class="contact-box">
-    <div><div class="label">05 — CONTACT</div><h2>Un besoin de<br><span>connectivité ?</span></h2><p>Parlons de votre zone, de vos besoins et de la solution adaptée.</p></div>
-    <div class="details">
-      <a href="mailto:AfroConnect229@gmail.com"><small>EMAIL</small><strong>AfroConnect229@gmail.com</strong></a>
-      <a href="https://wa.me/2290196109244" target="_blank"><small>WHATSAPP</small><strong>+229 01 96 10 92 44</strong></a>
-      <div><small>SIÈGE SOCIAL</small><strong>Bénin 🇧🇯</strong></div>
-    </div>
-  </div>
-</section>
+<section class="section contact" id="contact"><div class="contact-grid"><div><div class="label">CONTACT</div><h2>Un besoin de<br><span>connectivité ?</span></h2><p>Parlons de votre zone, de vos besoins et de la solution adaptée.</p></div><div class="details"><a href="mailto:AfroConnect229@gmail.com"><small>EMAIL</small><strong>AfroConnect229@gmail.com</strong></a><a href="https://wa.me/2290196109244" target="_blank"><small>WHATSAPP</small><strong>+229 01 96 10 92 44</strong></a><div><small>SIÈGE SOCIAL</small><strong>Bénin 🇧🇯</strong></div></div></div></section>
 </main>
-
 <footer><img src="logo-afroconnect.png" alt="AfroConnect"><span>Connecter. Innover. Réussir.</span><small>© 2026 AfroConnect — FAI au Bénin</small></footer>
 <script src="script.js"></script>
 </body></html>
