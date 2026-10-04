@@ -47,8 +47,7 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;
 <div id="app" class="hidden">
 <aside>
 <div class="brand">AFRO<span>CONNECT</span><small>WIFI MANAGER</small></div>
-<a href="#dashboard">📊 Tableau de bord</a><a href="#resellers">🤝 Revendeurs</a><a href="#tickets">🎟️ Tickets</a><a href="#online">💳 Mobile Money</a>
-<a href="#plans">💳 Forfaits</a><a href="#stats">📈 Statistiques</a><a href="#clients">👥 Clients</a><a href="#mikrotik">📡 MikroTik</a>
+<a href="#da<a href="#plans">💳 Forfaits</a><a href="#stats">📈 Statistiques</a><a href="#clients">👥 Clients</a><a href="#mikrotik">📡 MikroTik</a>
 <button id="logout" class="red">Déconnexion</button>
 </aside>
 
@@ -69,11 +68,24 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;
 
 <section id="tickets">
 <div class="title"><h2>Générer des tickets</h2></div>
+<div class="notice">La génération des tickets achetés en ligne et le paiement Mobile Money sont gérés automatiquement par le serveur. Aucun paiement Mobile Money n’est traité dans cet espace Manager.</div>
 <div class="panel generator">
 <label>Revendeur<select id="ticketReseller"></select></label>
 <label>Forfait<select id="ticketPlan"></select></label>
 <label>Quantité<input id="ticketQty" type="number" min="1" max="500" value="10"></label>
-<label>Longueur du code<select id="codeLength"><option value="6">6 caractères</option><option value="8" selected>8 caractères</option><option value="10">10 caractères</option><option value="12">12 caractères</option><option value="14">14 caractères</option><option value="16">16 caractères</option><option value="20">20 caractères</option></select></label>
+<label>Longueur du code
+<select id="codeLength">
+<option value="1">1 caractère</option>
+<option value="2">2 caractères</option>
+<option value="3">3 caractères</option>
+<option value="4">4 caractères</option>
+<option value="5">5 caractères</option>
+<option value="6">6 caractères</option>
+<option value="7">7 caractères</option>
+<option value="8">8 caractères</option>
+<option value="9">9 caractères</option>
+<option value="10" selected>10 caractères</option>
+</select></label>
 <button id="generate">🎟️ Générer le lot</button>
 </div>
 
@@ -83,7 +95,7 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;
 <div class="actions">
 <button id="deleteSelected" class="red small">🗑️ Supprimer la sélection</button>
 <button id="deleteLot" class="orange small">📦 Supprimer le lot sélectionné</button>
-<button id="deleteAllFiltered" class="danger-outline small">🗑️ Supprimer tous les tickets affichés</button>
+
 <button id="printLot" class="small">🖨️ Imprimer le lot / PDF</button>
 </div>
 <select id="ticketFilter" style="max-width:260px"><option value="all">Tous les tickets</option></select>
@@ -96,12 +108,9 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;
 </div></section>
 
 <section id="online">
-<div class="title"><h2>🎟️ Achat en ligne / Mobile Money</h2></div>
-<div class="panel"><div class="notice">Le ticket client payé par Mobile Money doit être créé par le serveur après confirmation réelle du paiement. Le navigateur ne doit jamais décider lui-même qu’un paiement est validé.</div>
 <div class="form-grid">
 <label>Revendeur<select id="onlineReseller"></select></label>
 <label>Forfait<select id="onlinePlan"></select></label>
-<label>Numéro Mobile Money<input id="onlinePhone" placeholder="Ex : 01XXXXXXXX"></label>
 <label>Référence paiement<input id="onlinePaymentRef" placeholder="Référence de transaction"></label>
 </div>
 <button id="onlineGenerate" class="orange" style="margin-top:12px">💳 Vérifier le paiement et générer le ticket</button>
@@ -240,13 +249,6 @@ if(!confirm(`Supprimer ${ids.length} ticket(s) sélectionné(s) ?`))return;
 let set=new Set(ids);tickets=tickets.filter(x=>!set.has(x.id||x.code));save();render();
 }
 
-function deleteAllFiltered(){
-let f=$("ticketFilter").value||"all";
-let a=f==="all"?tickets:tickets.filter(t=>t.resellerId===f);
-if(!a.length){alert("Aucun ticket à supprimer.");return}
-if(!confirm(`Supprimer ${a.length} ticket(s) affiché(s) ?`))return;
-let set=new Set(a.map(x=>x.id||x.code));tickets=tickets.filter(x=>!set.has(x.id||x.code));save();render();
-}
 
 function deleteReseller(id){
 let r=resellers.find(x=>x.id===id);if(!r)return;
@@ -333,14 +335,12 @@ $("ticketFilter").onchange=renderTickets;
 $("period").onchange=renderStats;
 $("selectAll").onchange=e=>document.querySelectorAll(".ticketCheck").forEach(x=>x.checked=e.target.checked);
 $("deleteSelected").onclick=deleteSelected;
-$("deleteAllFiltered").onclick=deleteAllFiltered;
 $("printLot").onclick=printLot;
 $("deleteLot").onclick=deleteLot;
 
 $("onlineGenerate").onclick=async()=>{
   const rid=$("onlineReseller").value,pid=$("onlinePlan").value,phone=$("onlinePhone").value.trim(),paymentRef=$("onlinePaymentRef").value.trim();
   const r=resellers.find(x=>x.id===rid),p=plans.find(x=>x.id===pid);
-  if(!r||!p||!phone||!paymentRef){alert("Renseigne le revendeur, le forfait, le numéro Mobile Money et la référence de paiement.");return}
   if(!API_BASE_URL){$("onlineResult").innerHTML='<div class="notice">⚠️ Le serveur API n’est pas encore configuré. Configure API_BASE_URL avant d’activer la génération automatique après paiement.</div>';return}
   $("onlineGenerate").disabled=true;$("onlineResult").textContent="Vérification du paiement…";
   try{
