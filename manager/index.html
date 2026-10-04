@@ -30,7 +30,7 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;
 .modal{position:fixed;inset:0;background:#0008;display:grid;place-items:center;z-index:20;padding:20px}
 .modal form{background:#fff;width:min(600px,100%);padding:25px;border-radius:18px;position:relative}.close{position:absolute;right:15px;top:15px;background:#eee;color:#333;font-size:20px;padding:5px 10px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.form-grid label{font-weight:700;font-size:13px}
-.notice{padding:12px 14px;background:#fff7e6;border:1px solid #ffd666;border-radius:10px;color:#7a4b00;margin-bottom:15px}
+.notice{padding:12px 14px;background:#fff7e6;border:1px solid #ffd666;border-radius:10px;color:#7a4b00;margin-bottom:15px}.print-only{display:none}@media print{body{background:#fff}aside,header,#dashboard,#resellers,#plans,#stats,#clients,#mikrotik,#ticketControls,.no-print{display:none!important}main{margin:0;width:100%;padding:0}.print-only{display:block}.print-ticket-table{font-size:11px}.print-ticket-table th,.print-ticket-table td{padding:5px;border:1px solid #ccc}}
 @media(max-width:900px){aside{width:190px}main{margin-left:190px;width:calc(100% - 190px)}.cards{grid-template-columns:1fr 1fr}.generator{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){aside{position:static;width:100%;min-height:auto}#app{display:block}main{margin-left:0;width:100%;padding:15px}.cards{grid-template-columns:1fr}.generator,.form-grid{grid-template-columns:1fr}header{display:block}.login form{padding:25px}.toolbar{display:block}}
 </style>
@@ -47,7 +47,7 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;
 <div id="app" class="hidden">
 <aside>
 <div class="brand">AFRO<span>CONNECT</span><small>WIFI MANAGER</small></div>
-<a href="#dashboard">📊 Tableau de bord</a><a href="#resellers">🤝 Revendeurs</a><a href="#tickets">🎟️ Tickets</a>
+<a href="#dashboard">📊 Tableau de bord</a><a href="#resellers">🤝 Revendeurs</a><a href="#tickets">🎟️ Tickets</a><a href="#online">💳 Mobile Money</a>
 <a href="#plans">💳 Forfaits</a><a href="#stats">📈 Statistiques</a><a href="#clients">👥 Clients</a><a href="#mikrotik">📡 MikroTik</a>
 <button id="logout" class="red">Déconnexion</button>
 </aside>
@@ -73,16 +73,18 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;
 <label>Revendeur<select id="ticketReseller"></select></label>
 <label>Forfait<select id="ticketPlan"></select></label>
 <label>Quantité<input id="ticketQty" type="number" min="1" max="500" value="10"></label>
+<label>Longueur du code<select id="codeLength"><option value="6">6 caractères</option><option value="8" selected>8 caractères</option><option value="10">10 caractères</option><option value="12">12 caractères</option><option value="14">14 caractères</option><option value="16">16 caractères</option><option value="20">20 caractères</option></select></label>
 <button id="generate">🎟️ Générer le lot</button>
 </div>
 
 <div class="notice" style="margin-top:15px">Chaque génération crée <b>un lot identifié</b> (ex. LOT-RV1-20261004-001). Tous les tickets du lot restent liés au même revendeur, à la même zone et au même forfait. Tu peux ensuite supprimer un ticket ou tout le lot.</div>
-<div class="panel" style="margin-top:15px">
+<div class="panel" style="margin-top:15px" id="ticketControls">
 <div class="toolbar">
 <div class="actions">
 <button id="deleteSelected" class="red small">🗑️ Supprimer la sélection</button>
 <button id="deleteLot" class="orange small">📦 Supprimer le lot sélectionné</button>
 <button id="deleteAllFiltered" class="danger-outline small">🗑️ Supprimer tous les tickets affichés</button>
+<button id="printLot" class="small">🖨️ Imprimer le lot / PDF</button>
 </div>
 <select id="ticketFilter" style="max-width:260px"><option value="all">Tous les tickets</option></select>
 </div>
@@ -91,6 +93,19 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;
 <th><input id="selectAll" class="check" type="checkbox" title="Tout sélectionner"></th>
 <th>Ticket</th><th>Lot</th><th>Revendeur</th><th>Zone</th><th>Forfait</th><th>Statut</th><th>Date</th><th>Action</th>
 </tr></thead><tbody id="ticketTable"></tbody></table></div>
+</div></section>
+
+<section id="online">
+<div class="title"><h2>🎟️ Achat en ligne / Mobile Money</h2></div>
+<div class="panel"><div class="notice">Le ticket client payé par Mobile Money doit être créé par le serveur après confirmation réelle du paiement. Le navigateur ne doit jamais décider lui-même qu’un paiement est validé.</div>
+<div class="form-grid">
+<label>Revendeur<select id="onlineReseller"></select></label>
+<label>Forfait<select id="onlinePlan"></select></label>
+<label>Numéro Mobile Money<input id="onlinePhone" placeholder="Ex : 01XXXXXXXX"></label>
+<label>Référence paiement<input id="onlinePaymentRef" placeholder="Référence de transaction"></label>
+</div>
+<button id="onlineGenerate" class="orange" style="margin-top:12px">💳 Vérifier le paiement et générer le ticket</button>
+<div id="onlineResult" style="margin-top:12px"></div>
 </div></section>
 
 <section id="plans">
@@ -126,6 +141,9 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;
 </div><button style="margin-top:12px">Créer le forfait</button></form></div>
 
 <script>
+// Backend API : à remplacer par l'URL publique de ton serveur.
+// Exemple : https://api.afroconnectworld.com
+const API_BASE_URL = localStorage.getItem("afro_api_base_url") || "";
 const LOGIN_USER="Myisse",LOGIN_PASS="Mamour229@";
 const DEFAULT_PLANS=[
 {id:"100",name:"Afro Mini",type:"Limité (Temps)",amount:100,users:1,quota:"5 heures",validity:"1 jour",upload:"5 Mo",download:"5 Mo",builtin:true},
@@ -144,6 +162,17 @@ const save=()=>{localStorage.setItem("afro_plans",JSON.stringify(plans));localSt
 const money=n=>Number(n||0).toLocaleString("fr-FR")+" F";
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const dateNow=()=>new Date().toISOString();
+const CODE_ALPHABET="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+function randomCode(len){
+  if(window.crypto && crypto.getRandomValues){
+    const a=new Uint32Array(len);crypto.getRandomValues(a);return [...a].map(n=>CODE_ALPHABET[n%CODE_ALPHABET.length]).join("");
+  }
+  return Array.from({length:len},()=>CODE_ALPHABET[Math.floor(Math.random()*CODE_ALPHABET.length)]).join("");
+}
+function syncOnlineSelectors(){
+  $("onlineReseller").innerHTML=resellers.map(r=>`<option value="${esc(r.id)}">${esc(r.name)} — ${esc(r.zone)}</option>`).join("")||'<option value="">Ajoute d’abord un revendeur</option>';
+  $("onlinePlan").innerHTML=plans.map(p=>`<option value="${esc(p.id)}">${esc(p.name)} — ${money(p.amount)}</option>`).join("");
+}
 
 function render(){
 $("resellerCount").textContent=resellers.length;
@@ -164,7 +193,7 @@ let oldFilter=$("ticketFilter").value||"all";
 $("ticketFilter").innerHTML='<option value="all">Tous les tickets</option>'+resellers.map(r=>`<option value="${esc(r.id)}">${esc(r.name)}</option>`).join("");
 $("ticketFilter").value=[...$("ticketFilter").options].some(o=>o.value===oldFilter)?oldFilter:"all";
 
-renderTickets();renderPlans();renderStats();save();
+renderTickets();renderPlans();renderStats();syncOnlineSelectors();save();
 }
 
 function renderTickets(){
@@ -261,16 +290,32 @@ let r=resellers.find(x=>x.id===rid),p=plans.find(x=>x.id===pid);
 if(!r||!p){alert("Ajoute un revendeur et sélectionne un forfait.");return}
 let stamp=new Date().toISOString().slice(0,10).replace(/-/g,"");
 let seq=(tickets.filter(t=>t.lotId&&t.lotId.startsWith("LOT-")).length+1).toString().padStart(3,"0");
+let codeLength=Math.max(6,Math.min(20,Number($("codeLength").value||8)));
 let lotId=`LOT-${(r.code||"REV").toUpperCase()}-${stamp}-${seq}`;
 let lotCreatedAt=dateNow();
 for(let i=1;i<=q;i++){
-let uid=Math.random().toString(36).slice(2,8).toUpperCase();
-let ticketNo=String(i).padStart(3,"0");
-let code=`${(r.code||"REV").toUpperCase()}-${p.id}-${stamp}-${ticketNo}-${uid}`;
+let uid=randomCode(codeLength);
+let code=uid;
 tickets.push({id:"t_"+uid+Date.now().toString(36)+i,code,lotId,lotIndex:i,lotSize:q,resellerId:r.id,resellerName:r.name,zone:r.zone,planId:p.id,planName:p.name,amount:p.amount,status:"Disponible",createdAt:lotCreatedAt});
 }
 save();render();alert(`Lot ${lotId} créé avec ${q} ticket(s) pour ${r.name}.`);
 };
+
+function printLot(){
+  let checked=[...document.querySelectorAll(".ticketCheck:checked")];
+  let selected=tickets.filter(t=>checked.some(c=>c.value===(t.id||t.code)));
+  if(!selected.length){alert("Sélectionne au moins un ticket du lot à imprimer.");return}
+  let lotIds=[...new Set(selected.map(t=>t.lotId).filter(Boolean))];
+  if(lotIds.length!==1){alert("Sélectionne uniquement les tickets d’un même lot.");return}
+  let lotId=lotIds[0];
+  let lot=tickets.filter(t=>t.lotId===lotId);
+  let r=lot[0];
+  let w=window.open("","_blank","width=1000,height=800");
+  if(!w){alert("Autorise les fenêtres pop-up pour imprimer.");return}
+  w.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${esc(lotId)}</title><style>body{font-family:Arial;padding:25px}h1{margin-bottom:4px}.meta{margin-bottom:18px;color:#555}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.ticket{border:1px dashed #777;padding:14px;border-radius:8px;text-align:center;break-inside:avoid}.code{font-size:22px;font-weight:800;letter-spacing:2px}.small{font-size:11px;color:#555}@media print{body{padding:8mm}.grid{grid-template-columns:repeat(3,1fr)}} </style></head><body><h1>AFROCONNECT — Lot ${esc(lotId)}</h1><div class="meta">Revendeur : <b>${esc(r.resellerName)}</b> · Zone : ${esc(r.zone)} · Forfait : ${esc(r.planName)} · ${lot.length} tickets</div><div class="grid">${lot.map(t=>`<div class="ticket"><div class="small">TICKET AFROCONNECT</div><div class="code">${esc(t.code)}</div><div class="small">${esc(t.planName)} · ${money(t.amount)}</div></div>`).join("")}</div><script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);
+  w.document.close();
+}
+window.printLot=printLot;
 
 function deleteLot(){
 let checked=[...document.querySelectorAll(".ticketCheck:checked")];
@@ -289,7 +334,22 @@ $("period").onchange=renderStats;
 $("selectAll").onchange=e=>document.querySelectorAll(".ticketCheck").forEach(x=>x.checked=e.target.checked);
 $("deleteSelected").onclick=deleteSelected;
 $("deleteAllFiltered").onclick=deleteAllFiltered;
+$("printLot").onclick=printLot;
 $("deleteLot").onclick=deleteLot;
+
+$("onlineGenerate").onclick=async()=>{
+  const rid=$("onlineReseller").value,pid=$("onlinePlan").value,phone=$("onlinePhone").value.trim(),paymentRef=$("onlinePaymentRef").value.trim();
+  const r=resellers.find(x=>x.id===rid),p=plans.find(x=>x.id===pid);
+  if(!r||!p||!phone||!paymentRef){alert("Renseigne le revendeur, le forfait, le numéro Mobile Money et la référence de paiement.");return}
+  if(!API_BASE_URL){$("onlineResult").innerHTML='<div class="notice">⚠️ Le serveur API n’est pas encore configuré. Configure API_BASE_URL avant d’activer la génération automatique après paiement.</div>';return}
+  $("onlineGenerate").disabled=true;$("onlineResult").textContent="Vérification du paiement…";
+  try{
+    const resp=await fetch(API_BASE_URL.replace(/\/$/,"")+"/api/mobile-money/verify-and-generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone,paymentRef,resellerId:r.id,resellerName:r.name,zone:r.zone,planId:p.id,planName:p.name,amount:p.amount,codeLength:Number($("codeLength").value||8)})});
+    const data=await resp.json();
+    if(!resp.ok||!data.success)throw new Error(data.message||"Paiement non confirmé");
+    $("onlineResult").innerHTML=`<div class="notice">✅ Paiement confirmé. Ticket généré par le serveur : <b>${esc(data.ticketCode||"")}</b></div>`;
+  }catch(e){$("onlineResult").innerHTML=`<div class="notice">❌ ${esc(e.message)}</div>`}finally{$("onlineGenerate").disabled=false}
+};
 
 $("addPlan").onclick=()=>$("planModal").classList.remove("hidden");
 $("closePlan").onclick=()=>$("planModal").classList.add("hidden");
