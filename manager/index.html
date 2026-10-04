@@ -30,8 +30,7 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;
 .modal{position:fixed;inset:0;background:#0008;display:grid;place-items:center;z-index:20;padding:20px}
 .modal form{background:#fff;width:min(600px,100%);padding:25px;border-radius:18px;position:relative}.close{position:absolute;right:15px;top:15px;background:#eee;color:#333;font-size:20px;padding:5px 10px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.form-grid label{font-weight:700;font-size:13px}
-.notice{padding:12px 14px;background:#fff7e6;border:1px solid #ffd666;border-radius:10px;color:#7a4b00;margin-bottom:15px}
-.lot-selected{background:#eefaf2}.lot-code{font-weight:800;letter-spacing:.5px}.print-only{display:none}@media print{body{background:#fff}aside,header,#dashboard,#resellers,#plans,#stats,#clients,#mikrotik,#ticketControls,.no-print{display:none!important}main{margin:0;width:100%;padding:0}.print-only{display:block}.print-ticket-table{font-size:11px}.print-ticket-table th,.print-ticket-table td{padding:5px;border:1px solid #ccc}}
+.notice{padding:12px 14px;background:#fff7e6;border:1px solid #ffd666;border-radius:10px;color:#7a4b00;margin-bottom:15px}.print-only{display:none}@media print{body{background:#fff}aside,header,#dashboard,#resellers,#plans,#stats,#clients,#mikrotik,#ticketControls,.no-print{display:none!important}main{margin:0;width:100%;padding:0}.print-only{display:block}.print-ticket-table{font-size:11px}.print-ticket-table th,.print-ticket-table td{padding:5px;border:1px solid #ccc}}
 @media(max-width:900px){aside{width:190px}main{margin-left:190px;width:calc(100% - 190px)}.cards{grid-template-columns:1fr 1fr}.generator{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){aside{position:static;width:100%;min-height:auto}#app{display:block}main{margin-left:0;width:100%;padding:15px}.cards{grid-template-columns:1fr}.generator,.form-grid{grid-template-columns:1fr}header{display:block}.login form{padding:25px}.toolbar{display:block}}
 </style>
@@ -68,52 +67,62 @@ table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;
 <tbody id="resellerTable"></tbody></table></div></section>
 
 <section id="tickets">
-<div class="title"><h2>Lots de tickets</h2></div>
-
+<div class="title"><h2>Générer des tickets</h2></div>
+<div class="notice">La génération des tickets achetés en ligne et le paiement Mobile Money sont gérés automatiquement par le serveur. Aucun paiement Mobile Money n’est traité dans cet espace Manager.</div>
 <div class="panel generator">
 <label>Revendeur<select id="ticketReseller"></select></label>
 <label>Forfait<select id="ticketPlan"></select></label>
 <label>Quantité<input id="ticketQty" type="number" min="1" max="500" value="10"></label>
 <label>Longueur du code
 <select id="codeLength">
-<option value="1">1 caractère</option><option value="2">2 caractères</option>
-<option value="3">3 caractères</option><option value="4">4 caractères</option>
-<option value="5">5 caractères</option><option value="6">6 caractères</option>
-<option value="7">7 caractères</option><option value="8">8 caractères</option>
-<option value="9">9 caractères</option><option value="10" selected>10 caractères</option>
+<option value="1">1 caractère</option>
+<option value="2">2 caractères</option>
+<option value="3">3 caractères</option>
+<option value="4">4 caractères</option>
+<option value="5">5 caractères</option>
+<option value="6">6 caractères</option>
+<option value="7">7 caractères</option>
+<option value="8">8 caractères</option>
+<option value="9">9 caractères</option>
+<option value="10" selected>10 caractères</option>
 </select></label>
-<button id="generate">📦 Créer le lot</button>
+<button id="generate">🎟️ Générer le lot</button>
 </div>
 
-<div class="panel" style="margin-top:15px">
-<div class="title"><h3>Lots créés</h3><select id="lotFilter" style="max-width:260px">
-<option value="all">Tous les lots</option></select></div>
+<div class="notice" style="margin-top:15px">Chaque génération crée <b>un lot identifié</b> (ex. LOT-RV1-20261004-001). Tous les tickets du lot restent liés au même revendeur, à la même zone et au même forfait. Tu peux ensuite supprimer un ticket ou tout le lot.</div>
+<div class="panel" style="margin-top:15px" id="ticketControls">
+<div class="toolbar">
+<div class="actions">
+<button id="deleteSelected" class="red small">🗑️ Supprimer la sélection</button>
+<button id="deleteLot" class="orange small">📦 Supprimer le lot sélectionné</button>
+
+<button id="printLot" class="small">🖨️ Imprimer le lot / PDF</button>
+</div>
+<select id="ticketFilter" style="max-width:260px"><option value="all">Tous les tickets</option></select>
+</div>
+
 <div class="table-wrap"><table><thead><tr>
-<th>Lot</th><th>Revendeur</th><th>Zone</th><th>Forfait</th><th>Tickets</th><th>Disponibles</th><th>Utilisés</th><th>Date</th><th>Actions</th>
-</tr></thead><tbody id="lotTable"></tbody></table></div>
-</div>
-
-<div id="lotDetails" class="panel hidden" style="margin-top:15px">
-<div class="title"><h3 id="lotTitle">Détail du lot</h3>
-<div class="actions"><button id="printLot" class="orange small">🖨️ Imprimer / PDF</button>
-<button id="closeLot" class="gray small">Fermer</button></div></div>
-<div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Statut</th><th>Date</th><th>Action</th></tr></thead>
-<tbody id="lotTicketTable"></tbody></table></div>
-</div>
-</section>
+<th><input id="selectAll" class="check" type="checkbox" title="Tout sélectionner"></th>
+<th>Ticket</th><th>Lot</th><th>Revendeur</th><th>Zone</th><th>Forfait</th><th>Statut</th><th>Date</th><th>Action</th>
+</tr></thead><tbody id="ticketTable"></tbody></table></div>
+</div></section>
 
 <section id="online">
 <div class="form-grid">
 <label>Revendeur<select id="onlineReseller"></select></label>
 <label>Forfait<select id="onlinePlan"></select></label>
+<label>Référence paiement<input id="onlinePaymentRef" placeholder="Référence de transaction"></label>
 </div>
+<button id="onlineGenerate" class="orange" style="margin-top:12px">💳 Vérifier le paiement et générer le ticket</button>
 <div id="onlineResult" style="margin-top:12px"></div>
 </div></section>
 
 <section id="plans">
-<div class="title"><h2>Forfaits</h2><button id="addPlan">+ Créer un forfait</button></div>
-<div class="notice">Les forfaits existants restent disponibles pour la génération des tickets. Cette page n'affiche plus leur liste.</div>
-</section>
+<div class="title"><h2>Forfaits disponibles</h2><button id="addPlan">+ Créer un forfait</button></div>
+<div class="notice">Les 6 forfaits AfroConnect sont préchargés. Tu peux en créer d'autres directement depuis cet espace Manager.</div>
+<div class="panel"><div class="table-wrap"><table><thead><tr>
+<th>Nom</th><th>Type</th><th>Montant</th><th>Utilisateurs</th><th>Quota / Temps</th><th>Validité</th><th>Upload</th><th>Download</th><th>Action</th>
+</tr></thead><tbody id="plansTable"></tbody></table></div></div></section>
 
 <section id="stats"><div class="title"><h2>Ventes par revendeur / zone</h2>
 <select id="period" style="max-width:230px"><option value="7">7 derniers jours</option><option value="30">30 derniers jours</option><option value="all">Tout</option></select></div>
@@ -156,10 +165,9 @@ const DEFAULT_PLANS=[
 let plans=JSON.parse(localStorage.getItem("afro_plans")||"null")||DEFAULT_PLANS;
 let resellers=JSON.parse(localStorage.getItem("afro_resellers")||"null")||[];
 let tickets=JSON.parse(localStorage.getItem("afro_tickets")||"null")||[];
-let lots=JSON.parse(localStorage.getItem("afro_lots")||"null")||[];
 
 const $=id=>document.getElementById(id);
-const save=()=>{localStorage.setItem("afro_plans",JSON.stringify(plans));localStorage.setItem("afro_resellers",JSON.stringify(resellers));localStorage.setItem("afro_tickets",JSON.stringify(tickets));localStorage.setItem("afro_lots",JSON.stringify(lots))};
+const save=()=>{localStorage.setItem("afro_plans",JSON.stringify(plans));localStorage.setItem("afro_resellers",JSON.stringify(resellers));localStorage.setItem("afro_tickets",JSON.stringify(tickets))};
 const money=n=>Number(n||0).toLocaleString("fr-FR")+" F";
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const dateNow=()=>new Date().toISOString();
@@ -197,64 +205,26 @@ $("ticketFilter").value=[...$("ticketFilter").options].some(o=>o.value===oldFilt
 renderTickets();renderPlans();renderStats();syncOnlineSelectors();save();
 }
 
-function renderLots(){
-let old=$("lotFilter").value||"all";
-$("lotFilter").innerHTML='<option value="all">Tous les lots</option>'+
-lots.slice().reverse().map(l=>`<option value="${esc(l.id)}">${esc(l.id)} — ${esc(l.planName)}</option>`).join("");
-$("lotFilter").value=[...$("lotFilter").options].some(o=>o.value===old)?old:"all";
-
-let visible=old==="all"?lots:lots.filter(l=>l.id===old);
-$("lotTable").innerHTML=visible.slice().reverse().map(l=>{
-let lt=tickets.filter(t=>t.lotId===l.id), available=lt.filter(t=>t.status==="Disponible").length, used=lt.filter(t=>t.status==="Utilisé").length;
-return `<tr>
-<td class="lot-code">${esc(l.id)}</td><td>${esc(l.resellerName)}</td><td>${esc(l.zone)}</td>
-<td>${esc(l.planName)}</td><td>${lt.length}</td><td>${available}</td><td>${used}</td>
-<td>${new Date(l.createdAt).toLocaleString("fr-FR")}</td>
-<td class="actions"><button class="small" onclick="openLot('${esc(l.id)}')">👁️ Gérer</button>
-<button class="orange small" onclick="printLot('${esc(l.id)}')">🖨️ PDF</button>
-<button class="red small" onclick="deleteLot('${esc(l.id)}')">🗑️ Lot</button></td>
-</tr>`
-}).join("")||'<tr><td colspan="9">Aucun lot créé.</td></tr>';
+function renderTickets(){
+let f=$("ticketFilter").value||"all";
+let a=f==="all"?tickets:tickets.filter(t=>t.resellerId===f);
+$("ticketTable").innerHTML=a.slice().reverse().map(t=>`
+<tr>
+<td><input class="ticketCheck check" type="checkbox" value="${esc(t.id||t.code)}"></td>
+<td><b>${esc(t.code)}</b></td><td><span class="badge">${esc(t.lotId||"—")}</span></td><td>${esc(t.resellerName)}</td><td>${esc(t.zone)}</td>
+<td>${esc(t.planName||t.plan||"")} ${t.amount!=null?"("+money(t.amount)+")":""}</td>
+<td><span class="badge">${esc(t.status)}</span></td><td>${esc(t.createdAt||t.date||"")}</td>
+<td><button class="red small" onclick="deleteTicket('${esc(t.id||t.code)}')">🗑️</button></td>
+</tr>`).join("")||'<tr><td colspan="9">Aucun ticket.</td></tr>';
+$("selectAll").checked=false;
 }
 
-function openLot(id){
-let lot=lots.find(l=>l.id===id);if(!lot)return;
-$("lotDetails").classList.remove("hidden");$("lotTitle").textContent=`Lot ${lot.id} — ${lot.planName}`;
-$("lotDetails").dataset.lot=id;
-let lt=tickets.filter(t=>t.lotId===id);
-$("lotTicketTable").innerHTML=lt.map(t=>`<tr>
-<td class="lot-code">${esc(t.code)}</td><td><span class="badge">${esc(t.status)}</span></td>
-<td>${new Date(t.createdAt).toLocaleString("fr-FR")}</td>
-<td><button class="red small" onclick="deleteTicket('${esc(t.id)}')">🗑️</button></td></tr>`).join("");
-}
-
-function deleteTicket(id){
-let t=tickets.find(x=>x.id===id);if(!t)return;
-if(!confirm(`Supprimer le ticket ${t.code} ?`))return;
-tickets=tickets.filter(x=>x.id!==id);
-save();render();let current=$("lotDetails").dataset.lot;if(current)openLot(current);
-}
-
-function deleteLot(id){
-let lot=lots.find(x=>x.id===id);if(!lot)return;
-let n=tickets.filter(t=>t.lotId===id).length;
-if(!confirm(`Supprimer le lot ${lot.id} et ses ${n} tickets ?`))return;
-lots=lots.filter(x=>x.id!==id);tickets=tickets.filter(t=>t.lotId!==id);
-save();$("lotDetails").classList.add("hidden");render();
-}
-
-function printLot(id){
-let lot=lots.find(x=>x.id===id);if(!lot)return;
-let lt=tickets.filter(t=>t.lotId===id);
-let rows=lt.map((t,i)=>`<div class="ticket"><b>AFROCONNECT</b><div>${esc(t.code)}</div><small>${esc(lot.planName)} · ${esc(lot.resellerName)}</small></div>`).join("");
-let w=window.open("","_blank");
-w.document.write(`<html><head><title>${esc(lot.id)}</title><style>
-body{font-family:Arial;padding:20px}.head{text-align:center;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.ticket{border:1px dashed #555;border-radius:8px;padding:15px;text-align:center}.ticket div{font-size:24px;font-weight:800;margin:8px}
-@media print{body{padding:8px}.grid{grid-template-columns:repeat(3,1fr)}} </style></head><body>
-<div class="head"><h1>AFROCONNECT</h1><h2>${esc(lot.id)}</h2><p>${esc(lot.planName)} — ${esc(lot.resellerName)} — ${esc(lot.zone)}</p></div>
-<div class="grid">${rows}</div><script>window.print();<\/script></body></html>`);
-w.document.close();
+function renderPlans(){
+$("plansTable").innerHTML=plans.map(p=>`<tr>
+<td><b>${esc(p.name)}</b></td><td>${esc(p.type)}</td><td>${money(p.amount)}</td><td>${p.users}</td>
+<td>${esc(p.quota)}</td><td>${esc(p.validity)}</td><td>${esc(p.upload)}</td><td>${esc(p.download)}</td>
+<td>${p.builtin?'<span class="badge">Standard</span>':`<button class="red small" onclick="deletePlan('${p.id}')">Supprimer</button>`}</td>
+</tr>`).join("");
 }
 
 function renderStats(){
@@ -285,8 +255,7 @@ let r=resellers.find(x=>x.id===id);if(!r)return;
 let n=tickets.filter(t=>t.resellerId===id).length;
 if(!confirm(`Supprimer le revendeur « ${r.name} » ?\n\n${n} ticket(s) associé(s) seront également supprimés.`))return;
 resellers=resellers.filter(x=>x.id!==id);
-let lotIds=lots.filter(l=>l.resellerId===id).map(l=>l.id);lots=lots.filter(l=>l.resellerId!==id);
-tickets=tickets.filter(t=>t.resellerId!==id&&!lotIds.includes(t.lotId));
+tickets=tickets.filter(t=>t.resellerId!==id);
 save();render();
 }
 
@@ -319,41 +288,66 @@ save();render();e.target.reset();$("modal").classList.add("hidden");
 $("generate").onclick=()=>{
 let rid=$("ticketReseller").value,pid=$("ticketPlan").value;
 let q=Math.max(1,Math.min(500,Number($("ticketQty").value||1)));
-let len=Math.max(1,Math.min(10,Number($("codeLength").value||10)));
 let r=resellers.find(x=>x.id===rid),p=plans.find(x=>x.id===pid);
 if(!r||!p){alert("Ajoute un revendeur et sélectionne un forfait.");return}
-let lotNo=lots.filter(x=>x.resellerId===r.id&&x.planId===p.id).length+1;
-let lotId=`LOT-${r.code}-${p.id}-${String(lotNo).padStart(3,"0")}`;
-let chars="ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*+-=?";
-let usedCodes=new Set(tickets.map(t=>t.code));
-let newTickets=[];
-for(let i=0;i<q;i++){
- let code="",tries=0;
- do{code="";for(let j=0;j<len;j++)code+=chars[Math.floor(Math.random()*chars.length)];tries++}
- while(usedCodes.has(code)&&tries<10000);
- if(usedCodes.has(code)){alert("Impossible de générer assez de codes uniques avec cette longueur.");return}
- usedCodes.add(code);
- newTickets.push({id:"t_"+Date.now().toString(36)+"_"+i,code,lotId,resellerId:r.id,resellerName:r.name,zone:r.zone,planId:p.id,planName:p.name,amount:p.amount,status:"Disponible",createdAt:dateNow()});
+let stamp=new Date().toISOString().slice(0,10).replace(/-/g,"");
+let seq=(tickets.filter(t=>t.lotId&&t.lotId.startsWith("LOT-")).length+1).toString().padStart(3,"0");
+let codeLength=Math.max(6,Math.min(20,Number($("codeLength").value||8)));
+let lotId=`LOT-${(r.code||"REV").toUpperCase()}-${stamp}-${seq}`;
+let lotCreatedAt=dateNow();
+for(let i=1;i<=q;i++){
+let uid=randomCode(codeLength);
+let code=uid;
+tickets.push({id:"t_"+uid+Date.now().toString(36)+i,code,lotId,lotIndex:i,lotSize:q,resellerId:r.id,resellerName:r.name,zone:r.zone,planId:p.id,planName:p.name,amount:p.amount,status:"Disponible",createdAt:lotCreatedAt});
 }
-lots.push({id:lotId,resellerId:r.id,resellerName:r.name,zone:r.zone,planId:p.id,planName:p.name,amount:p.amount,quantity:q,codeLength:len,createdAt:dateNow()});
-tickets.push(...newTickets);save();render();openLot(lotId);
-alert(`Lot ${lotId} créé avec ${q} ticket(s).`);
+save();render();alert(`Lot ${lotId} créé avec ${q} ticket(s) pour ${r.name}.`);
 };
 
-$("lotFilter").onchange=renderLots;
-$("closeLot").onclick=()=>$("lotDetails").classList.add("hidden");
-$("printLot").onclick=()=>{let id=$("lotDetails").dataset.lot;if(id)printLot(id)};
+function printLot(){
+  let checked=[...document.querySelectorAll(".ticketCheck:checked")];
+  let selected=tickets.filter(t=>checked.some(c=>c.value===(t.id||t.code)));
+  if(!selected.length){alert("Sélectionne au moins un ticket du lot à imprimer.");return}
+  let lotIds=[...new Set(selected.map(t=>t.lotId).filter(Boolean))];
+  if(lotIds.length!==1){alert("Sélectionne uniquement les tickets d’un même lot.");return}
+  let lotId=lotIds[0];
+  let lot=tickets.filter(t=>t.lotId===lotId);
+  let r=lot[0];
+  let w=window.open("","_blank","width=1000,height=800");
+  if(!w){alert("Autorise les fenêtres pop-up pour imprimer.");return}
+  w.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>${esc(lotId)}</title><style>body{font-family:Arial;padding:25px}h1{margin-bottom:4px}.meta{margin-bottom:18px;color:#555}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.ticket{border:1px dashed #777;padding:14px;border-radius:8px;text-align:center;break-inside:avoid}.code{font-size:22px;font-weight:800;letter-spacing:2px}.small{font-size:11px;color:#555}@media print{body{padding:8mm}.grid{grid-template-columns:repeat(3,1fr)}} </style></head><body><h1>AFROCONNECT — Lot ${esc(lotId)}</h1><div class="meta">Revendeur : <b>${esc(r.resellerName)}</b> · Zone : ${esc(r.zone)} · Forfait : ${esc(r.planName)} · ${lot.length} tickets</div><div class="grid">${lot.map(t=>`<div class="ticket"><div class="small">TICKET AFROCONNECT</div><div class="code">${esc(t.code)}</div><div class="small">${esc(t.planName)} · ${money(t.amount)}</div></div>`).join("")}</div><script>window.onload=()=>setTimeout(()=>window.print(),300)<\/script></body></html>`);
+  w.document.close();
+}
+window.printLot=printLot;
+
+function deleteLot(){
+let checked=[...document.querySelectorAll(".ticketCheck:checked")];
+if(!checked.length){alert("Sélectionne au moins un ticket du lot à supprimer.");return}
+let selected=tickets.filter(t=>checked.some(c=>c.value===(t.id||t.code)));
+let lotIds=[...new Set(selected.map(t=>t.lotId).filter(Boolean))];
+if(lotIds.length!==1){alert("Sélectionne uniquement des tickets appartenant au même lot.");return}
+let lotId=lotIds[0],count=tickets.filter(t=>t.lotId===lotId).length;
+if(!confirm(`Supprimer entièrement le lot ${lotId} ?\n\n${count} ticket(s) seront supprimés.`))return;
+tickets=tickets.filter(t=>t.lotId!==lotId);save();render();
+}
+window.deleteLot=deleteLot;
+
+$("ticketFilter").onchange=renderTickets;
 $("period").onchange=renderStats;
+$("selectAll").onchange=e=>document.querySelectorAll(".ticketCheck").forEach(x=>x.checked=e.target.checked);
+$("deleteSelected").onclick=deleteSelected;
 $("printLot").onclick=printLot;
 $("deleteLot").onclick=deleteLot;
 
 $("onlineGenerate").onclick=async()=>{
   const rid=$("onlineReseller").value,pid=$("onlinePlan").value,phone=$("onlinePhone").value.trim(),paymentRef=$("onlinePaymentRef").value.trim();
   const r=resellers.find(x=>x.id===rid),p=plans.find(x=>x.id===pid);
-  if(!API_BASE_URL){$("onlineResult").innerHTML='';return}
+  if(!API_BASE_URL){$("onlineResult").innerHTML='<div class="notice">⚠️ Le serveur API n’est pas encore configuré. Configure API_BASE_URL avant d’activer la génération automatique après paiement.</div>';return}
+  $("onlineGenerate").disabled=true;$("onlineResult").textContent="Vérification du paiement…";
   try{
     const resp=await fetch(API_BASE_URL.replace(/\/$/,"")+"/api/mobile-money/verify-and-generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({phone,paymentRef,resellerId:r.id,resellerName:r.name,zone:r.zone,planId:p.id,planName:p.name,amount:p.amount,codeLength:Number($("codeLength").value||8)})});
     const data=await resp.json();
+    if(!resp.ok||!data.success)throw new Error(data.message||"Paiement non confirmé");
+    $("onlineResult").innerHTML=`<div class="notice">✅ Paiement confirmé. Ticket généré par le serveur : <b>${esc(data.ticketCode||"")}</b></div>`;
   }catch(e){$("onlineResult").innerHTML=`<div class="notice">❌ ${esc(e.message)}</div>`}finally{$("onlineGenerate").disabled=false}
 };
 
