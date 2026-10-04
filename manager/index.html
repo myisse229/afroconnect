@@ -1,12 +1,287 @@
-<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AfroConnect WiFi Manager</title><link rel="stylesheet" href="style.css"></head><body>
-<div id="login" class="login"><form id="loginForm"><div class="logo">AFRO<span>CONNECT</span></div><h1>WiFi Manager</h1><p>Espace administrateur</p><input id="user" placeholder="Identifiant" required><input id="pass" type="password" placeholder="Mot de passe" required><button>Se connecter</button></form></div>
-<div id="app" class="hidden"><aside><div class="brand">AFRO<span>CONNECT</span><small>WIFI MANAGER</small></div><a href="#dashboard">📊 Tableau de bord</a><a href="#resellers">🤝 Revendeurs</a><a href="#tickets">🎟️ Tickets</a><a href="#stats">📈 Statistiques</a><a href="#clients">👥 Clients</a><a href="#mikrotik">📡 MikroTik</a><button id="logout" class="red">Déconnexion</button></aside>
-<main><header><div><small>ADMINISTRATION</small><h1>AfroConnect WiFi Manager</h1></div><b class="offline">● MikroTik non connecté</b></header>
-<section id="dashboard"><div class="cards"><article><span>🤝 Revendeurs</span><b id="resellerCount">0</b><small>Actifs</small></article><article class="g"><span>🎟️ Tickets générés</span><b id="ticketCount">0</b><small>Total</small></article><article class="y"><span>✅ Tickets utilisés</span><b id="usedCount">0</b><small>Vendus / utilisés</small></article><article class="r"><span>💰 CA</span><b id="revenue">0 F</b><small>Total</small></article></div></section>
-<section id="resellers"><div class="title"><h2>Revendeurs</h2><button id="addReseller">+ Ajouter</button></div><div class="panel"><table><thead><tr><th>Revendeur</th><th>Code</th><th>Zone</th><th>Tickets</th><th>Utilisés</th><th>CA</th></tr></thead><tbody id="resellerTable"></tbody></table></div></section>
-<section id="tickets"><div class="title"><h2>Générer des tickets</h2></div><div class="panel generator"><label>Revendeur<select id="ticketReseller"></select></label><label>Forfait<select id="ticketPlan"><option value="100">100 F</option><option value="200">200 F</option><option value="500">500 F</option></select></label><label>Quantité<input id="ticketQty" type="number" min="1" max="500" value="10"></label><button id="generate">🎟️ Générer</button></div><div class="panel"><div class="title"><h3>Tickets</h3><select id="ticketFilter"></select></div><div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Revendeur</th><th>Zone</th><th>Forfait</th><th>Statut</th><th>Date</th></tr></thead><tbody id="ticketTable"></tbody></table></div></div></section>
-<section id="stats"><div class="title"><h2>Ventes par revendeur</h2><select id="period"><option value="7">7 derniers jours</option><option value="30">30 derniers jours</option><option value="all">Tout</option></select></div><div class="panel"><table><thead><tr><th>Revendeur</th><th>Zone</th><th>Tickets vendus</th><th>CA</th></tr></thead><tbody id="statsTable"></tbody></table></div></section>
-<section id="clients"><h2>Clients</h2><div class="panel">La gestion réelle des clients et la déconnexion seront reliées au MikroTik via l'API sécurisée.</div></section>
-<section id="mikrotik"><h2>MikroTik</h2><div class="panel">Ne mets jamais les identifiants MikroTik dans GitHub Pages. La connexion réelle passera par un backend sécurisé.</div></section>
-</main></div>
-<div id="modal" class="modal hidden"><form id="resellerForm"><button type="button" id="close" class="close">×</button><h2>Ajouter un revendeur</h2><input id="rName" placeholder="Nom du revendeur" required><input id="rCode" placeholder="Code revendeur" required><input id="rZone" placeholder="Zone" required><button>Enregistrer</button></form></div><script src="app.js"></script></body></html>
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AfroConnect WiFi Manager</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#172033}
+.hidden{display:none!important}.login{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#087f39,#f7b500,#e52626);padding:20px}
+.login form{width:min(430px,100%);background:#fff;padding:35px;border-radius:22px;box-shadow:0 20px 60px #0004;text-align:center}
+.logo,.brand{font-weight:900;font-size:28px;color:#0b8f3d}.logo span,.brand span{color:#f59d00}.login h1{margin:10px 0 5px}.login p{color:#667085}
+input,select{width:100%;padding:12px 14px;border:1px solid #d0d5dd;border-radius:10px;margin:7px 0;font-size:15px;background:#fff}
+button{border:0;border-radius:10px;padding:11px 16px;font-weight:700;cursor:pointer;background:#087f39;color:white}
+button:hover{filter:brightness(.95)}button.red{background:#d92d20}button.gray{background:#667085}button.orange{background:#f59d00;color:#171717}
+.login button{width:100%;margin-top:10px}.error{color:#d92d20;font-weight:700;min-height:20px}
+#app{display:flex;min-height:100vh}aside{width:245px;background:#101828;color:#fff;padding:22px;position:fixed;inset:0 auto 0 0;z-index:5}
+.brand{font-size:23px;margin-bottom:25px}.brand small{display:block;color:#98a2b3;font-size:11px;letter-spacing:1.5px;margin-top:4px}
+aside a{display:block;color:#d0d5dd;text-decoration:none;padding:12px 10px;border-radius:9px;margin:5px 0}aside a:hover{background:#1d2939;color:#fff}
+aside .red{width:100%;margin-top:20px}main{margin-left:245px;width:calc(100% - 245px);padding:25px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}.offline,.online{padding:9px 13px;border-radius:20px}.offline{background:#fee4e2;color:#b42318}.online{background:#dcfae6;color:#067647}
+section{margin-bottom:35px;scroll-margin-top:20px}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}.cards article,.panel{background:#fff;border:1px solid #eaecf0;border-radius:16px;padding:18px;box-shadow:0 5px 20px #10182808}
+.cards article span{display:block;color:#667085}.cards article b{display:block;font-size:30px;margin:10px 0}.cards article small{color:#667085}
+.title{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.title h2,.title h3{margin:0}
+table{width:100%;border-collapse:collapse;background:#fff}th,td{text-align:left;padding:12px;border-bottom:1px solid #eaecf0}th{background:#f9fafb;color:#475467}
+.table-wrap{overflow:auto}.generator{display:grid;grid-template-columns:1.3fr 1.3fr .7fr auto;gap:12px;align-items:end}.generator label{font-weight:700}
+.badge{display:inline-block;padding:5px 9px;border-radius:15px;background:#eef4ff;color:#175cd3;font-size:12px;font-weight:700}
+.actions{display:flex;gap:6px;flex-wrap:wrap}.small{padding:7px 10px;font-size:12px}
+.modal{position:fixed;inset:0;background:#0008;display:grid;place-items:center;z-index:20;padding:20px}.modal form{background:#fff;width:min(600px,100%);padding:25px;border-radius:18px;position:relative}.close{position:absolute;right:15px;top:15px;background:#eee;color:#333;font-size:20px;padding:5px 10px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.form-grid label{font-weight:700;font-size:13px}.full{grid-column:1/-1}
+.notice{padding:12px 14px;background:#fff7e6;border:1px solid #ffd666;border-radius:10px;color:#7a4b00;margin-bottom:15px}
+@media(max-width:900px){aside{width:190px}main{margin-left:190px;width:calc(100% - 190px)}.cards{grid-template-columns:1fr 1fr}.generator{grid-template-columns:1fr 1fr}}
+@media(max-width:650px){aside{position:static;width:100%;min-height:auto}#app{display:block}main{margin-left:0;width:100%;padding:15px}.cards{grid-template-columns:1fr}.generator,.form-grid{grid-template-columns:1fr}header{display:block}.login form{padding:25px}}
+</style>
+</head>
+<body>
+
+<div id="login" class="login">
+<form id="loginForm">
+  <div class="logo">AFRO<span>CONNECT</span></div>
+  <h1>WiFi Manager</h1>
+  <p>Espace administrateur</p>
+  <input id="user" placeholder="Identifiant" autocomplete="username" required>
+  <input id="pass" type="password" placeholder="Mot de passe" autocomplete="current-password" required>
+  <div id="loginError" class="error"></div>
+  <button>Se connecter</button>
+</form>
+</div>
+
+<div id="app" class="hidden">
+<aside>
+  <div class="brand">AFRO<span>CONNECT</span><small>WIFI MANAGER</small></div>
+  <a href="#dashboard">📊 Tableau de bord</a>
+  <a href="#resellers">🤝 Revendeurs</a>
+  <a href="#tickets">🎟️ Tickets</a>
+  <a href="#plans">💳 Forfaits</a>
+  <a href="#stats">📈 Statistiques</a>
+  <a href="#clients">👥 Clients</a>
+  <a href="#mikrotik">📡 MikroTik</a>
+  <button id="logout" class="red">Déconnexion</button>
+</aside>
+
+<main>
+<header>
+  <div><small>ADMINISTRATION</small><h1>AfroConnect WiFi Manager</h1></div>
+  <b id="connection" class="offline">● Gestion en ligne</b>
+</header>
+
+<section id="dashboard">
+  <div class="cards">
+    <article><span>🤝 Revendeurs</span><b id="resellerCount">0</b><small>Actifs</small></article>
+    <article><span>🎟️ Tickets générés</span><b id="ticketCount">0</b><small>Total</small></article>
+    <article><span>✅ Tickets utilisés</span><b id="usedCount">0</b><small>Utilisés</small></article>
+    <article><span>💰 CA</span><b id="revenue">0 F</b><small>Tickets utilisés</small></article>
+  </div>
+</section>
+
+<section id="resellers">
+  <div class="title"><h2>Revendeurs</h2><button id="addReseller">+ Ajouter</button></div>
+  <div class="panel">
+    <table><thead><tr><th>Revendeur</th><th>Code</th><th>Zone</th><th>Tickets</th><th>Utilisés</th><th>CA</th></tr></thead>
+    <tbody id="resellerTable"></tbody></table>
+  </div>
+</section>
+
+<section id="tickets">
+  <div class="title"><h2>Générer des tickets</h2></div>
+  <div class="panel generator">
+    <label>Revendeur<select id="ticketReseller"></select></label>
+    <label>Forfait<select id="ticketPlan"></select></label>
+    <label>Quantité<input id="ticketQty" type="number" min="1" max="500" value="10"></label>
+    <button id="generate">🎟️ Générer</button>
+  </div>
+  <div class="panel" style="margin-top:15px">
+    <div class="title"><h3>Tickets</h3><select id="ticketFilter" style="max-width:260px"><option value="all">Tous les tickets</option></select></div>
+    <div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Revendeur</th><th>Zone</th><th>Forfait</th><th>Statut</th><th>Date</th></tr></thead>
+    <tbody id="ticketTable"></tbody></table></div>
+  </div>
+</section>
+
+<section id="plans">
+  <div class="title"><h2>Forfaits disponibles</h2><button id="addPlan">+ Créer un forfait</button></div>
+  <div class="notice">Les 6 forfaits AfroConnect sont préchargés. Tu peux en créer d'autres directement depuis cet espace Manager.</div>
+  <div class="panel">
+    <div class="table-wrap"><table><thead><tr><th>Nom</th><th>Type</th><th>Montant</th><th>Utilisateurs</th><th>Quota / Temps</th><th>Validité</th><th>Upload</th><th>Download</th><th>Action</th></tr></thead>
+    <tbody id="plansTable"></tbody></table></div>
+  </div>
+</section>
+
+<section id="stats">
+  <div class="title"><h2>Ventes par revendeur / zone</h2><select id="period" style="max-width:230px"><option value="7">7 derniers jours</option><option value="30">30 derniers jours</option><option value="all">Tout</option></select></div>
+  <div class="panel"><table><thead><tr><th>Revendeur</th><th>Zone</th><th>Tickets vendus</th><th>CA</th></tr></thead><tbody id="statsTable"></tbody></table></div>
+</section>
+
+<section id="clients">
+  <h2>Clients</h2>
+  <div class="panel">La gestion réelle des clients, les sessions actives et la déconnexion seront reliées au serveur/API MikroTik dans l'étape backend.</div>
+</section>
+
+<section id="mikrotik">
+  <h2>MikroTik</h2>
+  <div class="panel">Le site GitHub Pages ne doit pas contenir les identifiants MikroTik. La connexion réelle doit passer par un backend sécurisé.</div>
+</section>
+</main>
+</div>
+
+<div id="modal" class="modal hidden">
+<form id="resellerForm">
+<button type="button" id="closeReseller" class="close">×</button>
+<h2>Ajouter un revendeur</h2>
+<input id="rName" placeholder="Nom du revendeur" required>
+<input id="rCode" placeholder="Code revendeur" required>
+<input id="rZone" placeholder="Zone" required>
+<button>Enregistrer</button>
+</form>
+</div>
+
+<div id="planModal" class="modal hidden">
+<form id="planForm">
+<button type="button" id="closePlan" class="close">×</button>
+<h2>Créer un forfait personnalisé</h2>
+<div class="form-grid">
+<label>Nom<input id="pName" placeholder="Ex : Pass 150F" required></label>
+<label>Montant (F)<input id="pAmount" type="number" min="0" required></label>
+<label>Type<select id="pType"><option>Limité (Temps)</option><option>Quota</option><option>Illimité</option></select></label>
+<label>Nombre d'utilisateurs<input id="pUsers" type="number" min="1" value="1" required></label>
+<label>Quota / Temps<input id="pQuota" placeholder="Ex : 10 heures ou 5 Go" required></label>
+<label>Validité<input id="pValidity" placeholder="Ex : 7 jours" required></label>
+<label>Limite Upload<input id="pUpload" placeholder="Ex : 5 Mo" value="5 Mo"></label>
+<label>Limite Download<input id="pDownload" placeholder="Ex : 5 Mo" value="5 Mo"></label>
+</div>
+<button style="margin-top:12px">Créer le forfait</button>
+</form>
+</div>
+
+<script>
+const LOGIN_USER="Myisse";
+const LOGIN_PASS="Mamour229@";
+
+const DEFAULT_PLANS=[
+ {id:"100",name:"Pass 100F",type:"Limité (Temps)",amount:100,users:1,quota:"5 heures",validity:"1 jour",upload:"5 Mo",download:"5 Mo",builtin:true},
+ {id:"200",name:"Pass 200F",type:"Limité (Temps)",amount:200,users:1,quota:"1 jour",validity:"1 jour",upload:"5 Mo",download:"5 Mo",builtin:true},
+ {id:"500",name:"Pass 500F",type:"Limité (Temps)",amount:500,users:1,quota:"3 jours",validity:"3 jours",upload:"5 Mo",download:"5 Mo",builtin:true},
+ {id:"1000",name:"Pass 1000F",type:"Limité (Temps)",amount:1000,users:1,quota:"7 jours",validity:"7 jours",upload:"5 Mo",download:"5 Mo",builtin:true},
+ {id:"3000",name:"Pass 3000F",type:"Limité (Temps)",amount:3000,users:1,quota:"30 jours",validity:"30 jours",upload:"5 Mo",download:"5 Mo",builtin:true},
+ {id:"family",name:"Pass Family",type:"Limité (Temps)",amount:6000,users:3,quota:"30 jours",validity:"30 jours",upload:"5 Mo",download:"5 Mo",builtin:true}
+];
+
+let plans=JSON.parse(localStorage.getItem("afro_plans")||"null")||DEFAULT_PLANS;
+let resellers=JSON.parse(localStorage.getItem("afro_resellers")||"null")||[];
+let tickets=JSON.parse(localStorage.getItem("afro_tickets")||"null")||[];
+
+function save(){
+ localStorage.setItem("afro_plans",JSON.stringify(plans));
+ localStorage.setItem("afro_resellers",JSON.stringify(resellers));
+ localStorage.setItem("afro_tickets",JSON.stringify(tickets));
+}
+function money(n){return Number(n||0).toLocaleString("fr-FR")+" F"}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function dateISO(){return new Date().toISOString()}
+function withinDays(date,days){return (Date.now()-new Date(date).getTime())<=days*86400000}
+
+function render(){
+ document.getElementById("resellerCount").textContent=resellers.length;
+ document.getElementById("ticketCount").textContent=tickets.length;
+ const used=tickets.filter(t=>t.status==="Utilisé").length;
+ document.getElementById("usedCount").textContent=used;
+ document.getElementById("revenue").textContent=money(tickets.filter(t=>t.status==="Utilisé").reduce((s,t)=>s+Number(t.amount||0),0));
+
+ document.getElementById("resellerTable").innerHTML=resellers.length?resellers.map(r=>{
+  const rt=tickets.filter(t=>t.resellerId===r.id), ru=rt.filter(t=>t.status==="Utilisé");
+  return `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.code)}</td><td>${esc(r.zone)}</td><td>${rt.length}</td><td>${ru.length}</td><td>${money(ru.reduce((s,t)=>s+Number(t.amount||0),0))}</td></tr>`
+ }).join(""):`<tr><td colspan="6">Aucun revendeur. Clique sur « Ajouter ».</td></tr>`;
+
+ document.getElementById("ticketReseller").innerHTML=resellers.length?resellers.map(r=>`<option value="${r.id}">${esc(r.name)} — ${esc(r.zone)}</option>`).join(""):`<option value="">Ajoute d'abord un revendeur</option>`;
+ document.getElementById("ticketPlan").innerHTML=plans.map(p=>`<option value="${p.id}">${esc(p.name)} — ${money(p.amount)}</option>`).join("");
+ document.getElementById("ticketFilter").innerHTML=`<option value="all">Tous les tickets</option>`+resellers.map(r=>`<option value="${r.id}">${esc(r.name)}</option>`).join("");
+
+ const filter=document.getElementById("ticketFilter").value;
+ const visible=tickets.filter(t=>filter==="all"||t.resellerId===filter).slice().reverse();
+ document.getElementById("ticketTable").innerHTML=visible.length?visible.map(t=>{
+  const r=resellers.find(x=>x.id===t.resellerId);
+  return `<tr><td><b>${esc(t.code)}</b></td><td>${esc(r?.name||t.resellerName)}</td><td>${esc(r?.zone||t.zone)}</td><td>${esc(t.planName)} (${money(t.amount)})</td><td><span class="badge">${esc(t.status)}</span></td><td>${new Date(t.createdAt).toLocaleString("fr-FR")}</td></tr>`
+ }).join(""):`<tr><td colspan="6">Aucun ticket.</td></tr>`;
+
+ document.getElementById("plansTable").innerHTML=plans.map(p=>`<tr>
+ <td><b>${esc(p.name)}</b></td><td>${esc(p.type)}</td><td>${money(p.amount)}</td><td>${p.users}</td><td>${esc(p.quota)}</td><td>${esc(p.validity)}</td><td>${esc(p.upload)}</td><td>${esc(p.download)}</td>
+ <td>${p.builtin?'<span class="badge">Par défaut</span>':`<button class="small red" onclick="deletePlan('${p.id}')">Supprimer</button>`}</td></tr>`).join("");
+
+ renderStats();
+ save();
+}
+
+function renderStats(){
+ const period=document.getElementById("period").value;
+ const data={};
+ tickets.forEach(t=>{
+  if(t.status!=="Utilisé")return;
+  if(period!=="all"&&!withinDays(t.createdAt,Number(period)))return;
+  const r=resellers.find(x=>x.id===t.resellerId);
+  const key=t.resellerId;
+  if(!data[key])data[key]={name:r?.name||t.resellerName,zone:r?.zone||t.zone,count:0,ca:0};
+  data[key].count++;data[key].ca+=Number(t.amount||0);
+ });
+ document.getElementById("statsTable").innerHTML=Object.values(data).length?Object.values(data).map(x=>`<tr><td>${esc(x.name)}</td><td>${esc(x.zone)}</td><td>${x.count}</td><td>${money(x.ca)}</td></tr>`).join(""):`<tr><td colspan="4">Aucune vente sur la période sélectionnée.</td></tr>`;
+}
+
+document.getElementById("loginForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ if(document.getElementById("user").value===LOGIN_USER && document.getElementById("pass").value===LOGIN_PASS){
+  sessionStorage.setItem("afro_manager_auth","1");
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  render();
+ }else document.getElementById("loginError").textContent="Identifiant ou mot de passe incorrect.";
+});
+document.getElementById("logout").onclick=()=>{sessionStorage.removeItem("afro_manager_auth");location.reload()};
+document.getElementById("ticketFilter").onchange=render;
+document.getElementById("period").onchange=renderStats;
+
+document.getElementById("addReseller").onclick=()=>document.getElementById("modal").classList.remove("hidden");
+document.getElementById("closeReseller").onclick=()=>document.getElementById("modal").classList.add("hidden");
+document.getElementById("resellerForm").onsubmit=e=>{
+ e.preventDefault();
+ resellers.push({id:"r_"+Date.now(),name:document.getElementById("rName").value.trim(),code:document.getElementById("rCode").value.trim(),zone:document.getElementById("rZone").value.trim()});
+ e.target.reset();document.getElementById("modal").classList.add("hidden");render();
+};
+
+document.getElementById("generate").onclick=()=>{
+ const rid=document.getElementById("ticketReseller").value;
+ const pid=document.getElementById("ticketPlan").value;
+ const qty=Math.max(1,Math.min(500,Number(document.getElementById("ticketQty").value||1)));
+ const r=resellers.find(x=>x.id===rid),p=plans.find(x=>x.id===pid);
+ if(!r||!p){alert("Ajoute un revendeur et sélectionne un forfait.");return}
+ for(let i=0;i<qty;i++){
+  const code=(r.code||"REV").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8)+"-"+Math.random().toString(36).slice(2,8).toUpperCase();
+  tickets.push({id:"t_"+Date.now()+"_"+i,code,resellerId:r.id,resellerName:r.name,zone:r.zone,planId:p.id,planName:p.name,amount:p.amount,status:"Disponible",createdAt:dateISO()});
+ }
+ render();alert(qty+" ticket(s) généré(s) pour "+r.name+".");
+};
+
+document.getElementById("addPlan").onclick=()=>document.getElementById("planModal").classList.remove("hidden");
+document.getElementById("closePlan").onclick=()=>document.getElementById("planModal").classList.add("hidden");
+document.getElementById("planForm").onsubmit=e=>{
+ e.preventDefault();
+ const id="custom_"+Date.now();
+ plans.push({
+  id,name:document.getElementById("pName").value.trim(),type:document.getElementById("pType").value,
+  amount:Number(document.getElementById("pAmount").value),users:Number(document.getElementById("pUsers").value||1),
+  quota:document.getElementById("pQuota").value.trim(),validity:document.getElementById("pValidity").value.trim(),
+  upload:document.getElementById("pUpload").value.trim(),download:document.getElementById("pDownload").value.trim(),builtin:false
+ });
+ save();e.target.reset();document.getElementById("pUsers").value=1;document.getElementById("pUpload").value="5 Mo";document.getElementById("pDownload").value="5 Mo";
+ document.getElementById("planModal").classList.add("hidden");render();
+};
+window.deletePlan=id=>{
+ const p=plans.find(x=>x.id===id);if(!p)return;
+ if(confirm("Supprimer le forfait "+p.name+" ?")){plans=plans.filter(x=>x.id!==id);render();}
+};
+
+if(sessionStorage.getItem("afro_manager_auth")==="1"){
+ document.getElementById("login").classList.add("hidden");
+ document.getElementById("app").classList.remove("hidden");
+ render();
+}
+</script>
+</body>
+</html>
