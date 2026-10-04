@@ -88,9 +88,25 @@ th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08
 .bulk-bar b{color:#111}
 
 /* Toast */
-.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);background:#0d1f14;color:#fff;padding:13px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 14px 34px rgba(0,0,0,.3);opacity:0;transition:opacity .3s var(--ease),transform .3s var(--ease);z-index:100;max-width:90vw}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,20px);background:#0d1f14;color:#fff;padding:13px 20px;border-radius:12px;font-size:13px;font-weight:600;box-shadow:0 14px 34px rgba(0,0,0,.3);opacity:0;transition:opacity .3s var(--ease),transform .3s var(--ease);z-index:100;max-width:90vw;display:flex;align-items:center;gap:14px}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.error{background:var(--red)}
+.undo-btn{background:var(--yellow);color:#111;border:0;border-radius:14px;padding:6px 12px;font-weight:800;font-size:12px;cursor:pointer;flex-shrink:0}
+.undo-btn:hover{filter:brightness(1.05)}
+
+/* Save indicator */
+.save-indicator{color:var(--green);font-size:11px;font-weight:700;opacity:0;transition:opacity .4s var(--ease)}
+.save-indicator.show{opacity:1}
+
+/* Stock alert banner */
+#stockAlert{background:#fff7e6;border:1px solid #ffd666;color:#7a4b00;border-radius:12px;padding:13px 16px;font-size:13px;margin-bottom:14px}
+#stockAlert a{color:var(--green2);font-weight:700}
+
+/* Sortable table headers */
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:#111}
+th.sortable .arrow{opacity:.5;margin-left:3px}
+th.sortable.active .arrow{opacity:1;color:var(--green)}
 
 /* Confirm dialog */
 .confirm-box{background:#fff;border-radius:18px;padding:26px;width:min(380px,92vw);box-shadow:0 30px 70px rgba(0,0,0,.3);text-align:center;opacity:0;animation:rise .25s var(--ease) forwards}
@@ -209,6 +225,7 @@ th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08
 <div class="topbanner">
 <div class="topbanner-title"><b>AFRO<span>CONNECT</span> WIFI MANAGER</b><small>CONNECTER · INNOVER · RÉUSSIR</small></div>
 <div class="topbanner-right">
+<span id="saveIndicator" class="save-indicator" style="color:#8fe6ab">Enregistré ✓</span>
 <button class="icon-btn" id="exportData" type="button" title="Exporter les données">💾</button>
 <label class="icon-btn" title="Importer une sauvegarde" style="cursor:pointer">📂<input type="file" id="importFile" accept="application/json" hidden></label>
 <button class="icon-btn" id="fullscreenBtn" type="button" title="Plein écran">⛶</button>
@@ -222,6 +239,7 @@ th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08
 </div>
 
 <section id="dashboard">
+<div id="stockAlert" class="hidden"></div>
 <div class="stat-grid">
 <div class="stat-card"><div class="stat-icon g">🤝</div><div><b id="resellerCount">0</b><span>Revendeurs actifs</span></div></div>
 <div class="stat-card"><div class="stat-icon r">🎟️</div><div><b id="availableTicketCount">0</b><span>Tickets disponibles</span><br><small id="totalTicketLabel"></small></div></div>
@@ -291,7 +309,15 @@ th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08
 <section id="resellers">
 <div class="title"><h2>Revendeurs</h2><div class="actions"><button id="exportResellersCSV" class="gray small" type="button">⬇️ CSV</button><button id="addReseller" type="button">+ Ajouter</button></div></div>
 <div class="panel"><input id="resellerSearch" placeholder="Rechercher un revendeur, un code ou une zone..." style="margin-bottom:12px"><div class="table-wrap">
-<table><thead><tr><th>Revendeur</th><th>Code</th><th>Zone</th><th>Tickets</th><th>Disponibles</th><th>CA</th><th>Action</th></tr></thead>
+<table><thead><tr>
+<th class="sortable" data-sort="name">Revendeur <span class="arrow">↕</span></th>
+<th class="sortable" data-sort="code">Code <span class="arrow">↕</span></th>
+<th class="sortable" data-sort="zone">Zone <span class="arrow">↕</span></th>
+<th class="sortable" data-sort="tickets">Tickets <span class="arrow">↕</span></th>
+<th class="sortable" data-sort="available">Disponibles <span class="arrow">↕</span></th>
+<th class="sortable" data-sort="ca">CA <span class="arrow">↕</span></th>
+<th>Action</th>
+</tr></thead>
 <tbody id="resellerTable"></tbody></table>
 </div></div>
 </section>
@@ -318,7 +344,17 @@ th{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08
 <div class="actions"><select id="lotFilter" style="max-width:300px;width:auto"><option value="all">Tous les lots</option></select><button id="exportLotsCSV" class="gray small" type="button">⬇️ CSV</button></div>
 </div>
 <div class="table-wrap">
-<table><thead><tr><th>Lot</th><th>Revendeur</th><th>Zone</th><th>Forfait</th><th>Tickets</th><th>Disponibles</th><th>Utilisés</th><th>Date</th><th>Actions</th></tr></thead>
+<table><thead><tr>
+<th class="sortable" data-sort="id">Lot <span class="arrow">↕</span></th>
+<th class="sortable" data-sort="resellerName">Revendeur <span class="arrow">↕</span></th>
+<th class="sortable" data-sort="zone">Zone <span class="arrow">↕</span></th>
+<th class="sortable" data-sort="planName">Forfait <span class="arrow">↕</span></th>
+<th class="sortable" data-sort="tickets">Tickets <span class="arrow">↕</span></th>
+<th class="sortable" data-sort="available">Disponibles <span class="arrow">↕</span></th>
+<th class="sortable" data-sort="used">Utilisés <span class="arrow">↕</span></th>
+<th class="sortable" data-sort="createdAt">Date <span class="arrow">↕</span></th>
+<th>Actions</th>
+</tr></thead>
 <tbody id="lotTable"></tbody></table>
 </div>
 </div>
@@ -420,14 +456,24 @@ let editingPlanId=null;
 let selectedTickets=new Set();
 let currentLotSearch="";
 const LOW_STOCK=10;
+let resellerSort={col:"name",dir:1};
+let lotSort={col:"createdAt",dir:-1};
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+let _savedTimer=null;
+function flashSaved(){
+const el=$("saveIndicator");if(!el)return;
+el.classList.add("show");
+clearTimeout(_savedTimer);
+_savedTimer=setTimeout(()=>el.classList.remove("show"),1200);
+}
 const save=()=>{
 localStorage.setItem("afro_plans",JSON.stringify(plans));
 localStorage.setItem("afro_resellers",JSON.stringify(resellers));
 localStorage.setItem("afro_tickets",JSON.stringify(tickets));
 localStorage.setItem("afro_lots",JSON.stringify(lots));
+flashSaved();
 };
 const money=n=>Number(n||0).toLocaleString("fr-FR")+" F";
 const nowISO=()=>new Date().toISOString();
@@ -439,6 +485,26 @@ t.textContent=message;
 document.body.appendChild(t);
 requestAnimationFrame(()=>t.classList.add("show"));
 setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300)},2800);
+}
+
+function showUndoToast(message,restoreFn){
+const t=document.createElement("div");
+t.className="toast";
+const span=document.createElement("span");span.textContent=message;
+const btn=document.createElement("button");btn.type="button";btn.className="undo-btn";btn.textContent="Annuler";
+t.appendChild(span);t.appendChild(btn);
+document.body.appendChild(t);
+requestAnimationFrame(()=>t.classList.add("show"));
+let done=false;
+const timer=setTimeout(()=>{done=true;t.classList.remove("show");setTimeout(()=>t.remove(),300)},5000);
+btn.onclick=()=>{
+if(done)return;
+done=true;
+clearTimeout(timer);
+restoreFn();
+t.classList.remove("show");
+setTimeout(()=>t.remove(),300);
+};
 }
 
 function confirmDialog(message){
@@ -514,15 +580,36 @@ $("donutWrap").innerHTML='<p class="muted-note">Aucune vente enregistrée pour l
 const recent=used.slice().sort((a,b)=>new Date(b.usedAt||b.createdAt)-new Date(a.usedAt||a.createdAt)).slice(0,6);
 $("recentSalesTable").innerHTML=recent.length?recent.map(t=>`<tr><td class="lot-code">${esc(t.code)}</td><td>${esc(t.resellerName)}</td><td>${esc(t.planName)}</td><td>${money(t.amount)}</td><td>${t.usedAt?new Date(t.usedAt).toLocaleString("fr-FR"):"—"}</td></tr>`).join(""):'<tr><td colspan="5">Aucun ticket vendu pour le moment.</td></tr>';
 
-const q=($("resellerSearch").value||"").toLowerCase();
-const filteredResellers=resellers.filter(r=>!q||(r.name+r.code+r.zone).toLowerCase().includes(q));
-$("resellerTable").innerHTML=filteredResellers.length?filteredResellers.map(r=>{
+const stockIssues=resellers.map(r=>{
 const rt=tickets.filter(t=>t.resellerId===r.id);
-const available=rt.filter(t=>t.status!=="Utilisé").length;
-const ca=rt.filter(t=>t.status==="Utilisé").reduce((s,t)=>s+Number(t.amount||0),0);
-const stockClass=available===0&&rt.length>0?"stock-out":(available>0&&available<LOW_STOCK?"stock-low":"");
-const stockLabel=available===0&&rt.length>0?`${available} 🔴`:(available>0&&available<LOW_STOCK?`${available} ⚠️`:available);
-return `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.code)}</td><td>${esc(r.zone)}</td><td>${rt.length}</td><td class="${stockClass}">${stockLabel}</td><td>${money(ca)}</td><td class="actions"><button class="gray small" onclick="editReseller('${esc(r.id)}')">✏️ Modifier</button><button class="red small" onclick="deleteReseller('${esc(r.id)}')">🗑️ Supprimer</button></td></tr>`;
+const avail=rt.filter(t=>t.status!=="Utilisé").length;
+return {r,avail,hasTickets:rt.length>0};
+}).filter(x=>x.hasTickets&&x.avail<LOW_STOCK);
+if(stockIssues.length){
+$("stockAlert").classList.remove("hidden");
+$("stockAlert").innerHTML=`⚠️ <b>${stockIssues.length}</b> revendeur(s) en stock bas : ${stockIssues.map(x=>esc(x.r.name)).join(", ")}. <a href="#resellers">Voir →</a>`;
+}else{
+$("stockAlert").classList.add("hidden");
+}
+
+const q=($("resellerSearch").value||"").toLowerCase();
+let filteredResellers=resellers.filter(r=>!q||(r.name+r.code+r.zone).toLowerCase().includes(q));
+const rsEnriched=filteredResellers.map(r=>{
+const rt=tickets.filter(t=>t.resellerId===r.id);
+return {r,tickets:rt.length,available:rt.filter(t=>t.status!=="Utilisé").length,ca:rt.filter(t=>t.status==="Utilisé").reduce((s,t)=>s+Number(t.amount||0),0)};
+});
+rsEnriched.sort((a,b)=>{
+let va,vb;
+if(resellerSort.col==="name"||resellerSort.col==="code"||resellerSort.col==="zone")  {va=a.r[resellerSort.col]||"";vb=b.r[resellerSort.col]||"";return resellerSort.dir*String(va).localeCompare(String(vb));}
+va=a[resellerSort.col]||0;vb=b[resellerSort.col]||0;
+return resellerSort.dir*(va-vb);
+});
+document.querySelectorAll('#resellers th.sortable').forEach(th=>th.classList.toggle("active",th.dataset.sort===resellerSort.col));
+$("resellerTable").innerHTML=rsEnriched.length?rsEnriched.map(x=>{
+const r=x.r,rt=x.tickets,available=x.available,ca=x.ca;
+const stockClass=available===0&&rt>0?"stock-out":(available>0&&available<LOW_STOCK?"stock-low":"");
+const stockLabel=available===0&&rt>0?`${available} 🔴`:(available>0&&available<LOW_STOCK?`${available} ⚠️`:available);
+return `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.code)}</td><td>${esc(r.zone)}</td><td>${rt}</td><td class="${stockClass}">${stockLabel}</td><td>${money(ca)}</td><td class="actions"><button class="gray small" onclick="editReseller('${esc(r.id)}')">✏️ Modifier</button><button class="red small" onclick="deleteReseller('${esc(r.id)}')">🗑️ Supprimer</button></td></tr>`;
 }).join(""):`<tr><td colspan="7">${resellers.length?"Aucun résultat pour cette recherche.":"Aucun revendeur."}</td></tr>`;
 
 const top5=resellers.map(r=>{
@@ -550,16 +637,27 @@ $("lotFilter").value=[...$("lotFilter").options].some(o=>o.value===old)?old:"all
 const selected=$("lotFilter").value;
 const list=selected==="all"?lots:lots.filter(l=>l.id===selected);
 
-$("lotTable").innerHTML=list.slice().reverse().map(l=>{
+const ltEnriched=list.map(l=>{
 const lt=tickets.filter(t=>t.lotId===l.id);
-const available=lt.filter(t=>t.status!=="Utilisé").length;
-const used=lt.filter(t=>t.status==="Utilisé").length;
+return {l,tickets:lt.length,available:lt.filter(t=>t.status!=="Utilisé").length,used:lt.filter(t=>t.status==="Utilisé").length};
+});
+ltEnriched.sort((a,b)=>{
+let va,vb;
+if(lotSort.col==="id"||lotSort.col==="resellerName"||lotSort.col==="zone"||lotSort.col==="planName"){va=a.l[lotSort.col]||"";vb=b.l[lotSort.col]||"";return lotSort.dir*String(va).localeCompare(String(vb));}
+if(lotSort.col==="createdAt"){return lotSort.dir*(new Date(a.l.createdAt)-new Date(b.l.createdAt));}
+va=a[lotSort.col]||0;vb=b[lotSort.col]||0;
+return lotSort.dir*(va-vb);
+});
+document.querySelectorAll('#tickets th.sortable').forEach(th=>th.classList.toggle("active",th.dataset.sort===lotSort.col));
+
+$("lotTable").innerHTML=ltEnriched.length?ltEnriched.map(x=>{
+const l=x.l;
 return `<tr>
 <td class="lot-code">${esc(l.id)}</td><td>${esc(l.resellerName)}</td><td>${esc(l.zone)}</td><td>${esc(l.planName)}</td>
-<td>${lt.length}</td><td>${available}</td><td>${used}</td><td>${new Date(l.createdAt).toLocaleString("fr-FR")}</td>
+<td>${x.tickets}</td><td>${x.available}</td><td>${x.used}</td><td>${new Date(l.createdAt).toLocaleString("fr-FR")}</td>
 <td class="actions"><button class="small" onclick="openLot('${esc(l.id)}')">👁️ Gérer</button><button class="orange small" onclick="printLot('${esc(l.id)}')">🖨️ PDF</button><button class="red small" onclick="deleteLot('${esc(l.id)}')">🗑️ Lot</button></td>
 </tr>`;
-}).join("")||'<tr><td colspan="9">Aucun lot créé.</td></tr>';
+}).join(""):'<tr><td colspan="9">Aucun lot créé.</td></tr>';
 }
 
 function openLot(id){
@@ -610,39 +708,44 @@ if($("lotDetails").dataset.lot)renderLotTickets();
 }
 window.toggleTicketStatus=toggleTicketStatus;
 
-async function deleteTicket(id){
+function deleteTicket(id){
 const t=tickets.find(x=>x.id===id);if(!t)return;
-if(!(await confirmDialog(`Supprimer le ticket ${t.code} ?`)))return;
 tickets=tickets.filter(x=>x.id!==id);
 selectedTickets.delete(id);
 save();render();
 if($("lotDetails").dataset.lot)renderLotTickets();
+showUndoToast(`Ticket ${t.code} supprimé.`,()=>{
+tickets.push(t);save();render();
+if($("lotDetails").dataset.lot)renderLotTickets();
+});
 }
 window.deleteTicket=deleteTicket;
 
-async function deleteLot(id){
+function deleteLot(id){
 const lot=lots.find(l=>l.id===id);if(!lot)return;
-const count=tickets.filter(t=>t.lotId===id).length;
-if(!(await confirmDialog(`Supprimer le lot ${lot.id} et ses ${count} tickets ?`)))return;
+const removedTickets=tickets.filter(t=>t.lotId===id);
 lots=lots.filter(l=>l.id!==id);
 tickets=tickets.filter(t=>t.lotId!==id);
 $("lotDetails").classList.add("hidden");
 save();render();
-toast(`Lot ${lot.id} supprimé.`);
+showUndoToast(`Lot ${lot.id} supprimé (${removedTickets.length} ticket(s)).`,()=>{
+lots.push(lot);tickets.push(...removedTickets);save();render();
+});
 }
 window.deleteLot=deleteLot;
 
-async function deleteReseller(id){
+function deleteReseller(id){
 const r=resellers.find(x=>x.id===id);if(!r)return;
 const relatedLots=lots.filter(l=>l.resellerId===id);
-const count=tickets.filter(t=>t.resellerId===id).length;
-if(!(await confirmDialog(`Supprimer le revendeur ${r.name} ?\n\n${relatedLots.length} lot(s) et ${count} ticket(s) associés seront supprimés.`)))return;
 const lotIds=new Set(relatedLots.map(l=>l.id));
+const relatedTickets=tickets.filter(t=>t.resellerId===id||lotIds.has(t.lotId));
 resellers=resellers.filter(x=>x.id!==id);
 lots=lots.filter(l=>l.resellerId!==id);
 tickets=tickets.filter(t=>t.resellerId!==id&&!lotIds.has(t.lotId));
 save();render();
-toast(`Revendeur ${r.name} supprimé.`);
+showUndoToast(`Revendeur ${r.name} supprimé (${relatedLots.length} lot(s), ${relatedTickets.length} ticket(s)).`,()=>{
+resellers.push(r);lots.push(...relatedLots);tickets.push(...relatedTickets);save();render();
+});
 }
 window.deleteReseller=deleteReseller;
 
@@ -725,14 +828,16 @@ save();render();renderLotTickets();
 toast(`${n} ticket(s) marqué(s) utilisé(s).`);
 };
 
-$("bulkDelete").onclick=async()=>{
+$("bulkDelete").onclick=()=>{
 if(!selectedTickets.size){toast("Sélectionne au moins un ticket.","error");return;}
-const n=selectedTickets.size;
-if(!(await confirmDialog(`Supprimer les ${n} ticket(s) sélectionné(s) ?`)))return;
+const removed=tickets.filter(t=>selectedTickets.has(t.id));
+const n=removed.length;
 tickets=tickets.filter(t=>!selectedTickets.has(t.id));
 selectedTickets.clear();
 save();render();renderLotTickets();
-toast(`${n} ticket(s) supprimé(s).`);
+showUndoToast(`${n} ticket(s) supprimé(s).`,()=>{
+tickets.push(...removed);save();render();renderLotTickets();
+});
 };
 
 $("exportResellersCSV").onclick=()=>{
@@ -828,11 +933,43 @@ setInterval(updateClock,30000);
 
 $("resellerSearch").oninput=render;
 
+document.querySelectorAll('#resellers th.sortable').forEach(th=>{
+th.onclick=()=>{
+const col=th.dataset.sort;
+if(resellerSort.col===col)resellerSort.dir*=-1;else resellerSort={col,dir:1};
+render();
+};
+});
+document.querySelectorAll('#tickets th.sortable').forEach(th=>{
+th.onclick=()=>{
+const col=th.dataset.sort;
+if(lotSort.col===col)lotSort.dir*=-1;else lotSort={col,dir:1};
+renderLots();
+};
+});
+
+// Escape closes any open modal; clicking the dark backdrop does too
+document.addEventListener("keydown",e=>{
+if(e.key==="Escape"){
+document.querySelectorAll(".modal:not(.hidden)").forEach(m=>{if(m.id)m.classList.add("hidden")});
+}
+if(e.key==="/"&&!["INPUT","SELECT","TEXTAREA"].includes(document.activeElement.tagName)){
+e.preventDefault();
+document.getElementById("resellers").scrollIntoView({behavior:"smooth"});
+$("resellerSearch").focus();
+}
+});
+document.querySelectorAll(".modal").forEach(m=>{
+if(!m.id)return;
+m.addEventListener("click",e=>{if(e.target===m)m.classList.add("hidden")});
+});
+
 $("addReseller").onclick=()=>{
 editingResellerId=null;
 $("resellerModalTitle").textContent="Ajouter un revendeur";
 $("resellerForm").reset();
 $("resellerModal").classList.remove("hidden");
+setTimeout(()=>$("rName").focus(),50);
 };
 $("closeReseller").onclick=()=>$("resellerModal").classList.add("hidden");
 
@@ -842,6 +979,7 @@ editingResellerId=id;
 $("resellerModalTitle").textContent="Modifier le revendeur";
 $("rName").value=r.name;$("rCode").value=r.code;$("rZone").value=r.zone;
 $("resellerModal").classList.remove("hidden");
+setTimeout(()=>$("rName").focus(),50);
 }
 window.editReseller=editReseller;
 
@@ -864,6 +1002,7 @@ editingPlanId=null;
 $("planModalTitle").textContent="Créer un forfait personnalisé";
 $("planForm").reset();$("pUsers").value=1;$("pUpload").value="5 Mo";$("pDownload").value="5 Mo";
 $("planModal").classList.remove("hidden");
+setTimeout(()=>$("pName").focus(),50);
 };
 $("closePlan").onclick=()=>$("planModal").classList.add("hidden");
 
@@ -874,15 +1013,15 @@ $("planModalTitle").textContent="Modifier le forfait";
 $("pName").value=p.name;$("pAmount").value=p.amount;$("pType").value=p.type;$("pUsers").value=p.users;
 $("pQuota").value=p.quota;$("pValidity").value=p.validity;$("pUpload").value=p.upload;$("pDownload").value=p.download;
 $("planModal").classList.remove("hidden");
+setTimeout(()=>$("pName").focus(),50);
 }
 window.editPlan=editPlan;
 
-async function deletePlan(id){
+function deletePlan(id){
 const p=plans.find(x=>x.id===id);if(!p||p.builtin)return;
-if(!(await confirmDialog(`Supprimer le forfait ${p.name} ? Les tickets déjà créés avec ce forfait ne sont pas affectés.`)))return;
 plans=plans.filter(x=>x.id!==id);
 save();render();
-toast(`Forfait ${p.name} supprimé.`);
+showUndoToast(`Forfait ${p.name} supprimé.`,()=>{plans.push(p);save();render();});
 }
 window.deletePlan=deletePlan;
 
