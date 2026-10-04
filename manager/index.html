@@ -55,6 +55,14 @@ main{max-width:1600px}.panel{box-shadow:0 3px 14px #1018280a}.title button{white
 
 .mikrotik-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
 @media(max-width:700px){.mikrotik-grid{grid-template-columns:1fr}}
+
+.stock-alert{background:#fff4e5;border:1px solid #f5b400;color:#7a4b00;padding:12px 14px;border-radius:10px;font-weight:700}
+.stock-alert strong{font-size:18px}
+
+.admin-overview{display:grid;grid-template-columns:1.4fr 1fr;gap:15px;margin-top:15px}.overview-main{padding:18px}
+.overview-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.overview-head h2{margin:4px 0 0}.overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px}.overview-grid>div,.week-grid>div{background:#f9fafb;border-radius:10px;padding:12px}.overview-grid span,.week-grid span{display:block;color:#667085;font-size:12px}.overview-grid b,.week-grid b{display:block;font-size:20px;margin-top:5px}.status-pill{background:#dcfae6;color:#067647;padding:7px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}.status-pill.warn{background:#fff4e5;color:#b54708}.leader{display:flex;align-items:center;gap:12px;margin-top:18px}.leader-icon{font-size:34px}.leader b{display:block;font-size:20px}.leader small{color:#667085}.week-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:850px){.admin-overview{grid-template-columns:1fr}.overview-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:550px){.overview-grid,.week-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -100,10 +108,34 @@ main{max-width:1600px}.panel{box-shadow:0 3px 14px #1018280a}.title button{white
 <div class="card"><span>🎟️ Tickets</span><b id="ticketCount">0</b><small><span id="availableCount">0</span> disponibles</small></div>
 <div class="card"><span>💰 CA</span><b id="revenue">0 F</b><small>Tickets utilisés</small></div>
 </div>
+<div class="admin-overview">
+<div class="overview-main panel">
+<div class="overview-head"><div><small>SUPER ADMIN</small><h2>Vue d'ensemble</h2></div><span id="lowStockBadge" class="status-pill">● Stock OK</span></div>
+<div class="overview-grid">
+<div><span>📡 MikroTik</span><b id="overviewMikrotik">PRÊT</b></div>
+<div><span>👥 Clients</span><b id="overviewClients">—</b></div>
+<div><span>⚠️ Lots faibles</span><b id="overviewLowLots">0</b></div>
+<div><span>📈 Ventes 7 jours</span><b id="overviewWeekTickets">0</b></div>
+</div>
+</div>
+<div class="overview-main panel">
+<div class="overview-head"><div><small>PERFORMANCE</small><h2>Meilleur revendeur</h2></div></div>
+<div class="leader"><div class="leader-icon">🏆</div><div><b id="topReseller">Aucune vente</b><small id="topResellerInfo">Cette semaine</small></div></div>
+</div>
+</div>
+<div class="panel" style="margin-top:15px">
+<div class="title"><h3>📅 Résumé de la semaine</h3><span class="muted" id="weekRange"></span></div>
+<div class="week-grid">
+<div><span>Tickets utilisés</span><b id="weekUsed">0</b></div>
+<div><span>Chiffre d'affaires</span><b id="weekRevenue">0 F</b></div>
+<div><span>Meilleure zone</span><b id="topZone">Aucune</b></div>
+</div>
+</div>
 <div class="panel" style="margin-top:15px">
 <div class="title"><h3>⚡ Dernières actions</h3></div>
 <div id="activityList" class="activity"></div>
 </div>
+<div id="stockAlerts" class="stock-alert hidden" style="margin-top:12px"></div>
 </section>
 
 <section id="resellers">
@@ -268,6 +300,73 @@ function renderActivity(){
 const items=activities.slice().reverse().slice(0,8);
 $("activityList").innerHTML=items.length?items.map(a=>`<div class="activity-item">🟢 ${esc(a.text)}<small>${new Date(a.at).toLocaleString("fr-FR")}</small></div>`).join(""):'<div class="muted">Aucune action récente.</div>';
 }
+function renderStockAlerts(){
+const low=lots.map(l=>{
+  const available=tickets.filter(t=>t.lotId===l.id && t.status!=="Utilisé").length;
+  return {...l,available};
+}).filter(l=>l.available<10 && l.available>0).sort((a,b)=>a.available-b.available);
+
+const box=$("stockAlerts");
+if(!box)return;
+if(!low.length){
+  box.classList.add("hidden");
+  box.innerHTML="";
+  return;
+}
+box.classList.remove("hidden");
+box.innerHTML="⚠️ <strong>Stock faible</strong> — "+low.map(l=>
+  `<span style="display:block;margin-top:5px">📦 ${esc(l.id)} : <b>${l.available}</b> ticket(s) disponible(s) — ${esc(l.resellerName)} / ${esc(l.planName)}</span>`
+).join("");
+}
+function renderAdminOverview(){
+const now=new Date();
+const start=new Date(now);
+start.setHours(0,0,0,0);
+start.setDate(start.getDate()-6);
+
+const weekTickets=tickets.filter(t=>t.status==="Utilisé" && new Date(t.createdAt)>=start);
+const weekRevenue=weekTickets.reduce((s,t)=>s+Number(t.amount||0),0);
+
+const resellerStats={};
+weekTickets.forEach(t=>{
+  resellerStats[t.resellerId]=resellerStats[t.resellerId]||{name:t.resellerName,n:0,ca:0};
+  resellerStats[t.resellerId].n++;
+  resellerStats[t.resellerId].ca+=Number(t.amount||0);
+});
+const top=Object.values(resellerStats).sort((a,b)=>b.n-a.n)[0];
+
+const zoneStats={};
+weekTickets.forEach(t=>{
+  zoneStats[t.zone]=zoneStats[t.zone]||0;
+  zoneStats[t.zone]++;
+});
+const topZ=Object.entries(zoneStats).sort((a,b)=>b[1]-a[1])[0];
+
+const lowLots=lots.map(l=>({
+  ...l,
+  available:tickets.filter(t=>t.lotId===l.id&&t.status!=="Utilisé").length
+})).filter(l=>l.available<10&&l.available>0);
+
+$("overviewLowLots").textContent=lowLots.length;
+$("overviewWeekTickets").textContent=weekTickets.length;
+$("overviewMikrotik").textContent=$("mikrotikStatus")?.textContent?.replace("● ","")||"PRÊT";
+$("overviewClients").textContent=$("mikrotikClients")?.textContent||"—";
+$("topReseller").textContent=top?top.name:"Aucune vente";
+$("topResellerInfo").textContent=top?`${top.n} ticket(s) cette semaine — ${money(top.ca)}`:"Cette semaine";
+$("weekUsed").textContent=weekTickets.length;
+$("weekRevenue").textContent=money(weekRevenue);
+$("topZone").textContent=topZ?`${topZ[0]} (${topZ[1]})`:"Aucune";
+$("weekRange").textContent=`depuis le ${start.toLocaleDateString("fr-FR")}`;
+
+const badge=$("lowStockBadge");
+if(lowLots.length){
+  badge.textContent=`⚠️ ${lowLots.length} lot(s) faible(s)`;
+  badge.classList.add("warn");
+}else{
+  badge.textContent="● Stock OK";
+  badge.classList.remove("warn");
+}
+}
 function render(){
 $("resellerCount").textContent=resellers.length;
 $("lotCount").textContent=lots.length;
@@ -287,6 +386,8 @@ $("ticketPlan").innerHTML=plans.map(p=>`<option value="${esc(p.id)}">${esc(p.nam
 
 renderLots();
 renderActivity();
+renderStockAlerts();
+renderAdminOverview();
 save();
 }
 
@@ -314,7 +415,7 @@ const available=lt.filter(t=>t.status!=="Utilisé").length;
 const used=lt.filter(t=>t.status==="Utilisé").length;
 return `<tr>
 <td class="lot-code">${esc(l.id)}</td><td>${esc(l.resellerName)}</td><td>${esc(l.zone)}</td><td>${esc(l.planName)}</td>
-<td>${lt.length}</td><td>${available}</td><td>${used}</td><td>${new Date(l.createdAt).toLocaleString("fr-FR")}</td>
+<td>${lt.length}</td><td>${available<10&&available>0?`<b style="color:#b54708">⚠️ ${available}</b>`:available}</td><td>${used}</td><td>${new Date(l.createdAt).toLocaleString("fr-FR")}</td>
 <td class="actions"><button class="small" onclick="openLot('${esc(l.id)}')">👁️ Gérer</button><button class="orange small" onclick="printLot('${esc(l.id)}')">🖨️ PDF</button><button class="red small" onclick="deleteLot('${esc(l.id)}')">🗑️ Lot</button></td>
 </tr>`;
 }).join("")||'<tr><td colspan="9">Aucun lot correspondant.</td></tr>';
@@ -516,7 +617,8 @@ renderMikrotik();
 };
 $("mikrotikRefresh").onclick=()=>{
 $("mikrotikStatus").textContent="● Synchronisation serveur";
-setTimeout(()=>{$("mikrotikStatus").textContent="● Prêt"},700);
+renderAdminOverview();
+setTimeout(()=>{$("mikrotikStatus").textContent="● Prêt";renderAdminOverview()},700);
 };
 $("mikrotikClientsBtn").onclick=()=>$("mikrotikClientsPanel").classList.toggle("hidden");
 $("mikrotikDisconnectBtn").onclick=()=>alert("La déconnexion réelle sera exécutée par le serveur MikroTik/API. Aucun identifiant MikroTik n'est stocké dans cette page.");
