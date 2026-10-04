@@ -52,6 +52,9 @@ main{max-width:1600px}.panel{box-shadow:0 3px 14px #1018280a}.title button{white
 
 .quickbar{display:flex;gap:10px;margin-bottom:15px}.quickbar input{flex:1}.filters{display:flex;gap:7px;flex-wrap:wrap}.activity{display:grid;gap:8px}.activity-item{padding:10px 12px;background:#f9fafb;border-radius:9px;border-left:3px solid #087f39}.activity-item small{display:block;color:#667085;margin-top:3px}
 @media(max-width:700px){.quickbar,.filters{display:grid;grid-template-columns:1fr}.quickbar button{width:100%}}
+
+.mikrotik-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.mikrotik-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -75,6 +78,8 @@ main{max-width:1600px}.panel{box-shadow:0 3px 14px #1018280a}.title button{white
 <a href="#tickets">🎟️ Lots de tickets</a>
 <a href="#plans">💳 Forfaits</a>
 
+<a href="#mikrotik">📡 Contrôle MikroTik</a>
+<a href="https://www.afroconnectworld.com" target="_blank" rel="noopener">🌐 Site AfroConnect</a>
 <button id="logout" class="red">Déconnexion</button>
 </aside>
 
@@ -156,6 +161,41 @@ main{max-width:1600px}.panel{box-shadow:0 3px 14px #1018280a}.title button{white
 </section>
 
 
+
+
+<section id="mikrotik">
+<div class="title">
+  <div><h2>Contrôle MikroTik</h2><small class="muted">Pilotage depuis le serveur sécurisé</small></div>
+  <span id="mikrotikStatus" class="online">● Prêt</span>
+</div>
+
+<div class="cards" style="grid-template-columns:repeat(3,1fr)">
+  <div class="card"><span>📡 Routeur</span><b id="mikrotikName">MikroTik</b><small id="mikrotikIp">IP non configurée</small></div>
+  <div class="card"><span>👥 Clients connectés</span><b id="mikrotikClients">—</b><small>Synchronisation serveur</small></div>
+  <div class="card"><span>🎟️ Sessions</span><b id="mikrotikSessions">—</b><small>Hotspot actif</small></div>
+</div>
+
+<div class="panel" style="margin-top:15px">
+<div class="title"><h3>Actions rapides</h3></div>
+<div class="actions">
+<button id="mikrotikConfig" class="gray">⚙️ Configurer</button><button id="mikrotikRefresh">🔄 Actualiser</button>
+<button id="mikrotikClientsBtn">👥 Voir les clients</button>
+<button id="mikrotikDisconnectBtn" class="orange">⛔ Déconnecter un client</button>
+</div>
+<div class="notice" style="margin-top:12px">
+Le Manager ne stocke pas les identifiants MikroTik. Les commandes seront exécutées par le serveur AfroConnect afin de permettre la gestion à distance.
+</div>
+</div>
+
+<div id="mikrotikClientsPanel" class="panel hidden" style="margin-top:15px">
+<div class="title"><h3>Clients connectés</h3><input id="clientSearch" placeholder="🔎 Rechercher un client" style="max-width:260px"></div>
+<div class="table-wrap">
+<table><thead><tr><th>Client</th><th>IP</th><th>MAC</th><th>Ticket</th><th>Durée</th><th>Action</th></tr></thead>
+<tbody id="mikrotikClientTable"><tr><td colspan="6">La liste sera fournie par l'API serveur.</td></tr></tbody>
+</table>
+</div>
+</div>
+</section>
 
 </main>
 </div>
@@ -383,7 +423,23 @@ const rows=lt.map(t=>`<div class="pdf-ticket"><b>AFROCONNECT</b><div style="font
 w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(lot.id)}</title>
 <style>body{font-family:Arial;margin:20px}.head{text-align:center;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pdf-ticket{border:1px dashed #555;border-radius:8px;padding:12px;text-align:center}@media print{body{margin:8mm}}</style>
 </head><body><div class="head"><h1>AFROCONNECT</h1><h2>${esc(lot.id)}</h2><p>${esc(lot.planName)} — ${esc(lot.resellerName)} — ${esc(lot.zone)}</p><p>${lt.length} ticket(s)</p></div><div class="grid">${rows}</div>
-<script>window.onload=function(){window.print()}<\/script></body></html>`);
+<script>window.onload=function(){window.print()}<\/script>
+<div id="mikrotikModal" class="modal hidden">
+<form id="mikrotikForm">
+<button type="button" id="closeMikrotik" class="close">×</button>
+<h2>Configuration MikroTik</h2>
+<div class="form-grid">
+<label>Nom<input id="mName" value="MikroTik"></label>
+<label>Adresse IP / hôte<input id="mHost" placeholder="Ex : 6.6.6.1"></label>
+<label>Port API<input id="mPort" type="number" value="8728"></label>
+<label>Adresse du serveur API<input id="mApi" placeholder="URL du serveur AfroConnect"></label>
+</div>
+<div class="notice" style="margin-top:12px">Pour la sécurité, aucun mot de passe MikroTik n'est enregistré dans GitHub Pages. Il sera conservé côté serveur.</div>
+<button type="submit">Enregistrer</button>
+</form>
+</div>
+
+</body></html>`);
 w.document.close();
 }
 window.printLot=printLot;
@@ -432,6 +488,41 @@ $("planModal").classList.add("hidden");render();
 $("lotSearch").oninput=renderLots;
 $("zoneFilter").onchange=renderLots;
 $("quickCreate").onclick=()=>{location.hash="tickets";window.scrollTo({top:document.getElementById("tickets").offsetTop-10,behavior:"smooth"});setTimeout(()=>$("ticketQty").focus(),250)};
+
+
+// MikroTik UI — les commandes réelles passent par le serveur.
+const mikrotikConfig=JSON.parse(localStorage.getItem("afro_mikrotik_config")||"null")||{name:"MikroTik",host:"",port:8728,api:""};
+function renderMikrotik(){
+$("mikrotikName").textContent=mikrotikConfig.name||"MikroTik";
+$("mikrotikIp").textContent=mikrotikConfig.host||"IP non configurée";
+}
+$("mikrotikConfig").onclick=()=>{
+$("mName").value=mikrotikConfig.name||"MikroTik";
+$("mHost").value=mikrotikConfig.host||"";
+$("mPort").value=mikrotikConfig.port||8728;
+$("mApi").value=mikrotikConfig.api||"";
+$("mikrotikModal").classList.remove("hidden");
+};
+$("closeMikrotik").onclick=()=>$("mikrotikModal").classList.add("hidden");
+$("mikrotikForm").onsubmit=e=>{
+e.preventDefault();
+mikrotikConfig.name=$("mName").value.trim()||"MikroTik";
+mikrotikConfig.host=$("mHost").value.trim();
+mikrotikConfig.port=Number($("mPort").value)||8728;
+mikrotikConfig.api=$("mApi").value.trim();
+localStorage.setItem("afro_mikrotik_config",JSON.stringify(mikrotikConfig));
+$("mikrotikModal").classList.add("hidden");
+renderMikrotik();
+};
+$("mikrotikRefresh").onclick=()=>{
+$("mikrotikStatus").textContent="● Synchronisation serveur";
+setTimeout(()=>{$("mikrotikStatus").textContent="● Prêt"},700);
+};
+$("mikrotikClientsBtn").onclick=()=>$("mikrotikClientsPanel").classList.toggle("hidden");
+$("mikrotikDisconnectBtn").onclick=()=>alert("La déconnexion réelle sera exécutée par le serveur MikroTik/API. Aucun identifiant MikroTik n'est stocké dans cette page.");
+$("clientSearch").oninput=()=>{};
+// Initial render
+renderMikrotik();
 
 if(sessionStorage.getItem("afro_manager_auth")==="1"){
 $("login").classList.add("hidden");$("app").classList.remove("hidden");render();
