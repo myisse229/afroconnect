@@ -5,63 +5,79 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AfroConnect WiFi Manager</title>
 <style>
+:root{--ease:cubic-bezier(.22,1,.36,1)}
 *{box-sizing:border-box}
+html{scroll-behavior:smooth}
 body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#172033}
 .hidden{display:none!important}
-button{border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;background:#087f39;color:#fff}
-button:hover{filter:brightness(.95)}
+:focus-visible{outline:2px solid #087f39;outline-offset:2px}
+button{border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;background:#087f39;color:#fff;transition:filter .15s var(--ease),transform .15s var(--ease)}
+button:hover{filter:brightness(.95);transform:translateY(-1px)}
+button:active{transform:translateY(0)}
 button.red{background:#d92d20}button.gray{background:#667085}button.orange{background:#f5a000;color:#111}
-input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:9px;background:#fff}
+input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:9px;background:#fff;font:inherit;transition:border-color .15s var(--ease)}
+input:focus,select:focus{border-color:#087f39}
 .login{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,#087f39,#f5b400,#e52626)}
-.login form{width:min(420px,100%);background:#fff;border-radius:20px;padding:32px;box-shadow:0 20px 60px #0004;text-align:center}
+.login form{width:min(420px,100%);background:#fff;border-radius:20px;padding:32px;box-shadow:0 20px 60px #0004;text-align:center;opacity:0;animation:rise .5s var(--ease) forwards}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 .logo,.brand{font-weight:900;color:#087f39;font-size:27px}.logo span,.brand span{color:#f5a000}
 .login h1{margin:10px 0}.login p{color:#667085}.login button{width:100%;margin-top:10px}.error{color:#d92d20;min-height:20px;font-weight:700}
 #app{min-height:100vh;display:flex}
-aside{position:fixed;left:0;top:0;bottom:0;width:245px;background:#101828;color:#fff;padding:22px;z-index:5}
+aside{position:fixed;left:0;top:0;bottom:0;width:245px;background:#101828;color:#fff;padding:22px;z-index:5;overflow-y:auto}
 .brand{font-size:23px;margin-bottom:28px}.brand small{display:block;color:#98a2b3;font-size:11px;letter-spacing:1.5px;margin-top:4px}
-aside a{display:block;color:#d0d5dd;text-decoration:none;padding:11px;border-radius:9px;margin:5px 0}
+aside a{display:block;color:#d0d5dd;text-decoration:none;padding:11px;border-radius:9px;margin:5px 0;transition:background .15s var(--ease),color .15s var(--ease)}
 aside a:hover{background:#1d2939;color:#fff}aside #logout{width:100%;margin-top:18px}
-main{margin-left:245px;width:calc(100% - 245px);padding:25px}
+main{margin-left:245px;width:calc(100% - 245px);max-width:1600px;padding:25px}
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}
 header small{color:#667085}header h1{margin:5px 0}.online{background:#dcfae6;color:#067647;padding:9px 13px;border-radius:20px}
 section{margin-bottom:32px;scroll-margin-top:15px}
 .cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
-.card,.panel{background:#fff;border:1px solid #eaecf0;border-radius:15px;padding:18px;box-shadow:0 5px 20px #10182808}
+.card,.panel{background:#fff;border:1px solid #eaecf0;border-radius:15px;padding:18px;box-shadow:0 3px 14px #1018280a}
+.card{transition:transform .15s var(--ease),box-shadow .15s var(--ease)}
+.card:hover{transform:translateY(-2px);box-shadow:0 10px 24px #10182812}
 .card span{color:#667085}.card b{font-size:30px;display:block;margin:9px 0}.card small{color:#667085}
-.title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.title h2,.title h3{margin:0}
+.title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.title h2,.title h3{margin:0}.title button{white-space:nowrap}
 table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid #eaecf0;vertical-align:middle}
 th{background:#f9fafb;color:#475467}.table-wrap{overflow:auto}
+tbody tr{transition:background .1s var(--ease)}tbody tr:hover{background:#fafbfc}
 .generator{display:grid;grid-template-columns:1.2fr 1.2fr .6fr .8fr auto;gap:10px;align-items:end}
 .generator label{font-weight:700;font-size:13px}.generator input,.generator select{margin-top:5px}
 .actions{display:flex;gap:6px;flex-wrap:wrap}.small{padding:7px 10px;font-size:12px}
 .badge{display:inline-block;background:#eef4ff;color:#175cd3;padding:5px 9px;border-radius:15px;font-size:12px;font-weight:700}
 .notice{padding:12px 14px;background:#fff7e6;border:1px solid #ffd666;border-radius:10px;color:#7a4b00;margin-bottom:15px}
-.modal{position:fixed;inset:0;background:#0008;display:grid;place-items:center;padding:20px;z-index:20}
-.modal form{background:#fff;width:min(620px,100%);padding:25px;border-radius:18px;position:relative}
+.modal{position:fixed;inset:0;background:#0008;display:grid;place-items:center;padding:20px;z-index:20;animation:fade .15s var(--ease)}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal form{background:#fff;width:min(620px,100%);padding:25px;border-radius:18px;position:relative;animation:rise .2s var(--ease)}
 .close{position:absolute;right:12px;top:12px;background:#eee;color:#333;padding:5px 10px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.form-grid label{font-size:13px;font-weight:700}
 .lot-code{font-weight:800;letter-spacing:.6px}.lot-row{cursor:pointer}.lot-row:hover{background:#f9fafb}
 .pdf-ticket{border:1px dashed #555;border-radius:8px;padding:12px;text-align:center}
-@media(max-width:950px){aside{width:200px}main{margin-left:200px;width:calc(100% - 200px)}.cards{grid-template-columns:1fr 1fr}.generator{grid-template-columns:1fr 1fr}}
-@media(max-width:650px){#app{display:block}aside{position:static;width:100%}main{margin:0;width:100%;padding:15px}.cards,.generator,.form-grid{grid-template-columns:1fr}header{display:block}.online{display:inline-block;margin-top:10px}}
-
-.muted{color:#667085;font-size:13px}.card{transition:transform .15s ease,box-shadow .15s ease}.card:hover{transform:translateY(-2px);box-shadow:0 10px 24px #10182812}
-main{max-width:1600px}.panel{box-shadow:0 3px 14px #1018280a}.title button{white-space:nowrap}
-.sticky-head{position:sticky;top:0;background:#f4f7fb;padding:8px 0;z-index:4}
-@media(max-width:950px){aside{width:210px}main{margin-left:210px;width:calc(100% - 210px)}}
-
-.quickbar{display:flex;gap:10px;margin-bottom:15px}.quickbar input{flex:1}.filters{display:flex;gap:7px;flex-wrap:wrap}.activity{display:grid;gap:8px}.activity-item{padding:10px 12px;background:#f9fafb;border-radius:9px;border-left:3px solid #087f39}.activity-item small{display:block;color:#667085;margin-top:3px}
-@media(max-width:700px){.quickbar,.filters{display:grid;grid-template-columns:1fr}.quickbar button{width:100%}}
-
-.mikrotik-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-@media(max-width:700px){.mikrotik-grid{grid-template-columns:1fr}}
-
+.muted{color:#667085;font-size:13px}
+.quickbar{display:flex;gap:10px;margin-bottom:15px}.quickbar input{flex:1}
+.filters{display:flex;gap:7px;flex-wrap:wrap}
+.activity{display:grid;gap:8px}.activity-item{padding:10px 12px;background:#f9fafb;border-radius:9px;border-left:3px solid #087f39}.activity-item small{display:block;color:#667085;margin-top:3px}
 .stock-alert{background:#fff4e5;border:1px solid #f5b400;color:#7a4b00;padding:12px 14px;border-radius:10px;font-weight:700}
 .stock-alert strong{font-size:18px}
+.admin-overview{display:grid;grid-template-columns:1.4fr 1fr;gap:15px;margin-top:15px}
+.overview-main{padding:18px}
+.overview-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.overview-head h2{margin:4px 0 0}
+.overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px}
+.overview-grid>div,.week-grid>div{background:#f9fafb;border-radius:10px;padding:12px}
+.overview-grid span,.week-grid span{display:block;color:#667085;font-size:12px}
+.overview-grid b,.week-grid b{display:block;font-size:20px;margin-top:5px}
+.status-pill{background:#dcfae6;color:#067647;padding:7px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}
+.status-pill.warn{background:#fff4e5;color:#b54708}
+.leader{display:flex;align-items:center;gap:12px;margin-top:18px}.leader-icon{font-size:34px}.leader b{display:block;font-size:20px}.leader small{color:#667085}
+.week-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 
-.admin-overview{display:grid;grid-template-columns:1.4fr 1fr;gap:15px;margin-top:15px}.overview-main{padding:18px}
-.overview-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.overview-head h2{margin:4px 0 0}.overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px}.overview-grid>div,.week-grid>div{background:#f9fafb;border-radius:10px;padding:12px}.overview-grid span,.week-grid span{display:block;color:#667085;font-size:12px}.overview-grid b,.week-grid b{display:block;font-size:20px;margin-top:5px}.status-pill{background:#dcfae6;color:#067647;padding:7px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}.status-pill.warn{background:#fff4e5;color:#b54708}.leader{display:flex;align-items:center;gap:12px;margin-top:18px}.leader-icon{font-size:34px}.leader b{display:block;font-size:20px}.leader small{color:#667085}.week-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);background:#172033;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 14px 30px rgba(0,0,0,.25);opacity:0;transition:opacity .25s var(--ease),transform .25s var(--ease);z-index:100;max-width:90vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.error{background:#d92d20}
+
+@media(max-width:950px){aside{width:200px}main{margin-left:200px;width:calc(100% - 200px)}.cards{grid-template-columns:1fr 1fr}.generator{grid-template-columns:1fr 1fr}}
 @media(max-width:850px){.admin-overview{grid-template-columns:1fr}.overview-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.quickbar,.filters{display:grid;grid-template-columns:1fr}.quickbar button{width:100%}}
+@media(max-width:650px){#app{display:block}aside{position:static;width:100%}main{margin:0;width:100%;padding:15px}.cards,.generator,.form-grid{grid-template-columns:1fr}header{display:block}.online{display:inline-block;margin-top:10px}}
 @media(max-width:550px){.overview-grid,.week-grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -189,7 +205,10 @@ main{max-width:1600px}.panel{box-shadow:0 3px 14px #1018280a}.title button{white
 
 <section id="plans">
 <div class="title"><h2>Forfaits</h2><button id="addPlan">+ Créer un forfait</button></div>
-
+<div class="panel"><div class="table-wrap">
+<table><thead><tr><th>Forfait</th><th>Montant</th><th>Type</th><th>Quota</th><th>Validité</th><th>Action</th></tr></thead>
+<tbody id="planTable"></tbody></table>
+</div></div>
 </section>
 
 
@@ -261,9 +280,26 @@ Le Manager ne stocke pas les identifiants MikroTik. Les commandes seront exécut
 </form>
 </div>
 
+<div id="mikrotikModal" class="modal hidden">
+<form id="mikrotikForm">
+<button type="button" id="closeMikrotik" class="close">×</button>
+<h2>Configuration MikroTik</h2>
+<div class="form-grid">
+<label>Nom<input id="mName" value="MikroTik"></label>
+<label>Adresse IP / hôte<input id="mHost" placeholder="Ex : 6.6.6.1"></label>
+<label>Port API<input id="mPort" type="number" value="8728"></label>
+<label>Adresse du serveur API<input id="mApi" placeholder="URL du serveur AfroConnect"></label>
+</div>
+<div class="notice" style="margin-top:12px">Pour la sécurité, aucun mot de passe MikroTik n'est enregistré dans GitHub Pages. Il sera conservé côté serveur.</div>
+<button type="submit">Enregistrer</button>
+</form>
+</div>
+
 <script>
-const LOGIN_USER="Myisse";
-const LOGIN_PASS="Mamour229@";
+// ⚠️ Change ces deux valeurs avant de déployer — ne garde jamais un mot de passe personnel réel ici,
+// ce fichier est visible par n'importe qui sur un dépôt GitHub public.
+const LOGIN_USER="admin";
+const LOGIN_PASS="CHANGE-MOI-AVANT-DEPLOIEMENT";
 
 const DEFAULT_PLANS=[
 {id:"100",name:"Afro Mini",type:"Limité (Temps)",amount:100,users:1,quota:"5 heures",validity:"1 jour",upload:"5 Mo",download:"5 Mo",builtin:true},
@@ -279,6 +315,21 @@ let resellers=JSON.parse(localStorage.getItem("afro_resellers")||"null")||[];
 let tickets=JSON.parse(localStorage.getItem("afro_tickets")||"null")||[];
 let lots=JSON.parse(localStorage.getItem("afro_lots")||"null")||[];
 let activities=JSON.parse(localStorage.getItem("afro_activities")||"null")||[];
+let globalQuery="";
+
+function debounce(fn,wait){
+let t;
+return (...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),wait)};
+}
+
+function toast(message,type){
+const t=document.createElement("div");
+t.className="toast"+(type?" "+type:"");
+t.textContent=message;
+document.body.appendChild(t);
+requestAnimationFrame(()=>t.classList.add("show"));
+setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300)},2800);
+}
 
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
@@ -375,14 +426,18 @@ $("availableCount").textContent=tickets.filter(t=>t.status!=="Utilisé").length;
 const used=tickets.filter(t=>t.status==="Utilisé");
 $("revenue").textContent=money(used.reduce((s,t)=>s+Number(t.amount||0),0));
 
-$("resellerTable").innerHTML=resellers.length?resellers.map(r=>{
+const gq=globalQuery.trim().toLowerCase();
+const filteredResellers=resellers.filter(r=>!gq||(r.name+r.code+r.zone).toLowerCase().includes(gq));
+$("resellerTable").innerHTML=filteredResellers.length?filteredResellers.map(r=>{
 const rt=tickets.filter(t=>t.resellerId===r.id);
 const ca=rt.filter(t=>t.status==="Utilisé").reduce((s,t)=>s+Number(t.amount||0),0);
 return `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.code)}</td><td>${esc(r.zone)}</td><td>${rt.length}</td><td>${money(ca)}</td><td><button class="red small" onclick="deleteReseller('${esc(r.id)}')">🗑️ Supprimer</button></td></tr>`;
-}).join(""):'<tr><td colspan="6">Aucun revendeur.</td></tr>';
+}).join(""):`<tr><td colspan="6">${resellers.length?"Aucun résultat pour cette recherche.":"Aucun revendeur."}</td></tr>`;
 
 $("ticketReseller").innerHTML=resellers.map(r=>`<option value="${esc(r.id)}">${esc(r.name)} — ${esc(r.zone)}</option>`).join("")||'<option value="">Ajoute un revendeur</option>';
 $("ticketPlan").innerHTML=plans.map(p=>`<option value="${esc(p.id)}">${esc(p.name)} — ${money(p.amount)}</option>`).join("");
+
+$("planTable").innerHTML=plans.map(p=>`<tr><td><b>${esc(p.name)}</b></td><td>${money(p.amount)}</td><td>${esc(p.type)}</td><td>${esc(p.quota)}</td><td>${esc(p.validity)}</td><td>${p.builtin?'<span class="badge">Par défaut</span>':`<button class="red small" onclick="deletePlan('${esc(p.id)}')">🗑️ Supprimer</button>`}</td></tr>`).join("")||'<tr><td colspan="6">Aucun forfait.</td></tr>';
 
 renderLots();
 renderActivity();
@@ -394,7 +449,7 @@ save();
 function renderLots(){
 const old=$("lotFilter").value||"all";
 const oldZone=$("zoneFilter").value||"all";
-const q=($("lotSearch")?.value||"").trim().toLowerCase();
+const q=($("lotSearch")?.value||"").trim().toLowerCase()||globalQuery.trim().toLowerCase();
 
 $("lotFilter").innerHTML='<option value="all">Tous les lots</option>'+
 lots.slice().reverse().map(l=>`<option value="${esc(l.id)}">${esc(l.id)} — ${esc(l.planName)}</option>`).join("");
@@ -469,8 +524,17 @@ save();render();
 }
 window.deleteReseller=deleteReseller;
 
+function deletePlan(id){
+const p=plans.find(x=>x.id===id);if(!p||p.builtin)return;
+if(!confirm(`Supprimer le forfait ${p.name} ? Les tickets déjà créés avec ce forfait ne sont pas affectés.`))return;
+plans=plans.filter(x=>x.id!==id);
+addActivity(`Forfait ${p.name} supprimé`);
+save();render();
+}
+window.deletePlan=deletePlan;
+
 function generateCode(length,used){
-const chars="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 length=Math.max(1,Math.min(10,Number(length)||10));
 const rand=window.crypto?.getRandomValues?()=>crypto.getRandomValues(new Uint32Array(1))[0]:()=>Math.floor(Math.random()*4294967296);
 for(let attempt=0;attempt<20000;attempt++){
@@ -488,7 +552,7 @@ const qty=Math.max(1,Math.min(500,Number($("ticketQty").value)||1));
 const length=Math.max(1,Math.min(10,Number($("codeLength").value)||10));
 const r=resellers.find(x=>x.id===rid);
 const p=plans.find(x=>x.id===pid);
-if(!r||!p){alert("Ajoute d'abord un revendeur et sélectionne un forfait.");return;}
+if(!r||!p){toast("Ajoute d'abord un revendeur et sélectionne un forfait.","error");return;}
 
 const same=lots.filter(l=>l.resellerId===r.id&&l.planId===p.id).length+1;
 const lotId=`LOT-${r.code}-${p.id}-${String(same).padStart(3,"0")}`;
@@ -497,7 +561,7 @@ const newTickets=[];
 
 for(let i=0;i<qty;i++){
 const code=generateCode(length,used);
-if(!code){alert("Impossible de créer assez de codes uniques avec cette longueur.");return;}
+if(!code){toast("Impossible de créer assez de codes uniques avec cette longueur.","error");return;}
 used.add(code);
 newTickets.push({
 id:"T_"+Date.now().toString(36)+"_"+i+"_"+Math.random().toString(36).slice(2,6),
@@ -519,27 +583,12 @@ function printLot(id){
 const lot=lots.find(l=>l.id===id);if(!lot)return;
 const lt=tickets.filter(t=>t.lotId===id);
 const w=window.open("","_blank");
-if(!w){alert("Autorise les fenêtres pop-up pour imprimer le lot.");return;}
+if(!w){toast("Autorise les fenêtres pop-up pour imprimer le lot.","error");return;}
 const rows=lt.map(t=>`<div class="pdf-ticket"><b>AFROCONNECT</b><div style="font-size:24px;font-weight:800;margin:8px">${esc(t.code)}</div><small>${esc(lot.planName)}<br>${esc(lot.resellerName)} — ${esc(lot.zone)}</small></div>`).join("");
 w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(lot.id)}</title>
 <style>body{font-family:Arial;margin:20px}.head{text-align:center;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pdf-ticket{border:1px dashed #555;border-radius:8px;padding:12px;text-align:center}@media print{body{margin:8mm}}</style>
 </head><body><div class="head"><h1>AFROCONNECT</h1><h2>${esc(lot.id)}</h2><p>${esc(lot.planName)} — ${esc(lot.resellerName)} — ${esc(lot.zone)}</p><p>${lt.length} ticket(s)</p></div><div class="grid">${rows}</div>
 <script>window.onload=function(){window.print()}<\/script>
-<div id="mikrotikModal" class="modal hidden">
-<form id="mikrotikForm">
-<button type="button" id="closeMikrotik" class="close">×</button>
-<h2>Configuration MikroTik</h2>
-<div class="form-grid">
-<label>Nom<input id="mName" value="MikroTik"></label>
-<label>Adresse IP / hôte<input id="mHost" placeholder="Ex : 6.6.6.1"></label>
-<label>Port API<input id="mPort" type="number" value="8728"></label>
-<label>Adresse du serveur API<input id="mApi" placeholder="URL du serveur AfroConnect"></label>
-</div>
-<div class="notice" style="margin-top:12px">Pour la sécurité, aucun mot de passe MikroTik n'est enregistré dans GitHub Pages. Il sera conservé côté serveur.</div>
-<button type="submit">Enregistrer</button>
-</form>
-</div>
-
 </body></html>`);
 w.document.close();
 }
@@ -566,9 +615,11 @@ $("closeReseller").onclick=()=>$("resellerModal").classList.add("hidden");
 $("resellerForm").onsubmit=e=>{
 e.preventDefault();
 const name=$("rName").value.trim(),code=$("rCode").value.trim().toUpperCase(),zone=$("rZone").value.trim();
-if(resellers.some(r=>r.code===code)){alert("Ce code revendeur existe déjà.");return;}
+if(resellers.some(r=>r.code===code)){toast("Ce code revendeur existe déjà.","error");return;}
 resellers.push({id:"R_"+Date.now(),name,code,zone});
+addActivity(`Revendeur ${name} ajouté`);
 save();e.target.reset();$("resellerModal").classList.add("hidden");render();
+toast("Revendeur ajouté.");
 };
 
 $("addPlan").onclick=()=>$("planModal").classList.remove("hidden");
@@ -581,13 +632,16 @@ id:"custom_"+Date.now(),name:$("pName").value.trim(),amount:Number($("pAmount").
 type:$("pType").value,users:Number($("pUsers").value)||1,quota:$("pQuota").value.trim(),
 validity:$("pValidity").value.trim(),upload:$("pUpload").value.trim(),download:$("pDownload").value.trim(),builtin:false
 });
+addActivity(`Forfait ${$("pName").value.trim()} créé`);
 save();e.target.reset();$("pUsers").value=1;$("pUpload").value="5 Mo";$("pDownload").value="5 Mo";
 $("planModal").classList.add("hidden");render();
+toast("Forfait créé.");
 };
 
 
-$("lotSearch").oninput=renderLots;
+$("lotSearch").oninput=debounce(renderLots,150);
 $("zoneFilter").onchange=renderLots;
+$("globalSearch").oninput=debounce(()=>{globalQuery=$("globalSearch").value;render();},150);
 $("quickCreate").onclick=()=>{location.hash="tickets";window.scrollTo({top:document.getElementById("tickets").offsetTop-10,behavior:"smooth"});setTimeout(()=>$("ticketQty").focus(),250)};
 
 
@@ -621,7 +675,7 @@ renderAdminOverview();
 setTimeout(()=>{$("mikrotikStatus").textContent="● Prêt";renderAdminOverview()},700);
 };
 $("mikrotikClientsBtn").onclick=()=>$("mikrotikClientsPanel").classList.toggle("hidden");
-$("mikrotikDisconnectBtn").onclick=()=>alert("La déconnexion réelle sera exécutée par le serveur MikroTik/API. Aucun identifiant MikroTik n'est stocké dans cette page.");
+$("mikrotikDisconnectBtn").onclick=()=>toast("La déconnexion réelle sera exécutée par le serveur MikroTik/API. Aucun identifiant n'est stocké dans cette page.");
 $("clientSearch").oninput=()=>{};
 // Initial render
 renderMikrotik();
