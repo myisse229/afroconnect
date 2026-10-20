@@ -21,7 +21,7 @@ app.use(helmet());
 app.use(express.json({ limit: '32kb' }));
 
 function authenticate(req, res, next) {
-  const supplied = (req.get('authorization') || '').replace(/^Bearer\\s+/i, '');
+  const supplied = (req.get('authorization') || '').replace(/^Bearer\s+/i, '');
   const a = Buffer.from(supplied);
   const b = Buffer.from(API_KEY);
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
