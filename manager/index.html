@@ -296,10 +296,99 @@ Le Manager ne stocke pas les identifiants MikroTik. Les commandes seront exécut
 </div>
 
 <script>
-// ⚠️ Change ces deux valeurs avant de déployer — ne garde jamais un mot de passe personnel réel ici,
-// ce fichier est visible par n'importe qui sur un dépôt GitHub public.
-const LOGIN_USER="Myisse";
-const LOGIN_PASS="Mamour229@";
+// La connexion administrateur est vérifiée côté serveur Render.\n\n
+// API AfroConnect : les données principales sont désormais lues/écrites dans PostgreSQL.
+const API_BASE = "https://afroconnect-api.onrender.com";
+let adminToken = sessionStorage.getItem("afro_manager_token") || "";
+
+async function apiRequest(path, options = {}) {
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  if (adminToken) headers.Authorization = `Bearer ${adminToken}`;
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = data.error || `Erreur API (${response.status})`;
+    throw new Error(message);
+  }
+  return data;
+}
+
+function mapApiReseller(row) {
+  return {
+    id: String(row.id),
+    dbId: Number(row.id),
+    name: row.display_name,
+    code: row.reseller_code,
+    zone: row.zone || "—",
+    active: row.active !== false
+  };
+}
+
+function mapApiPlan(row) {
+  return {
+    id: String(row.id),
+    dbId: Number(row.id),
+    name: row.name,
+    amount: Number(row.price_minor || 0),
+    currency: row.currency || "XOF",
+    type: "Limité (Temps)",
+    users: 1,
+    quota: "Voir configuration du routeur",
+    validity: "Voir configuration du routeur",
+    upload: "—",
+    download: "—",
+    builtin: true
+  };
+}
+
+function mapApiTicket(row) {
+  return {
+    id: String(row.id),
+    dbId: Number(row.id),
+    code: row.ticket_code,
+    lotId: `LOT-${row.reseller_code}-${row.plan_code}-${String(row.generated_at || "").slice(0,16)}`,
+    resellerId: String(row.reseller_id),
+    resellerName: row.reseller_name,
+    zone: "—",
+    planId: String(row.plan_id),
+    planName: row.plan_name,
+    amount: Number(row.price_minor_snapshot || 0),
+    status: row.status === "ACTIVATED" ? "Utilisé" :
+      row.status === "REVOKED" ? "Révoqué" : "Disponible",
+    createdAt: row.generated_at || nowISO()
+  };
+}
+
+async function loadFromApi() {
+  const [resellerData, planData, ticketData] = await Promise.all([
+    apiRequest("/api/v1/resellers"),
+    apiRequest("/api/v1/plans"),
+    apiRequest("/api/v1/tickets?limit=2000")
+  ]);
+  resellers = (resellerData.rows || []).map(mapApiReseller);
+  plans = (planData.rows || []).map(mapApiPlan);
+  tickets = (ticketData.rows || []).map(mapApiTicket);
+
+  // Les lots sont reconstruits à partir des tickets renvoyés par l'API.
+  const grouped = new Map();
+  for (const t of tickets) {
+    const key = t.lotId;
+    if (!grouped.has(key)) grouped.set(key, {
+      id: key, resellerId: t.resellerId, resellerName: t.resellerName,
+      zone: t.zone, planId: t.planId, planName: t.planName,
+      amount: t.amount, quantity: 0, codeLength: 10, createdAt: t.createdAt
+    });
+    grouped.get(key).quantity++;
+    if (new Date(t.createdAt) < new Date(grouped.get(key).createdAt)) {
+      grouped.get(key).createdAt = t.createdAt;
+    }
+  }
+  lots = [...grouped.values()];
+  save();
+}
 
 const DEFAULT_PLANS=[
 {id:"100",name:"Afro Mini",type:"Limité (Temps)",amount:100,users:1,quota:"5 heures",validity:"1 jour",upload:"5 Mo",download:"5 Mo",builtin:true},
@@ -545,38 +634,52 @@ if(!used.has(code))return code;
 return null;
 }
 
-$("generate").onclick=()=>{
-const rid=$("ticketReseller").value;
-const pid=$("ticketPlan").value;
-const qty=Math.max(1,Math.min(500,Number($("ticketQty").value)||1));
-const length=Math.max(1,Math.min(10,Number($("codeLength").value)||10));
-const r=resellers.find(x=>x.id===rid);
-const p=plans.find(x=>x.id===pid);
-if(!r||!p){toast("Ajoute d'abord un revendeur et sélectionne un forfait.","error");return;}
+$("generate").onclick = async () => {
+  const rid = $("ticketReseller").value;
+  const pid = $("ticketPlan").value;
+  const qty = Math.max(1, Math.min(500, Number($("ticketQty").value) || 1));
+  const r = resellers.find(x => x.id === rid);
+  const p = plans.find(x => x.id === pid);
+  if (!r || !p || !r.dbId || !p.dbId) {
+    toast("Sélectionne un revendeur et un forfait déjà enregistrés dans PostgreSQL.", "error");
+    return;
+  }
 
-const same=lots.filter(l=>l.resellerId===r.id&&l.planId===p.id).length+1;
-const lotId=`LOT-${r.code}-${p.id}-${String(same).padStart(3,"0")}`;
-const used=new Set(tickets.map(t=>t.code));
-const newTickets=[];
-
-for(let i=0;i<qty;i++){
-const code=generateCode(length,used);
-if(!code){toast("Impossible de créer assez de codes uniques avec cette longueur.","error");return;}
-used.add(code);
-newTickets.push({
-id:"T_"+Date.now().toString(36)+"_"+i+"_"+Math.random().toString(36).slice(2,6),
-code,lotId,resellerId:r.id,resellerName:r.name,zone:r.zone,
-planId:p.id,planName:p.name,amount:p.amount,status:"Disponible",createdAt:nowISO()
-});
-}
-
-addActivity(`Lot ${lotId} créé pour ${r.name} — ${qty} ticket(s)`);
-lots.push({
-id:lotId,resellerId:r.id,resellerName:r.name,zone:r.zone,planId:p.id,planName:p.name,
-amount:p.amount,quantity:qty,codeLength:length,createdAt:nowISO()
-});
-tickets.push(...newTickets);
-save();render();openLot(lotId);
+  $("generate").disabled = true;
+  $("generate").textContent = "Création en cours…";
+  try {
+    const result = await apiRequest("/api/v1/tickets/batches", {
+      method: "POST",
+      body: JSON.stringify({ resellerId: r.dbId, planId: p.dbId, quantity: qty })
+    });
+    await loadFromApi();
+    const created = (result.tickets || []).map(t => String(t.ticket_code));
+    const createdIds = new Set(created);
+    let lot = lots.find(l => tickets.some(t => createdIds.has(t.code) && t.lotId === l.id));
+    if (!lot) {
+      const first = tickets.find(t => createdIds.has(t.code));
+      if (first) {
+        lot = {
+          id: `LOT-${r.code}-${p.id}-${new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 12)}`,
+          resellerId: r.id, resellerName: r.name, zone: r.zone || "—",
+          planId: p.id, planName: p.name, amount: p.amount,
+          quantity: created.length, codeLength: Number($("codeLength").value) || 10,
+          createdAt: first.createdAt
+        };
+        for (const t of tickets) if (createdIds.has(t.code)) t.lotId = lot.id;
+        lots.push(lot);
+      }
+    }
+    addActivity(`Lot créé dans PostgreSQL pour ${r.name} — ${created.length} ticket(s)`);
+    save(); render();
+    if (lot) openLot(lot.id);
+    toast(`${created.length} ticket(s) enregistrés dans PostgreSQL.`);
+  } catch (error) {
+    toast("Création du lot impossible : " + error.message, "error");
+  } finally {
+    $("generate").disabled = false;
+    $("generate").textContent = "📦 Créer le lot";
+  }
 };
 
 function printLot(id){
@@ -599,43 +702,89 @@ $("closeLot").onclick=()=>$("lotDetails").classList.add("hidden");
 $("printLot").onclick=()=>{const id=$("lotDetails").dataset.lot;if(id)printLot(id)};
 
 
-$("loginForm").onsubmit=e=>{
-e.preventDefault();
-if($("user").value===LOGIN_USER&&$("pass").value===LOGIN_PASS){
-sessionStorage.setItem("afro_manager_auth","1");
-$("login").classList.add("hidden");$("app").classList.remove("hidden");render();
-}else $("loginError").textContent="Identifiant ou mot de passe incorrect.";
+$("loginForm").onsubmit = async e => {
+  e.preventDefault();
+  $("loginError").textContent = "Connexion en cours…";
+  try {
+    const result = await apiRequest("/api/v1/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        username: $("user").value.trim(),
+        password: $("pass").value
+      })
+    });
+    adminToken = result.token;
+    sessionStorage.setItem("afro_manager_token", adminToken);
+    sessionStorage.setItem("afro_manager_auth", "1");
+    await loadFromApi();
+    $("login").classList.add("hidden");
+    $("app").classList.remove("hidden");
+    render();
+    toast("Connexion à PostgreSQL réussie.");
+  } catch (error) {
+    $("loginError").textContent =
+      error.message === "invalid_credentials"
+        ? "Identifiant ou mot de passe incorrect."
+        : "Connexion API impossible : " + error.message;
+  }
 };
 
-$("logout").onclick=()=>{sessionStorage.removeItem("afro_manager_auth");location.reload()};
+$("logout").onclick = () => {
+  sessionStorage.removeItem("afro_manager_auth");
+  sessionStorage.removeItem("afro_manager_token");
+  adminToken = "";
+  location.reload();
+};
 
 $("addReseller").onclick=()=>$("resellerModal").classList.remove("hidden");
 $("closeReseller").onclick=()=>$("resellerModal").classList.add("hidden");
 
-$("resellerForm").onsubmit=e=>{
-e.preventDefault();
-const name=$("rName").value.trim(),code=$("rCode").value.trim().toUpperCase(),zone=$("rZone").value.trim();
-if(resellers.some(r=>r.code===code)){toast("Ce code revendeur existe déjà.","error");return;}
-resellers.push({id:"R_"+Date.now(),name,code,zone});
-addActivity(`Revendeur ${name} ajouté`);
-save();e.target.reset();$("resellerModal").classList.add("hidden");render();
-toast("Revendeur ajouté.");
+$("resellerForm").onsubmit = async e => {
+  e.preventDefault();
+  const name = $("rName").value.trim();
+  const code = $("rCode").value.trim().toUpperCase();
+  const zone = $("rZone").value.trim();
+  if (resellers.some(r => r.code === code)) {
+    toast("Ce code revendeur existe déjà.", "error");
+    return;
+  }
+  try {
+    const result = await apiRequest("/api/v1/resellers", {
+      method: "POST",
+      body: JSON.stringify({ name, code })
+    });
+    const r = mapApiReseller(result.reseller);
+    r.zone = zone; // Le backend actuel ne conserve pas encore la zone.
+    resellers.push(r);
+    addActivity(`Revendeur ${name} ajouté`);
+    save(); e.target.reset(); $("resellerModal").classList.add("hidden"); render();
+    toast("Revendeur créé dans PostgreSQL. La zone sera persistée après adaptation du backend.");
+  } catch (error) {
+    toast("Création du revendeur impossible : " + error.message, "error");
+  }
 };
 
 $("addPlan").onclick=()=>$("planModal").classList.remove("hidden");
 $("closePlan").onclick=()=>$("planModal").classList.add("hidden");
 
-$("planForm").onsubmit=e=>{
-e.preventDefault();
-plans.push({
-id:"custom_"+Date.now(),name:$("pName").value.trim(),amount:Number($("pAmount").value)||0,
-type:$("pType").value,users:Number($("pUsers").value)||1,quota:$("pQuota").value.trim(),
-validity:$("pValidity").value.trim(),upload:$("pUpload").value.trim(),download:$("pDownload").value.trim(),builtin:false
-});
-addActivity(`Forfait ${$("pName").value.trim()} créé`);
-save();e.target.reset();$("pUsers").value=1;$("pUpload").value="5 Mo";$("pDownload").value="5 Mo";
-$("planModal").classList.add("hidden");render();
-toast("Forfait créé.");
+$("planForm").onsubmit = async e => {
+  e.preventDefault();
+  const name = $("pName").value.trim();
+  const amount = Number($("pAmount").value);
+  const code = name.toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 35);
+  try {
+    const result = await apiRequest("/api/v1/plans", {
+      method: "POST",
+      body: JSON.stringify({ code, name, priceMinor: amount, currency: "XOF" })
+    });
+    plans.push(mapApiPlan(result.plan));
+    addActivity(`Forfait ${name} créé`);
+    save(); e.target.reset(); $("pUsers").value = 1; $("pUpload").value = "5 Mo"; $("pDownload").value = "5 Mo";
+    $("planModal").classList.add("hidden"); render();
+    toast("Forfait enregistré dans PostgreSQL. Les paramètres avancés nécessitent une extension du backend.");
+  } catch (error) {
+    toast("Création du forfait impossible : " + error.message, "error");
+  }
 };
 
 
@@ -680,8 +829,16 @@ $("clientSearch").oninput=()=>{};
 // Initial render
 renderMikrotik();
 
-if(sessionStorage.getItem("afro_manager_auth")==="1"){
-$("login").classList.add("hidden");$("app").classList.remove("hidden");render();
+if (sessionStorage.getItem("afro_manager_auth") === "1" && adminToken) {
+  loadFromApi().then(() => {
+    $("login").classList.add("hidden");
+    $("app").classList.remove("hidden");
+    render();
+  }).catch(() => {
+    sessionStorage.removeItem("afro_manager_auth");
+    sessionStorage.removeItem("afro_manager_token");
+    adminToken = "";
+  });
 }
 </script>
 </body>
