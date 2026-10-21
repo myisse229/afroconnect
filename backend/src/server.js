@@ -17,9 +17,11 @@ const SESSION_SECRET = process.env.SESSION_SECRET;
 const TIMEZONE = process.env.BUSINESS_TIMEZONE || 'Africa/Porto-Novo';
 const SESSION_TTL_SECONDS = 8 * 60 * 60;
 
-if (!API_KEY || API_KEY.length < 32 ||
-    !ADMIN_USERNAME || !ADMIN_PASSWORD ||
-    !SESSION_SECRET || SESSION_SECRET.length < 32) {
+if (
+  !API_KEY || API_KEY.length < 32 ||
+  !ADMIN_USERNAME || !ADMIN_PASSWORD ||
+  !SESSION_SECRET || SESSION_SECRET.length < 32
+) {
   console.error('Variables de sécurité manquantes ou trop courtes.');
   process.exit(1);
 }
@@ -27,21 +29,32 @@ if (!API_KEY || API_KEY.length < 32 ||
 app.use(helmet());
 app.use(express.json({ limit: '32kb' }));
 
+// Domaines autorisés à appeler l'API depuis le navigateur.
 const allowedOrigins = new Set([
   'https://myisse229.github.io',
+  'https://afroconnectworld.com',
+  'https://www.afroconnectworld.com',
   'http://localhost:5500',
   'http://127.0.0.1:5500'
 ]);
 
 app.use((req, res, next) => {
   const origin = req.get('origin');
+
   if (origin && allowedOrigins.has(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader(
+      'Access-Control-Allow-Headers',
+      'Content-Type, Authorization'
+    );
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   }
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
+
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+
   next();
 });
 
@@ -54,9 +67,11 @@ function safeEqual(left, right) {
 function authenticateApiKey(req, res, next) {
   const supplied = (req.get('authorization') || '')
     .replace(/^Bearer\s+/i, '');
+
   if (!safeEqual(supplied, API_KEY)) {
     return res.status(401).json({ error: 'unauthorized' });
   }
+
   next();
 }
 
@@ -66,6 +81,7 @@ function sign(payload) {
     .createHmac('sha256', SESSION_SECRET)
     .update(data)
     .digest('base64url');
+
   return `${data}.${signature}`;
 }
 
@@ -73,6 +89,7 @@ function authenticateAdmin(req, res, next) {
   const token = (req.get('authorization') || '')
     .replace(/^Bearer\s+/i, '');
   const parts = token.split('.');
+
   if (parts.length !== 2) {
     return res.status(401).json({ error: 'admin_auth_required' });
   }
@@ -91,10 +108,14 @@ function authenticateAdmin(req, res, next) {
     const payload = JSON.parse(
       Buffer.from(data, 'base64url').toString('utf8')
     );
-    if (payload.exp <= Math.floor(Date.now() / 1000) ||
-        payload.sub !== ADMIN_USERNAME) {
+
+    if (
+      payload.exp <= Math.floor(Date.now() / 1000) ||
+      payload.sub !== ADMIN_USERNAME
+    ) {
       return res.status(401).json({ error: 'session_expired' });
     }
+
     req.admin = { username: payload.sub };
     next();
   } catch {
@@ -113,21 +134,27 @@ function validPositiveInt(value, max = 1000000000) {
   return Number.isSafeInteger(n) && n > 0 && n <= max;
 }
 
+// Vérification de l'API et de la base de données.
 app.get('/health', async (_req, res) => {
   try {
     await pool.query('SELECT 1');
     res.json({ status: 'ok', database: 'connected' });
   } catch {
-    res.status(503).json({ status: 'error', database: 'unavailable' });
+    res.status(503).json({
+      status: 'error',
+      database: 'unavailable'
+    });
   }
 });
 
-// Authentification administrateur : aucun secret n'est envoyé au navigateur
-// sauf le jeton de session temporaire.
+// Connexion administrateur.
 app.post('/api/v1/auth/login', (req, res) => {
   const { username, password } = req.body || {};
-  if (!safeEqual(username, ADMIN_USERNAME) ||
-      !safeEqual(password, ADMIN_PASSWORD)) {
+
+  if (
+    !safeEqual(username, ADMIN_USERNAME) ||
+    !safeEqual(password, ADMIN_PASSWORD)
+  ) {
     return res.status(401).json({ error: 'invalid_credentials' });
   }
 
@@ -145,13 +172,16 @@ app.post('/api/v1/auth/login', (req, res) => {
   });
 });
 
-// Revendeurs
+// Liste des revendeurs.
 app.get('/api/v1/resellers', authenticateAdmin, async (_req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, reseller_code, display_name, whatsapp_e164, active, created_at
-       FROM resellers ORDER BY display_name`
+      `SELECT id, reseller_code, display_name, whatsapp_e164,
+              active, created_at
+       FROM resellers
+       ORDER BY display_name`
     );
+
     res.json({ rows: result.rows });
   } catch (error) {
     console.error('Resellers list error:', error.message);
@@ -159,37 +189,51 @@ app.get('/api/v1/resellers', authenticateAdmin, async (_req, res) => {
   }
 });
 
+// Création d'un revendeur.
 app.post('/api/v1/resellers', authenticateAdmin, async (req, res) => {
   const { code, name, whatsapp } = req.body || {};
-  if (!validText(code, 40) || !validText(name, 120) ||
-      (whatsapp != null && !validText(whatsapp, 30))) {
+
+  if (
+    !validText(code, 40) ||
+    !validText(name, 120) ||
+    (whatsapp != null && !validText(whatsapp, 30))
+  ) {
     return res.status(400).json({ error: 'invalid_reseller_fields' });
   }
 
   try {
     const result = await pool.query(
-      `INSERT INTO resellers (reseller_code, display_name, whatsapp_e164)
+      `INSERT INTO resellers
+         (reseller_code, display_name, whatsapp_e164)
        VALUES ($1, $2, $3)
        RETURNING id, reseller_code, display_name, whatsapp_e164, active`,
-      [code.trim().toUpperCase(), name.trim(), whatsapp?.trim() || null]
+      [
+        code.trim().toUpperCase(),
+        name.trim(),
+        whatsapp?.trim() || null
+      ]
     );
+
     res.status(201).json({ reseller: result.rows[0] });
   } catch (error) {
     if (error.code === '23505') {
       return res.status(409).json({ error: 'reseller_code_exists' });
     }
+
     console.error('Reseller create error:', error.message);
     res.status(500).json({ error: 'reseller_create_failed' });
   }
 });
 
-// Forfaits : le schéma actuel stocke code, nom, prix et devise.
+// Liste des forfaits.
 app.get('/api/v1/plans', authenticateAdmin, async (_req, res) => {
   try {
     const result = await pool.query(
       `SELECT id, plan_code, name, price_minor, currency, created_at
-       FROM plans ORDER BY price_minor, name`
+       FROM plans
+       ORDER BY price_minor, name`
     );
+
     res.json({ rows: result.rows });
   } catch (error) {
     console.error('Plans list error:', error.message);
@@ -197,11 +241,17 @@ app.get('/api/v1/plans', authenticateAdmin, async (_req, res) => {
   }
 });
 
+// Création d'un forfait.
 app.post('/api/v1/plans', authenticateAdmin, async (req, res) => {
   const { code, name, priceMinor, currency = 'XOF' } = req.body || {};
-  if (!validText(code, 40) || !validText(name, 120) ||
-      !validPositiveInt(priceMinor) ||
-      typeof currency !== 'string' || !/^[A-Z]{3}$/.test(currency)) {
+
+  if (
+    !validText(code, 40) ||
+    !validText(name, 120) ||
+    !validPositiveInt(priceMinor) ||
+    typeof currency !== 'string' ||
+    !/^[A-Z]{3}$/.test(currency)
+  ) {
     return res.status(400).json({ error: 'invalid_plan_fields' });
   }
 
@@ -212,22 +262,27 @@ app.post('/api/v1/plans', authenticateAdmin, async (req, res) => {
        RETURNING id, plan_code, name, price_minor, currency`,
       [code.trim().toUpperCase(), name.trim(), priceMinor, currency]
     );
+
     res.status(201).json({ plan: result.rows[0] });
   } catch (error) {
     if (error.code === '23505') {
       return res.status(409).json({ error: 'plan_code_exists' });
     }
+
     console.error('Plan create error:', error.message);
     res.status(500).json({ error: 'plan_create_failed' });
   }
 });
 
-// Génération d'un lot de tickets persistés dans PostgreSQL.
+// Création d'un lot de tickets enregistrés dans PostgreSQL.
 app.post('/api/v1/tickets/batches', authenticateAdmin, async (req, res) => {
   const { resellerId, planId, quantity } = req.body || {};
-  if (!validPositiveInt(resellerId) ||
-      !validPositiveInt(planId) ||
-      !validPositiveInt(quantity, 500)) {
+
+  if (
+    !validPositiveInt(resellerId) ||
+    !validPositiveInt(planId) ||
+    !validPositiveInt(quantity, 500)
+  ) {
     return res.status(400).json({
       error: 'resellerId_planId_quantity_required',
       maxQuantity: 500
@@ -235,23 +290,29 @@ app.post('/api/v1/tickets/batches', authenticateAdmin, async (req, res) => {
   }
 
   const client = await pool.connect();
+
   try {
     await client.query('BEGIN');
 
     const resellerResult = await client.query(
       `SELECT id, reseller_code, display_name
-       FROM resellers WHERE id = $1 AND active = TRUE`,
+       FROM resellers
+       WHERE id = $1 AND active = TRUE`,
       [resellerId]
     );
+
     const planResult = await client.query(
       `SELECT id, plan_code, name, price_minor, currency
-       FROM plans WHERE id = $1`,
+       FROM plans
+       WHERE id = $1`,
       [planId]
     );
 
     if (!resellerResult.rowCount || !planResult.rowCount) {
       await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'reseller_or_plan_not_found' });
+      return res.status(404).json({
+        error: 'reseller_or_plan_not_found'
+      });
     }
 
     const reseller = resellerResult.rows[0];
@@ -264,8 +325,8 @@ app.post('/api/v1/tickets/batches', authenticateAdmin, async (req, res) => {
 
       const inserted = await client.query(
         `INSERT INTO tickets
-          (ticket_code, reseller_id, plan_id, price_minor_snapshot,
-           currency_snapshot, status)
+           (ticket_code, reseller_id, plan_id, price_minor_snapshot,
+            currency_snapshot, status)
          VALUES ($1, $2, $3, $4, $5, 'STOCK')
          RETURNING id, ticket_code, status, generated_at`,
         [
@@ -276,10 +337,12 @@ app.post('/api/v1/tickets/batches', authenticateAdmin, async (req, res) => {
           plan.currency
         ]
       );
+
       tickets.push(inserted.rows[0]);
     }
 
     await client.query('COMMIT');
+
     res.status(201).json({
       reseller: {
         id: reseller.id,
@@ -297,7 +360,12 @@ app.post('/api/v1/tickets/batches', authenticateAdmin, async (req, res) => {
       tickets
     });
   } catch (error) {
-    await client.query('ROLLBACK');
+    try {
+      await client.query('ROLLBACK');
+    } catch {
+      // La transaction peut déjà avoir été interrompue.
+    }
+
     console.error('Ticket batch error:', error.message);
     res.status(500).json({ error: 'ticket_batch_failed' });
   } finally {
@@ -305,9 +373,15 @@ app.post('/api/v1/tickets/batches', authenticateAdmin, async (req, res) => {
   }
 });
 
-// Activations : appel réservé à un adaptateur serveur RADIUS/HotSpot fiable.
+// Enregistrement de la première activation d'un ticket.
 app.post('/api/v1/activations', authenticateApiKey, async (req, res) => {
-  const { ticketCode, routerCode, activatedAt, sourceEventId } = req.body || {};
+  const {
+    ticketCode,
+    routerCode,
+    activatedAt,
+    sourceEventId
+  } = req.body || {};
+
   if (!validText(ticketCode, 120) || !validText(routerCode, 120)) {
     return res.status(400).json({
       error: 'ticketCode_and_routerCode_required'
@@ -323,8 +397,10 @@ app.post('/api/v1/activations', authenticateApiKey, async (req, res) => {
   }
 
   const client = await pool.connect();
+
   try {
     await client.query('BEGIN');
+
     const result = await client.query(
       `SELECT t.id, t.status, t.first_activated_at,
               r.id AS activated_router_id
@@ -337,7 +413,9 @@ app.post('/api/v1/activations', authenticateApiKey, async (req, res) => {
 
     if (!result.rowCount) {
       await client.query('ROLLBACK');
-      return res.status(404).json({ error: 'ticket_or_router_not_found' });
+      return res.status(404).json({
+        error: 'ticket_or_router_not_found'
+      });
     }
 
     const ticket = result.rows[0];
@@ -369,7 +447,7 @@ app.post('/api/v1/activations', authenticateApiKey, async (req, res) => {
 
     await client.query(
       `INSERT INTO activation_events
-        (ticket_id, router_id, activated_at, source_event_id)
+         (ticket_id, router_id, activated_at, source_event_id)
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (ticket_id, event_type) DO NOTHING`,
       [
@@ -381,12 +459,18 @@ app.post('/api/v1/activations', authenticateApiKey, async (req, res) => {
     );
 
     await client.query('COMMIT');
+
     return res.status(201).json({
       counted: true,
       firstActivatedAt: activatedAtUtc
     });
   } catch (error) {
-    await client.query('ROLLBACK');
+    try {
+      await client.query('ROLLBACK');
+    } catch {
+      // La transaction peut déjà avoir été interrompue.
+    }
+
     console.error('Activation error:', error.message);
     return res.status(500).json({
       error: 'activation_processing_failed'
@@ -396,33 +480,46 @@ app.post('/api/v1/activations', authenticateApiKey, async (req, res) => {
   }
 });
 
+// Rapport des activations de la semaine précédente.
 async function weeklyReport(startDate) {
   let local;
+
   if (startDate) {
     local = DateTime.fromISO(startDate, { zone: TIMEZONE });
-    if (!local.isValid) throw new Error('invalid_start_date');
+
+    if (!local.isValid) {
+      throw new Error('invalid_start_date');
+    }
   } else {
     local = DateTime.now().setZone(TIMEZONE);
   }
 
   const thisMonday = local.startOf('day')
     .minus({ days: local.weekday - 1 });
+
   const start = thisMonday.minus({ weeks: 1 }).toUTC().toISO();
   const end = thisMonday.toUTC().toISO();
 
   const result = await pool.query(
-    `SELECT r.id AS reseller_id, r.reseller_code, r.display_name,
+    `SELECT r.id AS reseller_id,
+            r.reseller_code,
+            r.display_name,
             COUNT(t.id)::int AS ticket_count,
             COALESCE(SUM(t.price_minor_snapshot), 0)::bigint
               AS gross_sales_minor,
-            FLOOR(COALESCE(SUM(t.price_minor_snapshot), 0) * 0.10)::bigint
-              AS commission_minor,
-            (COALESCE(SUM(t.price_minor_snapshot), 0)
-              - FLOOR(COALESCE(SUM(t.price_minor_snapshot), 0) * 0.10)
+            FLOOR(
+              COALESCE(SUM(t.price_minor_snapshot), 0) * 0.10
+            )::bigint AS commission_minor,
+            (
+              COALESCE(SUM(t.price_minor_snapshot), 0)
+              - FLOOR(
+                  COALESCE(SUM(t.price_minor_snapshot), 0) * 0.10
+                )
             )::bigint AS remittance_minor
      FROM tickets t
      JOIN resellers r ON r.id = t.reseller_id
-     WHERE t.first_activated_at >= $1 AND t.first_activated_at < $2
+     WHERE t.first_activated_at >= $1
+       AND t.first_activated_at < $2
      GROUP BY r.id, r.reseller_code, r.display_name
      ORDER BY r.display_name`,
     [start, end]
@@ -445,25 +542,33 @@ app.get('/api/v1/reports/weekly', authenticateApiKey, async (req, res) => {
     if (error.message === 'invalid_start_date') {
       return res.status(400).json({ error: 'invalid_start_date' });
     }
+
     console.error('Weekly report error:', error.message);
     res.status(500).json({ error: 'weekly_report_failed' });
   }
 });
 
-app.get('/api/v1/admin/reports/weekly', authenticateAdmin, async (req, res) => {
-  try {
-    res.json(await weeklyReport(
-      typeof req.query.start === 'string' ? req.query.start : null
-    ));
-  } catch (error) {
-    if (error.message === 'invalid_start_date') {
-      return res.status(400).json({ error: 'invalid_start_date' });
+app.get(
+  '/api/v1/admin/reports/weekly',
+  authenticateAdmin,
+  async (req, res) => {
+    try {
+      res.json(await weeklyReport(
+        typeof req.query.start === 'string' ? req.query.start : null
+      ));
+    } catch (error) {
+      if (error.message === 'invalid_start_date') {
+        return res.status(400).json({ error: 'invalid_start_date' });
+      }
+
+      console.error('Admin weekly report error:', error.message);
+      res.status(500).json({ error: 'weekly_report_failed' });
     }
-    console.error('Admin weekly report error:', error.message);
-    res.status(500).json({ error: 'weekly_report_failed' });
   }
-});
+);
 
 app.listen(PORT, () => {
-  console.log(`AFROCONNECT API listening on ${PORT}; timezone=${TIMEZONE}`);
+  console.log(
+    `AFROCONNECT API listening on ${PORT}; timezone=${TIMEZONE}`
+  );
 });
