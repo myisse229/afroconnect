@@ -58,6 +58,11 @@ tbody tr{transition:background .1s var(--ease)}tbody tr:hover{background:#fafbfc
 .activity{display:grid;gap:8px}.activity-item{padding:10px 12px;background:#f9fafb;border-radius:9px;border-left:3px solid #087f39}.activity-item small{display:block;color:#667085;margin-top:3px}
 .stock-alert{background:#fff4e5;border:1px solid #f5b400;color:#7a4b00;padding:12px 14px;border-radius:10px;font-weight:700}
 .stock-alert strong{font-size:18px}
+.sales-period-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:15px}
+.sales-period{min-width:0}
+.sales-period b{font-size:26px}
+.sales-period small{display:block;margin-top:4px}
+.sales-note{margin:10px 2px 0}
 .admin-overview{display:grid;grid-template-columns:1.4fr 1fr;gap:15px;margin-top:15px}
 .overview-main{padding:18px}
 .overview-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.overview-head h2{margin:4px 0 0}
@@ -74,11 +79,11 @@ tbody tr{transition:background .1s var(--ease)}tbody tr:hover{background:#fafbfc
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.error{background:#d92d20}
 
-@media(max-width:950px){aside{width:200px}main{margin-left:200px;width:calc(100% - 200px)}.cards{grid-template-columns:1fr 1fr}.generator{grid-template-columns:1fr 1fr}}
+@media(max-width:1100px){.sales-period-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}\n@media(max-width:950px){aside{width:200px}main{margin-left:200px;width:calc(100% - 200px)}.cards{grid-template-columns:1fr 1fr}.generator{grid-template-columns:1fr 1fr}}
 @media(max-width:850px){.admin-overview{grid-template-columns:1fr}.overview-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.quickbar,.filters{display:grid;grid-template-columns:1fr}.quickbar button{width:100%}}
 @media(max-width:650px){#app{display:block}aside{position:static;width:100%}main{margin:0;width:100%;padding:15px}.cards,.generator,.form-grid{grid-template-columns:1fr}header{display:block}.online{display:inline-block;margin-top:10px}}
-@media(max-width:550px){.overview-grid,.week-grid{grid-template-columns:1fr}}
+@media(max-width:550px){.overview-grid,.week-grid,.sales-period-grid{grid-template-columns:1fr}.overview-grid,.week-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -123,6 +128,18 @@ tbody tr{transition:background .1s var(--ease)}tbody tr:hover{background:#fafbfc
 <div class="card"><span>📦 Lots</span><b id="lotCount">0</b><small>Créés</small></div>
 <div class="card"><span>🎟️ Tickets</span><b id="ticketCount">0</b><small><span id="availableCount">0</span> disponibles</small></div>
 <div class="card"><span>💰 CA</span><b id="revenue">0 F</b><small>Tickets utilisés</small></div>
+</div>
+<div class="sales-period-grid" aria-label="Ventes par période">
+<div class="card sales-period"><span>💸 Activés aujourd'hui</span><b id="salesTodayCount">0</b><small id="salesTodayAmount">0 F</small></div>
+<div class="card sales-period"><span>📅 Cette semaine</span><b id="salesWeekCount">0</b><small id="salesWeekAmount">0 F</small></div>
+<div class="card sales-period"><span>🗓️ Ce mois</span><b id="salesMonthCount">0</b><small id="salesMonthAmount">0 F</small></div>
+<div class="card sales-period"><span>📆 Cette année</span><b id="salesYearCount">0</b><small id="salesYearAmount">0 F</small></div>
+<div class="card sales-period"><span>🎟️ Total activés</span><b id="salesTotalCount">0</b><small id="salesTotalAmount">0 F</small></div>
+</div>
+<div class="muted sales-note" id="salesDataNote">Les montants sont calculés à partir des tickets activés, pas de transactions de paiement confirmées.</div>
+<div class="panel" style="margin-top:15px">
+<div class="title"><h3>🧾 Derniers tickets activés</h3><span class="muted" id="salesUpdatedAt">Chargement…</span></div>
+<div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Date</th><th>Forfait</th><th>Revendeur</th><th>Montant</th><th>Paiement</th></tr></thead><tbody id="recentSalesTable"><tr><td colspan="6">Chargement des données…</td></tr></tbody></table></div>
 </div>
 <div class="admin-overview">
 <div class="overview-main panel">
@@ -363,11 +380,13 @@ function mapApiTicket(row) {
 }
 
 async function loadFromApi() {
-  const [resellerData, planData, ticketData] = await Promise.all([
+  const [resellerData, planData, ticketData, dashboardData] = await Promise.all([
     apiRequest("/api/v1/resellers"),
     apiRequest("/api/v1/plans"),
-    apiRequest("/api/v1/tickets?limit=2000")
+    apiRequest("/api/v1/tickets?limit=2000"),
+    apiRequest("/api/v1/admin/reports/dashboard")
   ]);
+  dashboardReport = dashboardData;
   resellers = (resellerData.rows || []).map(mapApiReseller);
   plans = (planData.rows || []).map(mapApiPlan);
   tickets = (ticketData.rows || []).map(mapApiTicket);
@@ -404,7 +423,7 @@ let resellers=JSON.parse(localStorage.getItem("afro_resellers")||"null")||[];
 let tickets=JSON.parse(localStorage.getItem("afro_tickets")||"null")||[];
 let lots=JSON.parse(localStorage.getItem("afro_lots")||"null")||[];
 let activities=JSON.parse(localStorage.getItem("afro_activities")||"null")||[];
-let globalQuery="";
+let globalQuery="";\nlet dashboardReport=null;
 
 function debounce(fn,wait){
 let t;
@@ -507,13 +526,49 @@ if(lowLots.length){
   badge.classList.remove("warn");
 }
 }
+function renderSalesDashboard(){
+  const report=dashboardReport;
+  if(!report||!report.summary){
+    $("recentSalesTable").innerHTML='<tr><td colspan="6">Les statistiques ne sont pas disponibles.</td></tr>';
+    $("salesDataNote").textContent="Impossible de charger le rapport du serveur.";
+    return;
+  }
+  const fmtAmount=value=>money(Number(value||0));
+  const fmtCount=value=>Number(value||0).toLocaleString("fr-FR");
+  const pairs=[
+    ["today","salesTodayCount","salesTodayAmount"],
+    ["week","salesWeekCount","salesWeekAmount"],
+    ["month","salesMonthCount","salesMonthAmount"],
+    ["year","salesYearCount","salesYearAmount"],
+    ["total","salesTotalCount","salesTotalAmount"]
+  ];
+  for(const [key,countId,amountId] of pairs){
+    const data=report.summary[key]||{count:0,amount:0};
+    $(countId).textContent=fmtCount(data.count);
+    $(amountId).textContent=fmtAmount(data.amount);
+  }
+  $("salesDataNote").textContent="Montants indicatifs calculés selon le prix des tickets activés (fuseau : "+(report.timezone||"serveur")+"). Les paiements encaissés, les modes de paiement et les sessions en direct ne sont pas encore enregistrés par l'API.";
+  $("salesUpdatedAt").textContent=report.generatedAt
+    ?"Mis à jour le "+new Date(report.generatedAt).toLocaleString("fr-FR")
+    :"Données du serveur";
+  const rows=report.recentActivations||[];
+  $("recentSalesTable").innerHTML=rows.map(item=>`<tr>
+    <td><b>${esc(item.ticketCode)}</b></td>
+    <td>${item.occurredAt?new Date(item.occurredAt).toLocaleString("fr-FR"):"—"}</td>
+    <td>${esc(item.planName||"—")}</td>
+    <td>${esc(item.resellerName||"—")}</td>
+    <td>${fmtAmount(item.amount)}</td>
+    <td><span class="badge">Non suivi</span></td>
+  </tr>`).join("")||'<tr><td colspan="6">Aucun ticket activé enregistré.</td></tr>';
+}
+
 function render(){
 $("resellerCount").textContent=resellers.length;
 $("lotCount").textContent=lots.length;
 $("ticketCount").textContent=tickets.length;
 $("availableCount").textContent=tickets.filter(t=>t.status!=="Utilisé").length;
 const used=tickets.filter(t=>t.status==="Utilisé");
-$("revenue").textContent=money(used.reduce((s,t)=>s+Number(t.amount||0),0));
+$("revenue").textContent=money(used.reduce((s,t)=>s+Number(t.amount||0),0));\nrenderSalesDashboard();
 
 const gq=globalQuery.trim().toLowerCase();
 const filteredResellers=resellers.filter(r=>!gq||(r.name+r.code+r.zone).toLowerCase().includes(gq));
