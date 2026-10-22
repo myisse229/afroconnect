@@ -85,6 +85,35 @@ tbody tr{transition:background .1s var(--ease)}tbody tr:hover{background:#fafbfc
 @media(max-width:700px){.quickbar,.filters{display:grid;grid-template-columns:1fr}.quickbar button{width:100%}}
 @media(max-width:650px){#app{display:block}aside{position:static;width:100%}main{margin:0;width:100%;padding:15px}.cards,.generator,.form-grid{grid-template-columns:1fr}header{display:block}.online{display:inline-block;margin-top:10px}}
 @media(max-width:550px){.overview-grid,.week-grid,.sales-period-grid{grid-template-columns:1fr}.overview-grid,.week-grid{grid-template-columns:1fr}}
+
+/* Interface allégée : priorité aux ventes et aux tâches courantes */
+:root{--green:#087f39;--gold:#f5b400;--ink:#172033;--muted:#667085}
+body{background:#f5f7fa;color:var(--ink);font-size:14px}
+aside{width:218px;padding:20px 16px;background:#101828}
+main{margin-left:218px;width:calc(100% - 218px);padding:24px;max-width:1500px}
+.brand{font-size:21px;margin-bottom:22px}
+aside a{padding:10px 11px;margin:3px 0;font-size:14px}
+header{margin-bottom:18px}
+header h1{font-size:25px;letter-spacing:-.5px}
+section{margin-bottom:24px}
+.card,.panel{border-radius:13px;padding:16px;box-shadow:0 2px 8px #10182808}
+.cards{gap:12px}
+.card b{font-size:26px}
+.sales-period-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.sales-period b{font-size:23px}
+.title{margin-bottom:10px}
+th,td{padding:9px 11px}
+#globalSearch{display:none}
+.generator label:has(#codeLength){display:none}
+.admin-overview,#dashboard > .panel:has(#weekUsed),#dashboard > .panel:has(#activityList){display:none!important}
+#mikrotik .actions,#mikrotikClientsPanel{display:none!important}
+#mikrotik .notice{margin-top:0!important;background:#f8fafc;border-color:#e4e7ec;color:#475467}
+#recentSalesTable td:last-child,#recentSalesTable th:last-child{display:none}
+#recentSalesTable td{white-space:nowrap}
+@media(max-width:950px){aside{width:190px}main{margin-left:190px;width:calc(100% - 190px)}.sales-period-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){aside{width:100%;padding:14px;position:static}main{margin:0;width:100%;padding:14px}.sales-period-grid{grid-template-columns:1fr 1fr}header h1{font-size:21px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
 </style>
 </head>
 <body>
@@ -137,7 +166,7 @@ tbody tr{transition:background .1s var(--ease)}tbody tr:hover{background:#fafbfc
 <div class="card sales-period"><span>📆 Cette année</span><b id="salesYearCount">0</b><small id="salesYearAmount">0 F</small></div>
 <div class="card sales-period"><span>🎟️ Total activés</span><b id="salesTotalCount">0</b><small id="salesTotalAmount">0 F</small></div>
 </div>
-<div class="muted sales-note" id="salesDataNote">Les montants sont calculés à partir des tickets activés, pas de transactions de paiement confirmées.</div>
+<div class="muted sales-note" id="salesDataNote">Les montants sont estimés à partir des tickets activés.</div>
 <div class="panel" style="margin-top:15px">
 <div class="title"><h3>🧾 Derniers tickets activés</h3><span class="muted" id="salesUpdatedAt">Chargement…</span></div>
 <div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Date</th><th>Forfait</th><th>Revendeur</th><th>Montant</th><th>Paiement</th></tr></thead><tbody id="recentSalesTable"><tr><td colspan="6">Chargement des données…</td></tr></tbody></table></div>
@@ -234,8 +263,8 @@ tbody tr{transition:background .1s var(--ease)}tbody tr:hover{background:#fafbfc
 
 <section id="mikrotik">
 <div class="title">
-  <div><h2>Contrôle MikroTik</h2><small class="muted">Pilotage depuis le serveur sécurisé</small></div>
-  <span id="mikrotikStatus" class="online">● Prêt</span>
+  <div><h2>Contrôle MikroTik</h2><small class="muted">État de l’intégration routeur</small></div>
+  <span id="mikrotikStatus" class="status-pill warn">● À configurer</span>
 </div>
 
 <div class="cards" style="grid-template-columns:repeat(3,1fr)">
@@ -251,9 +280,7 @@ tbody tr{transition:background .1s var(--ease)}tbody tr:hover{background:#fafbfc
 <button id="mikrotikClientsBtn">👥 Voir les clients</button>
 <button id="mikrotikDisconnectBtn" class="orange">⛔ Déconnecter un client</button>
 </div>
-<div class="notice" style="margin-top:12px">
-Le Manager ne stocke pas les identifiants MikroTik. Les commandes seront exécutées par le serveur AfroConnect afin de permettre la gestion à distance.
-</div>
+<div class="notice" style="margin-top:12px">La connexion réelle au MikroTik n’est pas encore validée. Les clients connectés et les sessions ne sont donc pas affichés comme des données en direct.</div>
 </div>
 
 <div id="mikrotikClientsPanel" class="panel hidden" style="margin-top:15px">
@@ -550,7 +577,7 @@ function renderSalesDashboard(){
     $(countId).textContent=fmtCount(data.count);
     $(amountId).textContent=fmtAmount(data.amount);
   }
-  $("salesDataNote").textContent="Montants indicatifs calculés selon le prix des tickets activés (fuseau : "+(report.timezone||"serveur")+"). Les paiements encaissés, les modes de paiement et les sessions en direct ne sont pas encore enregistrés par l'API.";
+  $("salesDataNote").textContent="Estimations selon le prix des tickets activés (fuseau : "+(report.timezone||"serveur")+"). Les paiements encaissés, les modes de paiement et les sessions en direct ne sont pas encore enregistrés par l'API.";
   $("salesUpdatedAt").textContent=report.generatedAt
     ?"Mis à jour le "+new Date(report.generatedAt).toLocaleString("fr-FR",{timeZone:report.timezone||undefined})
     :"Données du serveur";
