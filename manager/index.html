@@ -79,7 +79,8 @@ tbody tr{transition:background .1s var(--ease)}tbody tr:hover{background:#fafbfc
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.error{background:#d92d20}
 
-@media(max-width:1100px){.sales-period-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}\n@media(max-width:950px){aside{width:200px}main{margin-left:200px;width:calc(100% - 200px)}.cards{grid-template-columns:1fr 1fr}.generator{grid-template-columns:1fr 1fr}}
+@media(max-width:1100px){.sales-period-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:950px){aside{width:200px}main{margin-left:200px;width:calc(100% - 200px)}.cards{grid-template-columns:1fr 1fr}.generator{grid-template-columns:1fr 1fr}}
 @media(max-width:850px){.admin-overview{grid-template-columns:1fr}.overview-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:700px){.quickbar,.filters{display:grid;grid-template-columns:1fr}.quickbar button{width:100%}}
 @media(max-width:650px){#app{display:block}aside{position:static;width:100%}main{margin:0;width:100%;padding:15px}.cards,.generator,.form-grid{grid-template-columns:1fr}header{display:block}.online{display:inline-block;margin-top:10px}}
@@ -569,7 +570,8 @@ $("lotCount").textContent=lots.length;
 $("ticketCount").textContent=tickets.length;
 $("availableCount").textContent=tickets.filter(t=>t.status!=="Utilisé").length;
 const used=tickets.filter(t=>t.status==="Utilisé");
-$("revenue").textContent=money(used.reduce((s,t)=>s+Number(t.amount||0),0));\nrenderSalesDashboard();
+$("revenue").textContent=money(used.reduce((s,t)=>s+Number(t.amount||0),0));
+renderSalesDashboard();
 
 const gq=globalQuery.trim().toLowerCase();
 const filteredResellers=resellers.filter(r=>!gq||(r.name+r.code+r.zone).toLowerCase().includes(gq));
