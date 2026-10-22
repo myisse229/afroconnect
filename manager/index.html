@@ -552,12 +552,12 @@ function renderSalesDashboard(){
   }
   $("salesDataNote").textContent="Montants indicatifs calculés selon le prix des tickets activés (fuseau : "+(report.timezone||"serveur")+"). Les paiements encaissés, les modes de paiement et les sessions en direct ne sont pas encore enregistrés par l'API.";
   $("salesUpdatedAt").textContent=report.generatedAt
-    ?"Mis à jour le "+new Date(report.generatedAt).toLocaleString("fr-FR")
+    ?"Mis à jour le "+new Date(report.generatedAt).toLocaleString("fr-FR",{timeZone:report.timezone||undefined})
     :"Données du serveur";
   const rows=report.recentActivations||[];
   $("recentSalesTable").innerHTML=rows.map(item=>`<tr>
     <td><b>${esc(item.ticketCode)}</b></td>
-    <td>${item.occurredAt?new Date(item.occurredAt).toLocaleString("fr-FR"):"—"}</td>
+    <td>${item.occurredAt?new Date(item.occurredAt).toLocaleString("fr-FR",{timeZone:report.timezone||undefined}):"—"}</td>
     <td>${esc(item.planName||"—")}</td>
     <td>${esc(item.resellerName||"—")}</td>
     <td>${fmtAmount(item.amount)}</td>
