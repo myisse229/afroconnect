@@ -128,7 +128,7 @@ tbody tr{transition:background .1s var(--ease)}tbody tr:hover{background:#fafbfc
 <div class="card"><span>🤝 Revendeurs</span><b id="resellerCount">0</b><small>Actifs</small></div>
 <div class="card"><span>📦 Lots</span><b id="lotCount">0</b><small>Créés</small></div>
 <div class="card"><span>🎟️ Tickets</span><b id="ticketCount">0</b><small><span id="availableCount">0</span> disponibles</small></div>
-<div class="card"><span>💰 CA</span><b id="revenue">0 F</b><small>Tickets utilisés</small></div>
+<div class="card"><span>💰 Valeur activée</span><b id="revenue">0 F</b><small>Estimation au prix des tickets activés</small></div>
 </div>
 <div class="sales-period-grid" aria-label="Ventes par période">
 <div class="card sales-period"><span>💸 Activés aujourd'hui</span><b id="salesTodayCount">0</b><small id="salesTodayAmount">0 F</small></div>
@@ -376,7 +376,7 @@ function mapApiTicket(row) {
     amount: Number(row.price_minor_snapshot || 0),
     status: row.status === "ACTIVATED" ? "Utilisé" :
       row.status === "REVOKED" ? "Révoqué" : "Disponible",
-    createdAt: row.generated_at || nowISO()
+    createdAt: row.generated_at || nowISO(),\n    activatedAt: row.first_activated_at || null
   };
 }
 
@@ -485,7 +485,7 @@ const start=new Date(now);
 start.setHours(0,0,0,0);
 start.setDate(start.getDate()-6);
 
-const weekTickets=tickets.filter(t=>t.status==="Utilisé" && new Date(t.createdAt)>=start);
+const weekTickets=tickets.filter(t=>t.status==="Utilisé" && new Date(t.activatedAt||t.createdAt)>=start);
 const weekRevenue=weekTickets.reduce((s,t)=>s+Number(t.amount||0),0);
 
 const resellerStats={};
