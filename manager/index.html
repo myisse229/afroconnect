@@ -376,7 +376,8 @@ function mapApiTicket(row) {
     amount: Number(row.price_minor_snapshot || 0),
     status: row.status === "ACTIVATED" ? "Utilisé" :
       row.status === "REVOKED" ? "Révoqué" : "Disponible",
-    createdAt: row.generated_at || nowISO(),\n    activatedAt: row.first_activated_at || null
+    createdAt: row.generated_at || nowISO(),
+    activatedAt: row.first_activated_at || null
   };
 }
 
