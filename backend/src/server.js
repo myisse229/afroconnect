@@ -512,7 +512,8 @@ app.post('/api/v1/activations', authenticateApiKey, async (req, res) => {
   }
 });
 
-// Synthèse du tableau de bord : uniquement les tickets activés sont comptés.
+// Synthèse du tableau de bord : toute première activation validée vaut encaissement.
+// Le critère reste first_activated_at, même si le ticket est ensuite révoqué.
 // Le système ne stocke pas encore de transactions de paiement ni de sessions en direct.
 app.get('/api/v1/admin/reports/dashboard', authenticateAdmin, async (_req, res) => {
   try {
@@ -537,7 +538,7 @@ app.get('/api/v1/admin/reports/dashboard', authenticateAdmin, async (_req, res) 
          COALESCE(SUM(t.price_minor_snapshot), 0)::bigint AS total_amount
        FROM tickets t
        CROSS JOIN bounds b
-       WHERE t.status = 'ACTIVATED' AND t.first_activated_at IS NOT NULL`,
+       WHERE t.first_activated_at IS NOT NULL`,
       [TIMEZONE]
     );
 
@@ -552,7 +553,7 @@ app.get('/api/v1/admin/reports/dashboard', authenticateAdmin, async (_req, res) 
        JOIN resellers r ON r.id = t.reseller_id
        JOIN plans p ON p.id = t.plan_id
        LEFT JOIN routers rt ON rt.id = t.first_activation_router_id
-       WHERE t.status = 'ACTIVATED' AND t.first_activated_at IS NOT NULL
+       WHERE t.first_activated_at IS NOT NULL
        ORDER BY t.first_activated_at DESC
        LIMIT 15`
     );
