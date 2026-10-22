@@ -1,38 +1,31 @@
-# Suivi fiable des paiements AFROCONNECT
+# Règle de comptabilisation des ventes AFROCONNECT
 
-## Objectif
+## Règle métier validée
 
-Séparer les tickets générés/activés de l'argent effectivement encaissé. Les statistiques actuelles de tickets activés restent des estimations et ne doivent pas être présentées comme des recettes confirmées.
+Pour le Manager AFROCONNECT, **un ticket activé est considéré comme encaissé**.
 
-## Migration PostgreSQL
+- Un ticket compte dans le chiffre d'affaires à partir de sa première activation validée.
+- Le montant comptabilisé est le prix enregistré sur le ticket (`price_minor_snapshot`) et sa devise (`currency_snapshot`).
+- Une activation ultérieure du même ticket ne doit pas créer une nouvelle vente.
+- Un ticket simplement généré, encore en stock ou jamais activé, n'est pas compté comme vente encaissée.
+- Les statistiques journalières, hebdomadaires, mensuelles et annuelles s'appuient sur la date de première activation.
 
-1. Ouvrir Render, puis la base PostgreSQL utilisée par `afroconnect-api`.
-2. Ouvrir l'outil SQL disponible pour cette base (ou se connecter avec les paramètres privés de connexion).
-3. Exécuter une seule fois le fichier `backend/sql/migrations/20261022_payment_ledger.sql`.
-4. Vérifier que les tables `payment_transactions` et `payment_transaction_events` existent.
-5. Ne jamais publier l'URL de connexion, le mot de passe PostgreSQL ou des clés FedaPay dans un ticket, une capture publique ou le dépôt Git.
+## FedaPay et ventes manuelles
 
-La migration est additive : elle ne supprime ni ne modifie les tickets existants. Elle ne doit pas être exécutée automatiquement au démarrage de l'API.
+Les tickets payés par FedaPay Mobile Money suivent la même règle : dès que leur activation est validée, le ticket est comptabilisé une seule fois. Il ne faut pas additionner une seconde fois le même montant au titre d'un paiement FedaPay, car cela doublerait le chiffre d'affaires.
 
-## Règles de comptabilisation
+Cette règle suppose que le processus d'activation ne valide que les tickets effectivement encaissés. Si cette garantie change, il faudra revoir la règle métier avant de modifier les statistiques.
 
-- **Recettes confirmées** : uniquement les transactions dont le statut est `CONFIRMED`.
-- **En attente** : exclues du total encaissé.
-- **Échouées / annulées** : exclues du total encaissé.
-- **Remboursées** : présentées séparément et déduites des recettes nettes selon la règle comptable retenue.
-- **Ventes manuelles** : enregistrer le mode (espèces, Mobile Money manuel, virement), la référence disponible, la date de paiement et l'agent qui a saisi l'opération.
-- **FedaPay** : ne confirmer un paiement qu'après vérification côté serveur auprès de FedaPay ou validation d'une notification authentifiée. Ne jamais se fier à une page de retour navigateur ni à une valeur envoyée par le client.
-- **Idempotence** : l'identifiant de transaction du prestataire et la clé d'idempotence empêchent de compter deux fois le même paiement.
-- **Rapprochement** : comparer périodiquement les transactions confirmées avec le tableau de bord FedaPay et le journal des ventes manuelles.
+## Implémentation existante
 
-## État d'implémentation
+L'API s'appuie déjà sur le statut `ACTIVATED` et `first_activated_at` pour les rapports. Le premier passage à l'état activé doit rester idempotent : la même activation répétée ne peut pas incrémenter les ventes une seconde fois.
 
-Cette migration prépare le registre persistant et son journal d'événements. Elle ne branche pas encore de webhook FedaPay et n'ajoute pas encore d'interface de saisie manuelle ni de nouveaux chiffres d'encaissement au Manager. Ces fonctionnalités doivent être livrées après validation des paramètres FedaPay (mode test/production, secret webhook et méthode de vérification officielle) et des règles de vente manuelle.
+Le montant calculé à partir du prix du ticket est la valeur des tickets activés selon cette règle métier ; ce n'est pas un relevé séparé des frais, commissions ou remboursements FedaPay.
 
-## Vérifications avant mise en production
+## Contrôles avant fusion
 
-- Tester en mode FedaPay test un paiement confirmé, refusé, annulé et une notification répétée.
-- Vérifier que la répétition d'une notification ne crée pas de double comptabilisation.
-- Vérifier qu'une vente manuelle ne peut être enregistrée que par un administrateur authentifié.
-- Comparer les totaux journaliers avec FedaPay et les ventes manuelles.
-- Garder les indicateurs existants clairement étiquetés « valeur estimée des tickets activés » jusqu'à ce que le registre soit alimenté et contrôlé.
+- Vérifier que le même ticket activé plusieurs fois n'est compté qu'une seule fois.
+- Vérifier que les tickets non activés sont exclus des ventes.
+- Vérifier les regroupements par jour, semaine, mois et année à partir de la première activation.
+- Vérifier que les prix historiques du ticket sont utilisés plutôt que le prix actuel du forfait.
+- Ne pas créer ni utiliser un registre de paiement séparé pour ajouter une deuxième fois les ventes déjà comptées par activation.
