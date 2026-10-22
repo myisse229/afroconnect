@@ -24,7 +24,7 @@ jobs:
           from pathlib import Path
           import re
           html = Path("manager/index.html").read_text(encoding="utf-8")
-          match = re.search(r"<script\\b[^>]*>([\\s\\S]*?)</script\\s*>", html, re.IGNORECASE)
+          match = re.search(r"<script\b[^>]*>([\s\S]*?)</script\s*>", html, re.IGNORECASE)
           if not match:
               raise SystemExit("No inline script found in manager/index.html")
           Path("/tmp/manager-inline.js").write_text(match.group(1), encoding="utf-8")
