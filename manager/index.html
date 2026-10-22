@@ -423,7 +423,8 @@ let resellers=JSON.parse(localStorage.getItem("afro_resellers")||"null")||[];
 let tickets=JSON.parse(localStorage.getItem("afro_tickets")||"null")||[];
 let lots=JSON.parse(localStorage.getItem("afro_lots")||"null")||[];
 let activities=JSON.parse(localStorage.getItem("afro_activities")||"null")||[];
-let globalQuery="";\nlet dashboardReport=null;
+let globalQuery="";
+let dashboardReport=null;
 
 function debounce(fn,wait){
 let t;
