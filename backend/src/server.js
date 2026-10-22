@@ -512,6 +512,79 @@ app.post('/api/v1/activations', authenticateApiKey, async (req, res) => {
   }
 });
 
+// Synthèse du tableau de bord : uniquement les tickets activés sont comptés.
+// Le système ne stocke pas encore de transactions de paiement ni de sessions en direct.
+app.get('/api/v1/admin/reports/dashboard', authenticateAdmin, async (_req, res) => {
+  try {
+    const totalsResult = await pool.query(
+      `WITH bounds AS (
+         SELECT
+           (date_trunc('day', now() AT TIME ZONE $1) AT TIME ZONE $1) AS day_start,
+           (date_trunc('week', now() AT TIME ZONE $1) AT TIME ZONE $1) AS week_start,
+           (date_trunc('month', now() AT TIME ZONE $1) AT TIME ZONE $1) AS month_start,
+           (date_trunc('year', now() AT TIME ZONE $1) AT TIME ZONE $1) AS year_start
+       )
+       SELECT
+         COUNT(t.id) FILTER (WHERE t.first_activated_at >= b.day_start)::int AS today_count,
+         COALESCE(SUM(t.price_minor_snapshot) FILTER (WHERE t.first_activated_at >= b.day_start), 0)::bigint AS today_amount,
+         COUNT(t.id) FILTER (WHERE t.first_activated_at >= b.week_start)::int AS week_count,
+         COALESCE(SUM(t.price_minor_snapshot) FILTER (WHERE t.first_activated_at >= b.week_start), 0)::bigint AS week_amount,
+         COUNT(t.id) FILTER (WHERE t.first_activated_at >= b.month_start)::int AS month_count,
+         COALESCE(SUM(t.price_minor_snapshot) FILTER (WHERE t.first_activated_at >= b.month_start), 0)::bigint AS month_amount,
+         COUNT(t.id) FILTER (WHERE t.first_activated_at >= b.year_start)::int AS year_count,
+         COALESCE(SUM(t.price_minor_snapshot) FILTER (WHERE t.first_activated_at >= b.year_start), 0)::bigint AS year_amount,
+         COUNT(t.id)::int AS total_count,
+         COALESCE(SUM(t.price_minor_snapshot), 0)::bigint AS total_amount
+       FROM tickets t
+       CROSS JOIN bounds b
+       WHERE t.status = 'ACTIVATED' AND t.first_activated_at IS NOT NULL`,
+      [TIMEZONE]
+    );
+
+    const recentResult = await pool.query(
+      `SELECT t.ticket_code, t.first_activated_at AS occurred_at,
+              t.price_minor_snapshot AS amount,
+              t.currency_snapshot AS currency,
+              r.display_name AS reseller_name,
+              p.name AS plan_name,
+              rt.display_name AS router_name
+       FROM tickets t
+       JOIN resellers r ON r.id = t.reseller_id
+       JOIN plans p ON p.id = t.plan_id
+       LEFT JOIN routers rt ON rt.id = t.first_activation_router_id
+       WHERE t.status = 'ACTIVATED' AND t.first_activated_at IS NOT NULL
+       ORDER BY t.first_activated_at DESC
+       LIMIT 15`
+    );
+
+    const row = totalsResult.rows[0];
+    const period = (count, amount) => ({ count: Number(row[count] || 0), amount: Number(row[amount] || 0) });
+    res.json({
+      timezone: TIMEZONE,
+      generatedAt: new Date().toISOString(),
+      summary: {
+        today: period('today_count', 'today_amount'),
+        week: period('week_count', 'week_amount'),
+        month: period('month_count', 'month_amount'),
+        year: period('year_count', 'year_amount'),
+        total: period('total_count', 'total_amount')
+      },
+      recentActivations: recentResult.rows.map(item => ({
+        ticketCode: item.ticket_code,
+        occurredAt: item.occurred_at,
+        amount: Number(item.amount || 0),
+        currency: String(item.currency || 'XOF').trim(),
+        resellerName: item.reseller_name,
+        planName: item.plan_name,
+        routerName: item.router_name
+      }))
+    });
+  } catch (error) {
+    console.error('Dashboard report error:', error.message);
+    res.status(500).json({ error: 'dashboard_report_failed' });
+  }
+});
+
 // Rapport des activations de la semaine précédente.
 async function weeklyReport(startDate) {
   let local;

@@ -1,0 +1,32 @@
+name: Validate AfroConnect
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, "feat/voucherman-dashboard"]
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Check backend JavaScript
+        run: node --check backend/src/server.js
+      - name: Check manager inline JavaScript
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          html = Path("manager/index.html").read_text(encoding="utf-8")
+          match = re.search(r"<script\b[^>]*>([\s\S]*?)</script\s*>", html, re.IGNORECASE)
+          if not match:
+              raise SystemExit("No inline script found in manager/index.html")
+          Path("/tmp/manager-inline.js").write_text(match.group(1), encoding="utf-8")
+          PY
+          node --check /tmp/manager-inline.js
