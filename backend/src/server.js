@@ -246,7 +246,7 @@ app.put('/api/v1/admin/captive-portal/settings', authenticateAdmin, async (req, 
       (p.logoUrl != null && p.logoUrl !== '' && (!validText(p.logoUrl, 500) || !validOptionalUrl(p.logoUrl))) ||
       !/^#[0-9a-fA-F]{6}$/.test(String(p.brandColor || '')) ||
       !validOptionalUrl(p.purchaseUrl) ||
-      (p.whatsapp != null && p.whatsapp !== '' && !/^\+?[0-9 ]{8,20}$/.test(p.whatsapp)) ||
+      (p.whatsapp != null && p.whatsapp !== '' && (typeof p.whatsapp !== 'string' || !/^\+?[0-9 ]{8,20}$/.test(p.whatsapp))) ||
       typeof p.showQr !== 'boolean' ||
       (p.terms != null && (typeof p.terms !== 'string' || p.terms.length > 1000))) {
     return res.status(400).json({ error: 'invalid_captive_portal_settings' });
