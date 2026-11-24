@@ -251,7 +251,7 @@ app.put('/api/v1/admin/captive-portal/settings', authenticateAdmin, async (req, 
       (p.terms != null && (typeof p.terms !== 'string' || p.terms.length > 1000))) {
     return res.status(400).json({ error: 'invalid_captive_portal_settings' });
   }
-  if (p.showQr && !validOptionalUrl(p.purchaseUrl)) {
+  if (p.showQr && (!validText(p.purchaseUrl, 500) || !validOptionalUrl(p.purchaseUrl))) {
     return res.status(400).json({ error: 'invalid_purchase_url_for_qr' });
   }
   try {
