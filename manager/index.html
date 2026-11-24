@@ -268,10 +268,10 @@ th,td{padding:9px 11px}
   <span id="mikrotikStatus" class="status-pill warn">● À configurer</span>
 </div>
 
-<div class="cards" style="grid-template-columns:repeat(3,1fr)">
-  <div class="card"><span>📡 Routeur</span><b id="mikrotikName">MikroTik</b><small id="mikrotikIp">IP non configurée</small></div>
-  <div class="card"><span>👥 Clients connectés</span><b id="mikrotikClients">—</b><small>Synchronisation serveur</small></div>
-  <div class="card"><span>🎟️ Sessions</span><b id="mikrotikSessions">—</b><small>Hotspot actif</small></div>
+<div class="panel">
+<div class="title"><h3>📡 Routeurs enregistrés</h3><span class="muted" id="mikrotikLastUpdate">Pas encore synchronisé</span></div>
+<div class="table-wrap"><table><thead><tr><th>Routeur</th><th>Modèle</th><th>État</th><th>Clients actifs</th><th>Dernier contact</th></tr></thead>
+<tbody id="mikrotikRouterTable"><tr><td colspan="5">Chargement des routeurs…</td></tr></tbody></table></div>
 </div>
 
 <div class="panel" style="margin-top:15px">
@@ -281,7 +281,7 @@ th,td{padding:9px 11px}
 <button id="mikrotikClientsBtn">👥 Voir les clients</button>
 <button id="mikrotikDisconnectBtn" class="orange">⛔ Déconnecter un client</button>
 </div>
-<div class="notice" style="margin-top:12px">La connexion réelle au MikroTik n’est pas encore validée. Les clients connectés et les sessions ne sont donc pas affichés comme des données en direct.</div>
+<div class="notice" style="margin-top:12px">L’état passe en ligne uniquement après réception d’un signal réel du routeur. Un routeur sans contact récent reste affiché hors ligne.</div>
 </div>
 
 <div id="mikrotikClientsPanel" class="panel hidden" style="margin-top:15px">
@@ -329,15 +329,15 @@ th,td{padding:9px 11px}
 <div id="mikrotikModal" class="modal hidden">
 <form id="mikrotikForm">
 <button type="button" id="closeMikrotik" class="close">×</button>
-<h2>Configuration MikroTik</h2>
+<h2>Enregistrer un routeur MikroTik</h2>
 <div class="form-grid">
-<label>Nom<input id="mName" value="MikroTik"></label>
-<label>Adresse IP / hôte<input id="mHost" placeholder="Ex : 6.6.6.1"></label>
-<label>Port API<input id="mPort" type="number" value="8728"></label>
-<label>Adresse du serveur API<input id="mApi" placeholder="URL du serveur AfroConnect"></label>
+<label>Nom affiché<input id="mName" placeholder="Ex : Routeur principal" required></label>
+<label>Code unique<input id="mCode" placeholder="Ex : AFRO-ROUTEUR-01" required></label>
+<label>Modèle<select id="mModel"><option value="MikroTik hAP ac²">MikroTik hAP ac²</option><option value="MikroTik RB2011UiAS-RM">MikroTik RB2011UiAS-RM</option></select></label>
 </div>
-<div class="notice" style="margin-top:12px">Pour la sécurité, aucun mot de passe MikroTik n'est enregistré dans GitHub Pages. Il sera conservé côté serveur.</div>
-<button type="submit">Enregistrer</button>
+<div class="notice" style="margin-top:12px">Un jeton individuel sera généré. Il ne sera affiché qu’une seule fois. Ne le partage pas et ne l’inscris jamais dans GitHub.</div>
+<div id="routerTokenBox" class="hidden"><label>Jeton secret du routeur<textarea id="routerTokenValue" rows="3" readonly></textarea></label><button type="button" id="copyRouterToken" class="gray">Copier le jeton</button></div>
+<button type="submit">Enregistrer et générer le jeton</button>
 </form>
 </div>
 
@@ -805,6 +805,7 @@ $("loginForm").onsubmit = async e => {
     sessionStorage.setItem("afro_manager_auth", "1");
     await loadFromApi();
     $("login").classList.add("hidden");
+    loadMikrotik();
     $("app").classList.remove("hidden");
     render();
     toast("Connexion à PostgreSQL réussie.");
@@ -881,44 +882,85 @@ $("globalSearch").oninput=debounce(()=>{globalQuery=$("globalSearch").value;rend
 $("quickCreate").onclick=()=>{location.hash="tickets";window.scrollTo({top:document.getElementById("tickets").offsetTop-10,behavior:"smooth"});setTimeout(()=>$("ticketQty").focus(),250)};
 
 
-// MikroTik UI — les commandes réelles passent par le serveur.
-const mikrotikConfig=JSON.parse(localStorage.getItem("afro_mikrotik_config")||"null")||{name:"MikroTik",host:"",port:8728,api:""};
-function renderMikrotik(){
-$("mikrotikName").textContent=mikrotikConfig.name||"MikroTik";
-$("mikrotikIp").textContent=mikrotikConfig.host||"IP non configurée";
+// MikroTik : inventaire et sessions fournis par les API réelles.
+function renderMikrotikRows(rows){
+  const body=$("mikrotikRouterTable");
+  if(!rows.length){
+    body.innerHTML='<tr><td colspan="5">Aucun routeur enregistré. Utilise « Configurer » pour ajouter les deux appareils.</td></tr>';
+    $("mikrotikStatus").textContent="● À configurer";
+    $("mikrotikStatus").classList.add("warn");
+    $("mikrotikClients").textContent="—";
+    return;
+  }
+  const online=rows.filter(r=>r.status==="ONLINE").length;
+  const clients=rows.reduce((n,r)=>n+Number(r.activeSessions||0),0);
+  $("mikrotikStatus").textContent=online===rows.length?"● Tous en ligne":online?("● "+online+"/"+rows.length+" en ligne"):"● Hors ligne";
+  $("mikrotikStatus").classList.toggle("warn",online!==rows.length);
+  $("mikrotikName").textContent=rows.length+" routeur(s)";
+  $("mikrotikClients").textContent=String(clients);
+  $("mikrotikSessions").textContent=String(clients);
+  $("mikrotikIp").textContent="Surveillance API";
+  body.innerHTML=rows.map(r=>'<tr><td><b>'+esc(r.displayName)+'</b><br><small>'+esc(r.routerCode)+'</small></td><td>'+esc(r.model)+'</td><td><span class="status-pill '+(r.status==="ONLINE"?"":"warn")+'">'+(r.status==="ONLINE"?"● En ligne":"● Hors ligne")+'</span></td><td>'+Number(r.activeSessions||0)+'</td><td>'+(r.lastSeenAt?new Date(r.lastSeenAt).toLocaleString("fr-FR"):"Jamais")+'</td></tr>').join("");
+  $("mikrotikLastUpdate").textContent="Actualisé à "+new Date().toLocaleTimeString("fr-FR");
+}
+async function loadMikrotik(){
+  try{
+    const pair=await Promise.all([apiRequest("/api/v1/admin/routers"),apiRequest("/api/v1/admin/routers/sessions")]);
+    const routerData=pair[0],sessionData=pair[1];
+    renderMikrotikRows(routerData.rows||[]);
+    const rows=sessionData.rows||[];
+    $("mikrotikClientTable").innerHTML=rows.map(x=>'<tr><td><b>'+esc(x.username)+'</b><br><small>'+esc(x.router_name)+'</small></td><td>'+esc(x.ip_address)+'</td><td>'+esc(x.mac_address)+'</td><td>—</td><td>'+esc(x.session_uptime||"—")+'</td><td><span class="badge">Connecté</span></td></tr>').join("")||'<tr><td colspan="6">Aucun client actif remonté par les routeurs.</td></tr>';
+    $("overviewMikrotik").textContent=(routerData.rows||[]).filter(x=>x.status==="ONLINE").length+"/"+(routerData.rows||[]).length;
+    $("overviewClients").textContent=String(rows.length);
+  }catch(error){
+    $("mikrotikStatus").textContent="● API non disponible";
+    $("mikrotikStatus").classList.add("warn");
+    $("mikrotikRouterTable").innerHTML='<tr><td colspan="5">Données MikroTik indisponibles. Vérifie la migration PostgreSQL et le déploiement du backend.</td></tr>';
+  }
 }
 $("mikrotikConfig").onclick=()=>{
-$("mName").value=mikrotikConfig.name||"MikroTik";
-$("mHost").value=mikrotikConfig.host||"";
-$("mPort").value=mikrotikConfig.port||8728;
-$("mApi").value=mikrotikConfig.api||"";
-$("mikrotikModal").classList.remove("hidden");
+  $("mName").value="";
+  $("mCode").value="";
+  $("mModel").value="MikroTik hAP ac²";
+  $("routerTokenBox").classList.add("hidden");
+  $("routerTokenValue").value="";
+  $("mikrotikModal").classList.remove("hidden");
 };
 $("closeMikrotik").onclick=()=>$("mikrotikModal").classList.add("hidden");
-$("mikrotikForm").onsubmit=e=>{
-e.preventDefault();
-mikrotikConfig.name=$("mName").value.trim()||"MikroTik";
-mikrotikConfig.host=$("mHost").value.trim();
-mikrotikConfig.port=Number($("mPort").value)||8728;
-mikrotikConfig.api=$("mApi").value.trim();
-localStorage.setItem("afro_mikrotik_config",JSON.stringify(mikrotikConfig));
-$("mikrotikModal").classList.add("hidden");
-renderMikrotik();
+$("mikrotikForm").onsubmit=async e=>{
+  e.preventDefault();
+  const button=e.submitter;
+  button.disabled=true;
+  try{
+    const result=await apiRequest("/api/v1/admin/routers/provision",{method:"POST",body:JSON.stringify({displayName:$("mName").value.trim(),routerCode:$("mCode").value.trim().toUpperCase(),model:$("mModel").value})});
+    $("routerTokenValue").value=result.token;
+    $("routerTokenBox").classList.remove("hidden");
+    toast("Routeur enregistré. Copie son jeton secret maintenant.");
+    await loadMikrotik();
+  }catch(error){toast("Enregistrement impossible : "+error.message,"error");}
+  finally{button.disabled=false;}
 };
-$("mikrotikRefresh").onclick=()=>{
-$("mikrotikStatus").textContent="● Synchronisation serveur";
-renderAdminOverview();
-setTimeout(()=>{$("mikrotikStatus").textContent="● Prêt";renderAdminOverview()},700);
+$("copyRouterToken").onclick=()=>{
+  const value=$("routerTokenValue").value;
+  if(value)navigator.clipboard.writeText(value).then(()=>toast("Jeton copié.")).catch(()=>toast("Copie impossible : sélectionne le jeton manuellement.","error"));
 };
-$("mikrotikClientsBtn").onclick=()=>$("mikrotikClientsPanel").classList.toggle("hidden");
-$("mikrotikDisconnectBtn").onclick=()=>toast("La déconnexion réelle sera exécutée par le serveur MikroTik/API. Aucun identifiant n'est stocké dans cette page.");
-$("clientSearch").oninput=()=>{};
+$("mikrotikRefresh").onclick=loadMikrotik;
+$("mikrotikClientsBtn").onclick=()=>{
+  $("mikrotikClientsPanel").classList.toggle("hidden");
+  if(!$("mikrotikClientsPanel").classList.contains("hidden"))loadMikrotik();
+};
+$("mikrotikDisconnectBtn").onclick=()=>toast("La commande de déconnexion sera ajoutée après validation des premières remontées de sessions.");
+$("clientSearch").oninput=()=>{
+  const q=$("clientSearch").value.trim().toLowerCase();
+  for(const row of $("mikrotikClientTable").rows)row.hidden=!row.textContent.toLowerCase().includes(q);
+};
 // Initial render
 renderMikrotik();
 
 if (sessionStorage.getItem("afro_manager_auth") === "1" && adminToken) {
   loadFromApi().then(() => {
     $("login").classList.add("hidden");
+    loadMikrotik();
     $("app").classList.remove("hidden");
     render();
   }).catch(() => {
