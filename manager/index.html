@@ -26,7 +26,19 @@ input:focus,select:focus{border-color:#087f39}
 aside{position:fixed;left:0;top:0;bottom:0;width:245px;background:#101828;color:#fff;padding:22px;z-index:5;overflow-y:auto}
 .brand{font-size:23px;margin-bottom:28px}.brand small{display:block;color:#98a2b3;font-size:11px;letter-spacing:1.5px;margin-top:4px}
 aside a{display:block;color:#d0d5dd;text-decoration:none;padding:11px;border-radius:9px;margin:5px 0;transition:background .15s var(--ease),color .15s var(--ease)}
-aside a:hover{background:#1d2939;color:#fff}aside #logout{width:100%;margin-top:18px}
+aside a:hover{background:#1d2939;color:#fff}
+.side-nav{display:flex;flex-direction:column;gap:5px}
+.side-nav .side-link{display:block}
+.nav-group{margin:0}
+.nav-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;background:transparent;color:#d0d5dd;border:0;border-radius:9px;padding:11px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s var(--ease),color .15s var(--ease)}
+.nav-toggle:hover,.nav-toggle[aria-expanded="true"]{background:#1d2939;color:#fff}
+.nav-chevron{font-size:18px;transition:transform .18s ease}
+.nav-toggle[aria-expanded="true"] .nav-chevron{transform:rotate(180deg)}
+.nav-submenu{padding:3px 0 5px 12px}
+.nav-submenu[hidden]{display:none}
+.nav-submenu a{font-size:13px;padding:9px 10px;margin:3px 0;border-left:2px solid #344054;border-radius:0 8px 8px 0}
+.nav-submenu a:hover{border-left-color:#f5a000}
+aside #logout{width:100%;margin-top:18px}
 main{margin-left:245px;width:calc(100% - 245px);max-width:1600px;padding:25px}
 header{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}
 header small{color:#667085}header h1{margin:5px 0}.online{background:#dcfae6;color:#067647;padding:9px 13px;border-radius:20px}
@@ -240,14 +252,25 @@ tbody tr:hover{background:#f6faf7}
 <div id="app" class="hidden">
 <aside>
 <div class="brand">AFRO<span>CONNECT</span><small>WIFI MANAGER</small></div>
-<a href="#dashboard">📊 Tableau de bord</a>
-<a href="#resellers">🤝 Revendeurs</a>
-<a href="#tickets">🎟️ Lots de tickets</a>
-<a href="#plans">💳 Forfaits</a>
-
-<a href="#captive-portal">🌐 Portail captif</a>
-<a href="#mikrotik">📡 Contrôle MikroTik</a>
-<a href="https://www.afroconnectworld.com" target="_blank" rel="noopener">🌐 Site AfroConnect</a>
+<nav class="side-nav" aria-label="Navigation principale">
+  <a class="side-link" href="#dashboard">📊 Tableau de bord</a>
+  <div class="nav-group">
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-commercial">💼 Gestion commerciale <span class="nav-chevron">⌄</span></button>
+    <div class="nav-submenu" id="nav-commercial" hidden>
+      <a href="#resellers">🤝 Revendeurs</a>
+      <a href="#tickets">🎟️ Lots de tickets</a>
+      <a href="#plans">💳 Forfaits</a>
+    </div>
+  </div>
+  <div class="nav-group">
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-network">📡 Gestion du réseau <span class="nav-chevron">⌄</span></button>
+    <div class="nav-submenu" id="nav-network" hidden>
+      <a href="#captive-portal">🌐 Portail captif</a>
+      <a href="#mikrotik">📡 Contrôle MikroTik</a>
+    </div>
+  </div>
+  <a class="side-link" href="https://www.afroconnectworld.com" target="_blank" rel="noopener">🌐 Site AfroConnect ↗</a>
+</nav>
 <button id="logout" class="red">Déconnexion</button>
 </aside>
 
@@ -956,6 +979,33 @@ $("lotFilter").onchange=renderLots;
 $("closeLot").onclick=()=>$("lotDetails").classList.add("hidden");
 $("printLot").onclick=()=>{const id=$("lotDetails").dataset.lot;if(id)printLot(id)};
 
+
+// Menus latéraux : ouverture uniquement au clic, un seul groupe ouvert à la fois.
+document.querySelectorAll(".nav-toggle").forEach(toggle => {
+  toggle.addEventListener("click", () => {
+    const willOpen = toggle.getAttribute("aria-expanded") !== "true";
+    document.querySelectorAll(".nav-toggle").forEach(other => {
+      other.setAttribute("aria-expanded", "false");
+      const panel = document.getElementById(other.getAttribute("aria-controls"));
+      if (panel) panel.hidden = true;
+    });
+    if (willOpen) {
+      toggle.setAttribute("aria-expanded", "true");
+      const panel = document.getElementById(toggle.getAttribute("aria-controls"));
+      if (panel) panel.hidden = false;
+    }
+  });
+});
+document.querySelectorAll(".nav-submenu a, .side-nav > .side-link").forEach(link => {
+  link.addEventListener("click", () => {
+    if (link.target === "_blank") return;
+    document.querySelectorAll(".nav-toggle").forEach(toggle => {
+      toggle.setAttribute("aria-expanded", "false");
+      const panel = document.getElementById(toggle.getAttribute("aria-controls"));
+      if (panel) panel.hidden = true;
+    });
+  });
+});
 
 function showAdminInterface(apiAvailable, message = "") {
   $("login").classList.add("hidden");
