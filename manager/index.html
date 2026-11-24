@@ -1426,7 +1426,17 @@ const w=window.open("","_blank");
 if(!w){toast("Autorise les fenêtres pop-up pour imprimer le lot.","error");return;}
 const rows=lt.map(t=>`<div class="pdf-ticket"><b>AFROCONNECT</b><div style="font-size:24px;font-weight:800;margin:8px">${esc(t.code)}</div><small>${esc(lot.planName)}<br>${esc(lot.resellerName)} — ${esc(lot.zone)}</small></div>`).join("");
 w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(lot.id)}</title>
-<style>body{font-family:Arial;margin:20px}.head{text-align:center;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pdf-ticket{border:1px dashed #555;border-radius:8px;padding:12px;text-align:center}@media print{body{margin:8mm}}</style>
+<style>body{font-family:Arial;margin:20px}.head{text-align:center;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pdf-ticket{border:1px dashed #555;border-radius:8px;padding:12px;text-align:center}@media print{body{margin:8mm}}
+/* Login page uses the same AFROCONNECT navy and electric blue identity */
+.login{background:radial-gradient(ellipse at 18% 12%,rgba(43,126,255,.28),transparent 38%),linear-gradient(145deg,#07152f 0%,#0b1b3a 52%,#102c55 100%)}
+.login form{border:1px solid #dfe8f4;border-radius:18px;box-shadow:0 24px 80px rgba(2,12,30,.34)}
+.login .logo{color:#081835;font-family:Manrope,'DM Sans',Arial,sans-serif}
+.login .logo span{color:#1266f1}
+.login h1{color:#12213d}
+.login form>button[type=submit],.login button[type=submit]{background:#1266f1}
+.login form>button[type=submit]:hover,.login button[type=submit]:hover{background:#0d57d1}
+.login input:focus{border-color:#1266f1}
+</style>
 </head><body><div class="head"><h1>AFROCONNECT</h1><h2>${esc(lot.id)}</h2><p>${esc(lot.planName)} — ${esc(lot.resellerName)} — ${esc(lot.zone)}</p><p>${lt.length} ticket(s)</p></div><div class="grid">${rows}</div>
 <script>window.onload=function(){window.print()}<\/script>
 </body></html>`);
