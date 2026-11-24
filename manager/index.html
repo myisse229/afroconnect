@@ -49,6 +49,22 @@ tbody tr{transition:background .1s var(--ease)}tbody tr:hover{background:#fafbfc
 @keyframes fade{from{opacity:0}to{opacity:1}}
 .modal form{background:#fff;width:min(620px,100%);padding:25px;border-radius:18px;position:relative;animation:rise .2s var(--ease)}
 .close{position:absolute;right:12px;top:12px;background:#eee;color:#333;padding:5px 10px}
+
+.portal-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:15px;align-items:start}
+.portal-check{display:flex;align-items:center;gap:9px;margin-top:14px;font-weight:700;font-size:14px}
+.portal-check input{width:auto;accent-color:#087f39}
+.portal-preview{padding:18px;border-radius:14px;background:linear-gradient(145deg,#e8f4eb,#f5f7fa);display:grid;place-items:center;min-height:440px}
+.portal-preview-card{width:min(100%,340px);background:#fff;border:1px solid #e4e7ec;border-radius:20px;padding:24px 20px;text-align:center;box-shadow:0 15px 40px #10182818}
+.portal-preview-logo{font-size:22px;font-weight:900;color:#087f39;overflow-wrap:anywhere}
+.portal-preview-logo img{max-width:130px;max-height:54px;object-fit:contain}
+.portal-preview-card>small{display:block;color:#667085;margin-top:8px}
+.portal-preview-card h3{font-size:23px;margin:22px 0 8px}
+.portal-preview-card p{color:#667085;font-size:14px;margin:0 0 18px}
+.portal-preview-input{padding:12px;border:1px solid #d0d5dd;border-radius:9px;color:#98a2b3;font-size:13px}
+.portal-preview-button{margin-top:10px;padding:12px;border-radius:9px;color:#fff;background:#087f39;font-weight:800}
+.portal-preview-qr{margin:16px auto 10px;padding:12px;border:1px dashed #98a2b3;border-radius:9px;font-size:13px;color:#344054}
+.portal-preview-card #portalPreviewTerms{font-size:11px;line-height:1.4}
+@media(max-width:900px){.portal-layout{grid-template-columns:1fr}}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.form-grid label{font-size:13px;font-weight:700}
 .lot-code{font-weight:800;letter-spacing:.6px}.lot-row{cursor:pointer}.lot-row:hover{background:#f9fafb}
 .pdf-ticket{border:1px dashed #555;border-radius:8px;padding:12px;text-align:center}
@@ -228,6 +244,7 @@ tbody tr:hover{background:#f6faf7}
 <a href="#tickets">🎟️ Lots de tickets</a>
 <a href="#plans">💳 Forfaits</a>
 
+<a href="#captive-portal">🌐 Portail captif</a>
 <a href="#mikrotik">📡 Contrôle MikroTik</a>
 <a href="https://www.afroconnectworld.com" target="_blank" rel="noopener">🌐 Site AfroConnect</a>
 <button id="logout" class="red">Déconnexion</button>
@@ -355,6 +372,51 @@ tbody tr:hover{background:#f6faf7}
 
 
 
+
+<section id="captive-portal">
+<div class="title">
+  <div><h2>Gestion du portail captif</h2><small class="muted">Personnalise la page affichée aux clients lorsqu’ils se connectent au Wi-Fi</small></div>
+  <span id="portalStatus" class="status-pill warn">● À configurer</span>
+</div>
+<div class="portal-layout">
+  <div class="panel">
+    <form id="portalForm">
+      <div class="form-grid">
+        <label>Routeur MikroTik<select id="portalRouter" required><option value="">Chargement des routeurs…</option></select></label>
+        <label>Nom du réseau<input id="portalNetworkName" maxlength="80" value="AfroConnect Wi-Fi" required></label>
+        <label>Titre d’accueil<input id="portalTitle" maxlength="80" value="Bienvenue chez AfroConnect" required></label>
+        <label>Message d’accueil<input id="portalMessage" maxlength="180" value="Connectez-vous simplement et profitez d’Internet." required></label>
+        <label>URL du logo<input id="portalLogo" type="url" maxlength="500" placeholder="https://…"></label>
+        <label>Couleur principale<input id="portalColor" type="color" value="#087f39"></label>
+        <label>Lien d’achat des pass<input id="portalPurchaseUrl" type="url" maxlength="500" placeholder="https://afroconnectworld.com"></label>
+        <label>WhatsApp assistance<input id="portalWhatsapp" maxlength="24" placeholder="+2290196109244"></label>
+      </div>
+      <label class="portal-check"><input id="portalShowQr" type="checkbox" checked> Afficher l’accès QR code vers l’achat des pass</label>
+      <label style="display:block;margin-top:12px">Conditions d’utilisation<textarea id="portalTerms" rows="3" maxlength="1000" placeholder="Conditions d’utilisation du réseau Wi-Fi…"></textarea></label>
+      <div class="actions" style="margin-top:16px">
+        <button type="submit" id="portalSave">Enregistrer la configuration</button>
+        <button type="button" id="portalReload" class="gray">Recharger</button>
+      </div>
+      <p class="notice" id="portalNotice" style="margin-top:12px">Configuration enregistrée par routeur. Le déploiement automatique du fichier HTML sur MikroTik n’est pas encore activé : cette étape nécessite la connexion d’administration RouterOS.</p>
+    </form>
+  </div>
+  <div class="panel">
+    <div class="title"><h3>Aperçu de la page client</h3><span class="muted">Prévisualisation</span></div>
+    <div class="portal-preview" id="portalPreview">
+      <div class="portal-preview-card">
+        <div id="portalPreviewLogo" class="portal-preview-logo">AFROCONNECT</div>
+        <small id="portalPreviewNetwork">AfroConnect Wi-Fi</small>
+        <h3 id="portalPreviewTitle">Bienvenue chez AfroConnect</h3>
+        <p id="portalPreviewMessage">Connectez-vous simplement et profitez d’Internet.</p>
+        <div class="portal-preview-input">Code du ticket ou identifiant</div>
+        <div class="portal-preview-button">Se connecter</div>
+        <div id="portalPreviewQr" class="portal-preview-qr">▦ Accès QR code vers l’achat des pass</div>
+        <small id="portalPreviewTerms">En vous connectant, vous acceptez les conditions d’utilisation.</small>
+      </div>
+    </div>
+  </div>
+</div>
+</section>
 
 <section id="mikrotik">
 <div class="title">
@@ -1017,6 +1079,108 @@ $("globalSearch").oninput=debounce(()=>{globalQuery=$("globalSearch").value;rend
 $("quickCreate").onclick=()=>{location.hash="tickets";window.scrollTo({top:document.getElementById("tickets").offsetTop-10,behavior:"smooth"});setTimeout(()=>$("ticketQty").focus(),250)};
 
 
+
+function setPortalPreview(){
+  const value=id=>$(id).value.trim();
+  $("portalPreviewNetwork").textContent=value("portalNetworkName")||"AfroConnect Wi-Fi";
+  $("portalPreviewTitle").textContent=value("portalTitle")||"Bienvenue";
+  $("portalPreviewMessage").textContent=value("portalMessage");
+  const color=value("portalColor")||"#087f39";
+  $("portalPreview").querySelector(".portal-preview-button").style.background=color;
+  const logo=value("portalLogo");
+  const logoBox=$("portalPreviewLogo");
+  logoBox.replaceChildren();
+  if(logo){
+    const img=document.createElement("img");
+    img.src=logo;img.alt="Logo AfroConnect";
+    img.onerror=()=>{logoBox.textContent="AFROCONNECT";};
+    logoBox.appendChild(img);
+  }else logoBox.textContent=value("portalNetworkName")||"AFROCONNECT";
+  $("portalPreviewQr").classList.toggle("hidden",!$("portalShowQr").checked);
+  $("portalPreviewTerms").textContent=value("portalTerms")||"En vous connectant, vous acceptez les conditions d’utilisation.";
+}
+["portalNetworkName","portalTitle","portalMessage","portalLogo","portalColor","portalTerms","portalShowQr"].forEach(id=>{
+  $(id).addEventListener("input",setPortalPreview);
+  $(id).addEventListener("change",setPortalPreview);
+});
+async function loadCaptivePortal(){
+  const select=$("portalRouter");
+  const previous=select.value;
+  try{
+    const data=await apiRequest("/api/v1/admin/routers");
+    const rows=data.rows||[];
+    select.innerHTML=rows.map(r=>'<option value="'+Number(r.id)+'">'+esc(r.displayName)+' — '+esc(r.model||"MikroTik")+'</option>').join("");
+    if(!rows.length){
+      select.innerHTML='<option value="">Aucun routeur enregistré</option>';
+      $("portalStatus").textContent="● Aucun routeur";
+      $("portalStatus").classList.add("warn");
+      return;
+    }
+    if(rows.some(r=>String(r.id)===previous))select.value=previous;
+    await loadPortalSettings();
+  }catch(error){
+    select.innerHTML='<option value="">Routeurs indisponibles</option>';
+    $("portalStatus").textContent="● API indisponible";
+    $("portalStatus").classList.add("warn");
+    $("portalNotice").textContent="Impossible de charger les routeurs : "+error.message;
+  }
+}
+async function loadPortalSettings(){
+  const routerId=$("portalRouter").value;
+  if(!routerId)return;
+  try{
+    const data=await apiRequest("/api/v1/admin/captive-portal/settings?router_id="+encodeURIComponent(routerId));
+    const p=data.settings||{};
+    $("portalNetworkName").value=p.networkName||"AfroConnect Wi-Fi";
+    $("portalTitle").value=p.title||"Bienvenue chez AfroConnect";
+    $("portalMessage").value=p.message||"Connectez-vous simplement et profitez d’Internet.";
+    $("portalLogo").value=p.logoUrl||"";
+    $("portalColor").value=p.brandColor||"#087f39";
+    $("portalPurchaseUrl").value=p.purchaseUrl||"https://afroconnectworld.com";
+    $("portalWhatsapp").value=p.whatsapp||"+2290196109244";
+    $("portalShowQr").checked=p.showQr!==false;
+    $("portalTerms").value=p.terms||"";
+    $("portalStatus").textContent=p.updatedAt?"● Configuration enregistrée":"● Configuration par défaut";
+    $("portalStatus").classList.toggle("warn",!p.updatedAt);
+    $("portalNotice").textContent="Paramètres chargés pour ce routeur. L’enregistrement conserve la configuration ; le transfert automatique du portail HTML vers MikroTik reste à connecter.";
+    setPortalPreview();
+  }catch(error){
+    $("portalStatus").textContent="● Non synchronisé";
+    $("portalStatus").classList.add("warn");
+    $("portalNotice").textContent="Chargement impossible : "+error.message+". Vérifie la disponibilité de PostgreSQL et applique la migration captive_portal.sql.";
+  }
+}
+$("portalRouter").addEventListener("change",loadPortalSettings);
+$("portalReload").onclick=loadCaptivePortal;
+$("portalForm").onsubmit=async e=>{
+  e.preventDefault();
+  const button=$("portalSave");
+  button.disabled=true;button.textContent="Enregistrement…";
+  try{
+    const payload={
+      routerId:Number($("portalRouter").value),
+      networkName:$("portalNetworkName").value.trim(),
+      title:$("portalTitle").value.trim(),
+      message:$("portalMessage").value.trim(),
+      logoUrl:$("portalLogo").value.trim(),
+      brandColor:$("portalColor").value,
+      purchaseUrl:$("portalPurchaseUrl").value.trim(),
+      whatsapp:$("portalWhatsapp").value.trim(),
+      showQr:$("portalShowQr").checked,
+      terms:$("portalTerms").value.trim()
+    };
+    await apiRequest("/api/v1/admin/captive-portal/settings",{method:"PUT",body:JSON.stringify(payload)});
+    $("portalStatus").textContent="● Enregistré";
+    $("portalStatus").classList.remove("warn");
+    $("portalNotice").textContent="Configuration sauvegardée pour ce routeur. Elle n’est pas encore transférée automatiquement dans les fichiers Hotspot MikroTik.";
+    toast("Configuration du portail captif enregistrée.");
+    setPortalPreview();
+  }catch(error){
+    toast("Enregistrement impossible : "+error.message,"error");
+    $("portalNotice").textContent="Enregistrement impossible : "+error.message+". Vérifie la base PostgreSQL et la migration captive_portal.sql.";
+  }finally{button.disabled=false;button.textContent="Enregistrer la configuration";}
+};
+
 // MikroTik : inventaire et sessions fournis par les API réelles.
 function renderMikrotikRows(rows){
   const body=$("mikrotikRouterTable");
@@ -1086,6 +1250,7 @@ $("clientSearch").oninput=()=>{
 };
 // Initial render
 renderMikrotik();
+if(sessionStorage.getItem("afro_manager_auth")==="1" && adminToken){loadCaptivePortal();}
 
 if (sessionStorage.getItem("afro_manager_auth") === "1" && adminToken) {
   showAdminInterface(false, "Session administrateur restaurée. Vérification de la base de données…");
