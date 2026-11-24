@@ -896,10 +896,6 @@ function renderMikrotikRows(rows){
   const clients=rows.reduce((n,r)=>n+Number(r.activeSessions||0),0);
   $("mikrotikStatus").textContent=online===rows.length?"● Tous en ligne":online?("● "+online+"/"+rows.length+" en ligne"):"● Hors ligne";
   $("mikrotikStatus").classList.toggle("warn",online!==rows.length);
-  $("mikrotikName").textContent=rows.length+" routeur(s)";
-  $("mikrotikClients").textContent=String(clients);
-  $("mikrotikSessions").textContent=String(clients);
-  $("mikrotikIp").textContent="Surveillance API";
   body.innerHTML=rows.map(r=>'<tr><td><b>'+esc(r.displayName)+'</b><br><small>'+esc(r.routerCode)+'</small></td><td>'+esc(r.model)+'</td><td><span class="status-pill '+(r.status==="ONLINE"?"":"warn")+'">'+(r.status==="ONLINE"?"● En ligne":"● Hors ligne")+'</span></td><td>'+Number(r.activeSessions||0)+'</td><td>'+(r.lastSeenAt?new Date(r.lastSeenAt).toLocaleString("fr-FR"):"Jamais")+'</td></tr>').join("");
   $("mikrotikLastUpdate").textContent="Actualisé à "+new Date().toLocaleTimeString("fr-FR");
 }
