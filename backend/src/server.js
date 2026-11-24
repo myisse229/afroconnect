@@ -47,7 +47,7 @@ app.use((req, res, next) => {
       'Access-Control-Allow-Headers',
       'Content-Type, Authorization'
     );
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
   }
 
   if (req.method === 'OPTIONS') {
@@ -204,6 +204,79 @@ function authenticateRouter(req, res, next) {
     res.status(500).json({ error: 'router_auth_failed' });
   });
 }
+
+// Configuration éditoriale du portail captif, enregistrée par routeur.
+app.get('/api/v1/admin/captive-portal/settings', authenticateAdmin, async (req, res) => {
+  const routerId = Number(req.query.router_id);
+  if (!validPositiveInt(routerId)) return res.status(400).json({ error: 'invalid_router_id' });
+  try {
+    const result = await pool.query(
+      `SELECT p.network_name, p.title, p.message, p.logo_url, p.brand_color,
+              p.purchase_url, p.whatsapp, p.show_qr, p.terms, p.updated_at
+       FROM routers r
+       LEFT JOIN captive_portal_settings p ON p.router_id = r.id
+       WHERE r.id = $1 AND r.active = TRUE`,
+      [routerId]
+    );
+    if (!result.rowCount) return res.status(404).json({ error: 'router_not_found' });
+    const row = result.rows[0];
+    res.json({ settings: row.updated_at ? {
+      networkName: row.network_name, title: row.title, message: row.message,
+      logoUrl: row.logo_url, brandColor: row.brand_color,
+      purchaseUrl: row.purchase_url, whatsapp: row.whatsapp,
+      showQr: row.show_qr, terms: row.terms, updatedAt: row.updated_at
+    } : null });
+  } catch (error) {
+    console.error('Captive portal settings read error:', error.message);
+    res.status(500).json({ error: 'captive_portal_settings_read_failed' });
+  }
+});
+
+app.put('/api/v1/admin/captive-portal/settings', authenticateAdmin, async (req, res) => {
+  const p = req.body || {};
+  const routerId = Number(p.routerId);
+  const validOptionalUrl = value => {
+    if (value == null || value === '') return true;
+    try { const u = new URL(value); return u.protocol === 'https:' || u.protocol === 'http:'; }
+    catch { return false; }
+  };
+  if (!validPositiveInt(routerId) ||
+      !validText(p.networkName, 80) || !validText(p.title, 80) ||
+      !validText(p.message, 180) ||
+      (p.logoUrl != null && p.logoUrl !== '' && (!validText(p.logoUrl, 500) || !validOptionalUrl(p.logoUrl))) ||
+      !/^#[0-9a-fA-F]{6}$/.test(String(p.brandColor || '')) ||
+      !validOptionalUrl(p.purchaseUrl) ||
+      (p.whatsapp != null && p.whatsapp !== '' && !/^\+?[0-9 ]{8,20}$/.test(p.whatsapp)) ||
+      typeof p.showQr !== 'boolean' ||
+      (p.terms != null && (typeof p.terms !== 'string' || p.terms.length > 1000))) {
+    return res.status(400).json({ error: 'invalid_captive_portal_settings' });
+  }
+  if (p.showQr && !validOptionalUrl(p.purchaseUrl)) {
+    return res.status(400).json({ error: 'invalid_purchase_url_for_qr' });
+  }
+  try {
+    const router = await pool.query('SELECT id FROM routers WHERE id = $1 AND active = TRUE', [routerId]);
+    if (!router.rowCount) return res.status(404).json({ error: 'router_not_found' });
+    const result = await pool.query(
+      `INSERT INTO captive_portal_settings
+       (router_id, network_name, title, message, logo_url, brand_color, purchase_url, whatsapp, show_qr, terms, updated_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,now())
+       ON CONFLICT (router_id) DO UPDATE SET
+         network_name=EXCLUDED.network_name, title=EXCLUDED.title, message=EXCLUDED.message,
+         logo_url=EXCLUDED.logo_url, brand_color=EXCLUDED.brand_color,
+         purchase_url=EXCLUDED.purchase_url, whatsapp=EXCLUDED.whatsapp,
+         show_qr=EXCLUDED.show_qr, terms=EXCLUDED.terms, updated_at=now()
+       RETURNING updated_at`,
+      [routerId, p.networkName.trim(), p.title.trim(), p.message.trim(),
+       p.logoUrl || null, p.brandColor, p.purchaseUrl || null, p.whatsapp || null,
+       p.showQr, p.terms || null]
+    );
+    res.json({ ok: true, updatedAt: result.rows[0].updated_at });
+  } catch (error) {
+    console.error('Captive portal settings save error:', error.message);
+    res.status(500).json({ error: 'captive_portal_settings_save_failed' });
+  }
+});
 
 // Les routeurs ne reçoivent jamais leur jeton via l'interface publique.
 app.get('/api/v1/admin/routers', authenticateAdmin, async (_req, res) => {
