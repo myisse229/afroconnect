@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="{{BRAND_COLOR}}">
+<title>{{NETWORK_NAME}} — Connexion</title>
+<style>
+*{box-sizing:border-box}
+:root{--blue:{{BRAND_COLOR}};--blue2:{{BRAND_COLOR}};--orange:#ff8a00;--cream:#fffaf3;--text:#102d59}
+html,body{margin:0;padding:0;min-height:100%;font-family:Arial,Helvetica,sans-serif;background:var(--cream);color:var(--text)}
+body{display:flex;justify-content:center}
+.page{width:100%;max-width:760px;min-height:100vh;background:linear-gradient(180deg,#fff 0%,#fffaf3 72%,#f6f2e9 100%);overflow:hidden}
+.hero{position:relative;text-align:center;padding:18px 14px 27px;background:radial-gradient(circle at 50% 10%,#fff 0,#edf6ff 58%,#fff 100%);border-radius:0 0 55px 55px;overflow:hidden}
+.hero:before,.hero:after{content:"";position:absolute;border-radius:50%;z-index:0}
+.hero:before{width:190px;height:190px;left:-105px;top:-100px;background:var(--orange)}
+.hero:after{width:175px;height:175px;right:-100px;bottom:-95px;background:var(--blue)}
+.logo{position:relative;z-index:1;width:min(92%,560px);max-height:205px;object-fit:contain;display:block;margin:auto}
+h1{position:relative;z-index:1;margin:2px 0 7px;font-size:clamp(26px,6vw,43px);font-weight:900}
+.subtitle{position:relative;z-index:1;margin:0;color:#46556d;font-size:clamp(16px,3.8vw,23px)}
+.lang{position:absolute;z-index:3;right:15px;top:14px;background:var(--blue);color:white;border-radius:24px;padding:9px 14px;font-weight:800}
+.card{position:relative;z-index:2;margin:-2px 16px 0;background:#fff;border-radius:27px;box-shadow:0 15px 35px #092b5518;padding-bottom:24px}
+.table-wrap{overflow:hidden;border-radius:27px 27px 0 0}
+table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:clamp(12px,3vw,19px)}
+th{background:var(--blue);color:white;padding:15px 5px;font-weight:900}
+td{text-align:center;padding:14px 4px;border-bottom:1px solid #edf0f4}
+td:first-child{font-weight:900}
+tr:nth-child(even) td{background:#fbfcfd}
+.form{padding:20px 13px 0}
+.ticket{height:67px;display:flex;align-items:center;gap:10px;border:2px solid #d9dde3;border-radius:38px;padding:0 20px;background:#fff}
+.ticket-icon{font-size:25px}
+.ticket input{width:100%;border:0;outline:0;background:transparent;font-size:18px;font-weight:600;color:var(--text)}
+.ticket input::placeholder{color:#a2a8b2}
+.btn{width:100%;height:63px;margin-top:14px;border:0;border-radius:36px;font-size:18px;font-weight:900;cursor:pointer}
+.primary{background:linear-gradient(135deg,var(--orange),#ff9d1c);color:white;box-shadow:0 7px 14px #ff8a0030}
+.dark{background:var(--blue);color:white}
+.error{min-height:22px;margin:10px 4px 0;text-align:center;color:#b45c00;font-weight:700}
+.features{display:flex;justify-content:center;align-items:center;gap:25px;padding:27px 10px 5px;font-weight:800}
+.feature{display:flex;align-items:center;gap:9px}.feature-icon{font-size:29px;color:var(--orange)}
+.sep{height:40px;width:1px;background:#ddd}
+footer{margin-top:20px;padding:28px 24px 34px;background:linear-gradient(145deg,#052558,#001a43);color:white;display:flex;align-items:center;gap:15px}
+footer .mark{font-size:32px;color:var(--orange)}
+footer strong{font-size:16px} footer span{font-size:14px;line-height:1.9} footer b{color:var(--orange)}
+@media(max-width:430px){
+ .card{margin-left:8px;margin-right:8px}
+ .logo{max-height:175px}
+ .features{gap:13px;font-size:14px}
+ footer{padding-left:17px;padding-right:17px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="hero">
+  <div class="lang">FR⌄</div>
+  <img class="logo" src="{{LOGO_SRC}}" alt="AfroConnect">
+  <h1>{{PORTAL_TITLE}}</h1>
+  <p class="subtitle">{{PORTAL_MESSAGE}}</p>
+  <p class="subtitle" style="font-size:13px;margin-top:8px">Réseau : {{NETWORK_NAME}}</p>
+</header>
+<section class="card">
+<div class="table-wrap">
+<table>
+<thead><tr><th>Tarif</th><th>Prix</th><th>Quota</th><th>Validité</th></tr></thead>
+<tbody>
+<tr><td>PASS 100F</td><td>100 FCFA</td><td>5 heures</td><td>1 jour</td></tr>
+<tr><td>PASS 200F</td><td>200 FCFA</td><td>1 jour</td><td>1 jour</td></tr>
+<tr><td>PASS 500F</td><td>500 FCFA</td><td>3 jours</td><td>3 jours</td></tr>
+<tr><td>PASS 1000F</td><td>1 000 FCFA</td><td>7 jours</td><td>7 jours</td></tr>
+<tr><td>PASS 3000F</td><td>3 000 FCFA</td><td>30 jours</td><td>30 jours</td></tr>
+<tr><td>PASS FAMILY<br>(*3)</td><td>6 000 FCFA</td><td>30 jours</td><td>30 jours</td></tr>
+</tbody>
+</table>
+</div>
+<!-- Modèle AfroConnect : les variables $(...) sont interprétées par MikroTik. -->
+<form class="form" name="login" action="$(link-login-only)" method="post">
+  <input type="hidden" name="dst" value="$(link-orig)">
+  <input type="hidden" name="popup" value="true">
+  <label class="ticket">
+    <span class="ticket-icon">🎟️</span>
+    <input type="text" name="username" value="$(username)" placeholder="Entrez votre ticket" autocomplete="username" required>
+  </label>
+  <!-- Vérifier le mode d'authentification HotSpot : certains profils utilisent le code comme mot de passe. -->
+  <input type="hidden" name="password" value="">
+  <button class="btn primary" type="submit">➤ &nbsp; Valider</button>
+  <a class="btn dark" href="{{PURCHASE_URL}}" style="display:flex;align-items:center;justify-content:center;text-decoration:none">📱 &nbsp; Acheter via Mobile Money</a>
+  <button class="btn dark" type="button" onclick="alert('La récupération du ticket sera disponible après configuration de son service.')">🎫 &nbsp; Récupérer mon ticket</button>
+  <div class="error">$(if error)$(error)$(endif)</div>
+</form>
+<div class="features">
+  <div class="feature"><span class="feature-icon">⌁</span><span>Connexion<br>rapide</span></div>
+  <div class="sep"></div>
+  <div class="feature"><span class="feature-icon">✓</span><span>Navigation<br>sécurisée</span></div>
+</div>
+</section>
+<footer>
+  <div class="mark">◉</div>
+  <div><strong>Service client : {{WHATSAPP}}</strong><br><span>Propulsé par <b>AfroConnect</b></span></div>
+</footer>
+</div>
+</body>
+</html>
