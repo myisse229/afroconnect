@@ -889,7 +889,6 @@ function renderMikrotikRows(rows){
     body.innerHTML='<tr><td colspan="5">Aucun routeur enregistré. Utilise « Configurer » pour ajouter les deux appareils.</td></tr>';
     $("mikrotikStatus").textContent="● À configurer";
     $("mikrotikStatus").classList.add("warn");
-    $("mikrotikClients").textContent="—";
     return;
   }
   const online=rows.filter(r=>r.status==="ONLINE").length;
