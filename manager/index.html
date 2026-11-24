@@ -110,6 +110,10 @@ th,td{padding:9px 11px}
 #mikrotik .actions{display:flex}
 #mikrotikClientsPanel:not(.hidden){display:block}
 #mikrotik .notice{margin-top:0!important;background:#f8fafc;border-color:#e4e7ec;color:#475467}
+.api-offline-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:14px 0;padding:14px 16px;border:1px solid #f2c078;border-left:4px solid #d97706;border-radius:10px;background:#fffaeb;color:#7a2e0e}
+.api-offline-banner p{margin:5px 0 0;font-size:13px;line-height:1.45}
+.api-offline-banner button{flex:0 0 auto}
+@media(max-width:650px){.api-offline-banner{align-items:stretch;flex-direction:column}}
 #recentSalesTable td{white-space:nowrap}
 @media(max-width:950px){aside{width:190px}main{margin-left:190px;width:calc(100% - 190px)}.sales-period-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){aside{width:100%;padding:14px;position:static}main{margin:0;width:100%;padding:14px}.sales-period-grid{grid-template-columns:1fr 1fr}header h1{font-size:21px}}
@@ -148,6 +152,10 @@ th,td{padding:9px 11px}
 <div><small>ADMINISTRATION</small><h1>AfroConnect WiFi Manager</h1></div>
 <b class="online">● Gestion en ligne</b>
 </header>
+<div id="apiOfflineBanner" class="api-offline-banner hidden" role="status">
+  <div><strong>⚠ Base de données indisponible</strong><p id="apiOfflineMessage">Les données ne peuvent pas être synchronisées avec le serveur. Les actions nécessitant PostgreSQL ne fonctionneront pas.</p></div>
+  <button type="button" id="retryApiConnection" class="gray">Réessayer</button>
+</div>
 
 <section id="dashboard">
 <div class="quickbar">
@@ -789,9 +797,45 @@ $("closeLot").onclick=()=>$("lotDetails").classList.add("hidden");
 $("printLot").onclick=()=>{const id=$("lotDetails").dataset.lot;if(id)printLot(id)};
 
 
+function showAdminInterface(apiAvailable, message = "") {
+  $("login").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  render();
+  const banner = $("apiOfflineBanner");
+  if (banner) {
+    banner.classList.toggle("hidden", apiAvailable);
+    $("apiOfflineMessage").textContent = message || "La base de données est momentanément indisponible. Les données affichées peuvent être incomplètes ou provenir de ce navigateur.";
+  }
+  if (apiAvailable) {
+    loadMikrotik();
+  } else {
+    $("mikrotikStatus").textContent = "● API indisponible";
+    $("mikrotikStatus").classList.add("warn");
+  }
+}
+
+async function refreshApiData() {
+  const button = $("retryApiConnection");
+  if (button) { button.disabled = true; button.textContent = "Vérification…"; }
+  try {
+    await loadFromApi();
+    $("apiOfflineBanner")?.classList.add("hidden");
+    render();
+    loadMikrotik();
+    toast("Connexion à la base de données rétablie.");
+  } catch (error) {
+    $("apiOfflineBanner")?.classList.remove("hidden");
+    $("apiOfflineMessage").textContent = "Base de données indisponible : " + error.message + ". L'interface reste accessible en lecture limitée.";
+    toast("Synchronisation impossible : " + error.message, "error");
+  } finally {
+    if (button) { button.disabled = false; button.textContent = "Réessayer"; }
+  }
+}
+$("retryApiConnection").onclick = refreshApiData;
+
 $("loginForm").onsubmit = async e => {
   e.preventDefault();
-  $("loginError").textContent = "Connexion en cours…";
+  $("loginError").textContent = "Vérification des identifiants…";
   try {
     const result = await apiRequest("/api/v1/auth/login", {
       method: "POST",
@@ -803,17 +847,22 @@ $("loginForm").onsubmit = async e => {
     adminToken = result.token;
     sessionStorage.setItem("afro_manager_token", adminToken);
     sessionStorage.setItem("afro_manager_auth", "1");
-    await loadFromApi();
-    $("login").classList.add("hidden");
-    loadMikrotik();
-    $("app").classList.remove("hidden");
-    render();
-    toast("Connexion à PostgreSQL réussie.");
+    $("loginError").textContent = "";
+    showAdminInterface(false, "Identifiants validés. Chargement des données en cours…");
+    try {
+      await loadFromApi();
+      $("apiOfflineBanner").classList.add("hidden");
+      render();
+      loadMikrotik();
+      toast("Connexion à PostgreSQL réussie.");
+    } catch (dataError) {
+      showAdminInterface(false, "Base de données indisponible : " + dataError.message + ". L'interface est ouverte, mais les opérations nécessitant le serveur restent désactivées.");
+    }
   } catch (error) {
     $("loginError").textContent =
       error.message === "invalid_credentials"
         ? "Identifiant ou mot de passe incorrect."
-        : "Connexion API impossible : " + error.message;
+        : "Impossible de vérifier les identifiants auprès du serveur : " + error.message;
   }
 };
 
@@ -953,15 +1002,14 @@ $("clientSearch").oninput=()=>{
 renderMikrotik();
 
 if (sessionStorage.getItem("afro_manager_auth") === "1" && adminToken) {
+  showAdminInterface(false, "Session administrateur restaurée. Vérification de la base de données…");
   loadFromApi().then(() => {
-    $("login").classList.add("hidden");
-    loadMikrotik();
-    $("app").classList.remove("hidden");
+    $("apiOfflineBanner")?.classList.add("hidden");
     render();
-  }).catch(() => {
-    sessionStorage.removeItem("afro_manager_auth");
-    sessionStorage.removeItem("afro_manager_token");
-    adminToken = "";
+    loadMikrotik();
+  }).catch(error => {
+    $("apiOfflineBanner")?.classList.remove("hidden");
+    $("apiOfflineMessage").textContent = "Base de données indisponible : " + error.message + ". L'interface reste accessible en lecture limitée.";
   });
 }
 </script>
