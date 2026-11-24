@@ -106,9 +106,9 @@ th,td{padding:9px 11px}
 #globalSearch{display:block}
 .generator label:has(#codeLength){display:none}
 .admin-overview,#dashboard > .panel:has(#weekUsed),#dashboard > .panel:has(#activityList){display:grid}
-#dashboard > .panel:has(#activityList){display:block}
+#dashboard > .panel:has(#activityList),#dashboard > .panel:has(#weekUsed){display:block}
 #mikrotik .actions{display:flex}
-#mikrotikClientsPanel{display:block}
+#mikrotikClientsPanel:not(.hidden){display:block}
 #mikrotik .notice{margin-top:0!important;background:#f8fafc;border-color:#e4e7ec;color:#475467}
 #recentSalesTable td{white-space:nowrap}
 @media(max-width:950px){aside{width:190px}main{margin-left:190px;width:calc(100% - 190px)}.sales-period-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
