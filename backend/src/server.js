@@ -171,6 +171,186 @@ app.post('/api/v1/auth/login', (req, res) => {
   });
 });
 
+// Gestion sécurisée des routeurs MikroTik.
+function routerTokenHash(token) {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+function authenticateRouter(req, res, next) {
+  const supplied = (req.get('authorization') || '').replace(/^Bearer\\s+/i, '');
+  const routerCode = req.body?.routerCode || req.query?.routerCode;
+
+  if (!validText(routerCode, 120) || !validText(supplied, 200)) {
+    return res.status(401).json({ error: 'router_auth_required' });
+  }
+
+  pool.query(
+    `SELECT id, router_code, display_name, model, router_token_hash
+     FROM routers WHERE router_code = $1 AND active = TRUE`,
+    [routerCode.trim()]
+  ).then(result => {
+    if (!result.rowCount) return res.status(401).json({ error: 'router_unknown' });
+    const router = result.rows[0];
+    const expected = Buffer.from(router.router_token_hash || '', 'hex');
+    const actual = Buffer.from(routerTokenHash(supplied), 'hex');
+    if (!router.router_token_hash || expected.length !== actual.length ||
+        !crypto.timingSafeEqual(expected, actual)) {
+      return res.status(401).json({ error: 'router_invalid_token' });
+    }
+    req.router = router;
+    next();
+  }).catch(error => {
+    console.error('Router authentication error:', error.message);
+    res.status(500).json({ error: 'router_auth_failed' });
+  });
+}
+
+// Les routeurs ne reçoivent jamais leur jeton via l'interface publique.
+app.get('/api/v1/admin/routers', authenticateAdmin, async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT r.id, r.router_code, r.display_name, r.model, r.active,
+              r.last_seen_at, r.last_uptime, r.last_identity,
+              COUNT(s.id) FILTER (WHERE s.active = TRUE)::int AS active_sessions
+       FROM routers r
+       LEFT JOIN router_sessions s ON s.router_id = r.id
+       GROUP BY r.id
+       ORDER BY r.display_name`
+    );
+    const now = Date.now();
+    res.json({
+      rows: result.rows.map(row => ({
+        id: Number(row.id),
+        routerCode: row.router_code,
+        displayName: row.display_name,
+        model: row.model,
+        active: row.active,
+        status: row.last_seen_at && now - new Date(row.last_seen_at).getTime() < 120000
+          ? 'ONLINE' : 'OFFLINE',
+        lastSeenAt: row.last_seen_at,
+        uptime: row.last_uptime,
+        identity: row.last_identity,
+        activeSessions: Number(row.active_sessions || 0)
+      }))
+    });
+  } catch (error) {
+    console.error('Router list error:', error.message);
+    res.status(500).json({ error: 'router_list_failed' });
+  }
+});
+
+// Création/réinitialisation d'un jeton routeur : affiché une seule fois.
+app.post('/api/v1/admin/routers/provision', authenticateAdmin, async (req, res) => {
+  const { routerCode, displayName, model } = req.body || {};
+  if (!validText(routerCode, 120) || !validText(displayName, 120) ||
+      !['MikroTik hAP ac²', 'MikroTik RB2011UiAS-RM'].includes(model)) {
+    return res.status(400).json({ error: 'invalid_router_fields' });
+  }
+  const token = crypto.randomBytes(32).toString('base64url');
+  try {
+    const result = await pool.query(
+      `INSERT INTO routers (router_code, display_name, model, router_token_hash, active)
+       VALUES ($1, $2, $3, $4, TRUE)
+       ON CONFLICT (router_code) DO UPDATE
+       SET display_name = EXCLUDED.display_name,
+           model = EXCLUDED.model,
+           router_token_hash = EXCLUDED.router_token_hash,
+           active = TRUE
+       RETURNING id, router_code, display_name, model`,
+      [routerCode.trim(), displayName.trim(), model, routerTokenHash(token)]
+    );
+    res.status(201).json({
+      router: result.rows[0],
+      token,
+      warning: 'Copiez ce jeton maintenant : il ne sera plus affiché.'
+    });
+  } catch (error) {
+    console.error('Router provision error:', error.message);
+    res.status(500).json({ error: 'router_provision_failed' });
+  }
+});
+
+// Réception périodique de l'état et des sessions Hotspot.
+app.post('/api/v1/mikrotik/heartbeat', authenticateRouter, async (req, res) => {
+  const { identity = null, uptime = null, sessions = [] } = req.body || {};
+  if (!Array.isArray(sessions) || sessions.length > 1000 ||
+      (identity != null && !validText(identity, 120)) ||
+      (uptime != null && !validText(uptime, 80))) {
+    return res.status(400).json({ error: 'invalid_heartbeat_payload' });
+  }
+  for (const session of sessions) {
+    if (!session || !validText(session.sessionId, 160) ||
+        !validText(session.username, 120) ||
+        !validText(session.address, 64) ||
+        !validText(session.macAddress, 32)) {
+      return res.status(400).json({ error: 'invalid_session_payload' });
+    }
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      `UPDATE routers SET last_seen_at = now(), last_uptime = $2,
+         last_identity = $3 WHERE id = $1`,
+      [req.router.id, uptime, identity]
+    );
+    await client.query(
+      'UPDATE router_sessions SET active = FALSE, ended_at = COALESCE(ended_at, now()) WHERE router_id = $1 AND active = TRUE',
+      [req.router.id]
+    );
+    for (const session of sessions) {
+      await client.query(
+        `INSERT INTO router_sessions
+           (router_id, session_key, username, ip_address, mac_address,
+            hotspot_server, session_uptime, active, first_seen_at, last_seen_at, ended_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,TRUE,now(),now(),NULL)
+         ON CONFLICT (router_id, session_key) DO UPDATE SET
+           username = EXCLUDED.username,
+           ip_address = EXCLUDED.ip_address,
+           mac_address = EXCLUDED.mac_address,
+           hotspot_server = EXCLUDED.hotspot_server,
+           session_uptime = EXCLUDED.session_uptime,
+           active = TRUE, last_seen_at = now(), ended_at = NULL`,
+        [req.router.id, session.sessionId, session.username,
+         session.address, session.macAddress,
+         validText(session.server, 120) ? session.server : null,
+         validText(session.uptime, 80) ? session.uptime : null]
+      );
+    }
+    await client.query('COMMIT');
+    res.json({ received: true, routerCode: req.router.router_code, activeSessions: sessions.length });
+  } catch (error) {
+    try { await client.query('ROLLBACK'); } catch {}
+    console.error('Router heartbeat error:', error.message);
+    res.status(500).json({ error: 'router_heartbeat_failed' });
+  } finally {
+    client.release();
+  }
+});
+
+// Liste des sessions actives remontées par les routeurs.
+app.get('/api/v1/admin/routers/sessions', authenticateAdmin, async (req, res) => {
+  const routerCode = typeof req.query.routerCode === 'string' ? req.query.routerCode : null;
+  try {
+    const result = await pool.query(
+      `SELECT r.router_code, r.display_name AS router_name,
+              s.username, s.ip_address, s.mac_address, s.hotspot_server,
+              s.session_uptime, s.first_seen_at, s.last_seen_at
+       FROM router_sessions s
+       JOIN routers r ON r.id = s.router_id
+       WHERE s.active = TRUE AND ($1::text IS NULL OR r.router_code = $1)
+         AND r.last_seen_at >= now() - interval '120 seconds'
+       ORDER BY s.last_seen_at DESC LIMIT 1000`,
+      [routerCode]
+    );
+    res.json({ rows: result.rows });
+  } catch (error) {
+    console.error('Router sessions error:', error.message);
+    res.status(500).json({ error: 'router_sessions_failed' });
+  }
+});
+
 // Liste des revendeurs.
 app.get('/api/v1/resellers', authenticateAdmin, async (_req, res) => {
   try {
