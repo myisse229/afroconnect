@@ -970,6 +970,7 @@ async function refreshApiData() {
     $("apiOfflineBanner")?.classList.add("hidden");
     render();
     loadMikrotik();
+    loadCaptivePortal();
     toast("Connexion à la base de données rétablie.");
   } catch (error) {
     $("apiOfflineBanner")?.classList.remove("hidden");
@@ -1002,6 +1003,7 @@ $("loginForm").onsubmit = async e => {
       $("apiOfflineBanner").classList.add("hidden");
       render();
       loadMikrotik();
+      loadCaptivePortal();
       toast("Connexion à PostgreSQL réussie.");
     } catch (dataError) {
       showAdminInterface(false, "Base de données indisponible : " + dataError.message + ". L'interface est ouverte, mais les opérations nécessitant le serveur restent désactivées.");
