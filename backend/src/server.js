@@ -177,7 +177,7 @@ function routerTokenHash(token) {
 }
 
 function authenticateRouter(req, res, next) {
-  const supplied = (req.get('authorization') || '').replace(/^Bearer\\s+/i, '');
+  const supplied = (req.get('authorization') || '').replace(/^Bearer\s+/i, '');
   const routerCode = req.body?.routerCode || req.query?.routerCode;
 
   if (!validText(routerCode, 120) || !validText(supplied, 200)) {
