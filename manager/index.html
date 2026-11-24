@@ -387,6 +387,315 @@ tbody tr:hover{background:#f6faf6}
 @media(max-width:400px){.cards,.sales-period-grid,.overview-grid,.week-grid{grid-template-columns:1fr}.online{padding:7px 9px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.card,.card:hover{transform:none}}
 </style>
+<style>
+/* AFROCONNECT manager visual refresh: prototype palette and responsive shell */
+500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+
+:root {
+  font-family: 'DM Sans', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #16233c;
+  background: #f4f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --navy: #081835;
+  --navy-2: #10274c;
+  --blue: #1266f1;
+  --blue-2: #2380ff;
+  --muted: #78869d;
+  --line: #e7edf5;
+  --green: #138b58;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: #f4f7fb; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #75aaff; outline-offset: 2px; }
+.app-shell { min-height: 100vh; }
+.sidebar { width: 260px; height: 100vh; position: fixed; z-index: 30; left: 0; top: 0; display: flex; flex-direction: column; color: #dbe5f6; background: linear-gradient(165deg, #0b1b3a 0%, #07152f 100%); }
+.brand-wrap { display: flex; align-items: center; min-height: 111px; padding: 23px 22px 20px; border-bottom: 1px solid rgba(205,222,250,.13); margin: 0 19px; }
+.brand { display: flex; align-items: center; gap: 8px; color: #fff; }
+.brand-wifi { width: 36px; height: 36px; color: #38a7ff; flex: 0 0 auto; }
+.brand strong { display: block; font: 800 16px/1.15 Manrope, sans-serif; letter-spacing: .035em; }
+.brand span { display: block; margin-top: 4px; color: #a8bad4; font-size: 9px; letter-spacing: .28em; text-align: center; }
+.nav-label { padding: 25px 24px 9px; font-size: 9px; font-weight: 700; letter-spacing: .13em; color: #8294af; }
+.side-nav { padding: 6px 11px; overflow-y: auto; }
+.nav-group { margin: 3px 0; }
+.nav-link { width: 100%; border: 0; border-radius: 8px; padding: 11px 12px; display: flex; align-items: center; gap: 12px; color: #cad6e8; background: transparent; text-align: left; font-size: 12.5px; font-weight: 600; transition: background .16s ease, color .16s ease; }
+.nav-link:hover { background: rgba(255,255,255,.075); color: #fff; }
+.nav-link.active { background: #1265ed; color: #fff; box-shadow: 0 5px 13px rgba(0,79,208,.21); }
+.nav-link > span { flex: 1; }
+.nav-chevron { opacity: .76; }
+.subnav { display: grid; gap: 2px; padding: 4px 0 5px 42px; }
+.subnav-link { border: 0; color: #91a2bc; background: transparent; border-radius: 6px; padding: 8px 9px; text-align: left; font-size: 11px; transition: color .15s, background .15s; }
+.subnav-link:hover, .subnav-link.subnav-active { background: rgba(255,255,255,.08); color: #fff; }
+.sidebar-bottom { margin-top: auto; padding: 12px 15px 16px; }
+.side-help { border: 1px solid rgba(181,205,241,.14); border-radius: 9px; padding: 11px 10px; display: flex; align-items: center; gap: 9px; background: rgba(255,255,255,.045); }
+.help-icon { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 7px; color: #69bdff; background: rgba(28,116,236,.17); }
+.side-help b, .side-help small { display: block; }
+.side-help b { font-size: 10px; font-weight: 600; color: #e5edf9; }
+.side-help small { margin-top: 3px; font-size: 9px; color: #91a3bf; }
+.help-dot { width: 7px; height: 7px; border-radius: 50%; background: #27c47b; margin-left: auto; }
+.sidebar-foot { padding: 15px 6px 0; color: #72839f; font-size: 8px; letter-spacing: .14em; }
+.sidebar-foot span { padding: 0 5px; }
+.app-main { margin-left: 260px; min-height: 100vh; }
+.topbar { height: 61px; padding: 0 27px; display: flex; align-items: center; justify-content: space-between; background: #081835; color: white; }
+.crumb-brand { display: flex; align-items: center; gap: 10px; }
+.crumb-mark { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid rgba(83,153,248,.35); border-radius: 8px; color: #5db4ff; background: rgba(24,103,213,.14); }
+.crumb-brand b, .crumb-brand span { display: block; }
+.crumb-brand b { font: 700 10px/1.4 Manrope, sans-serif; letter-spacing: .025em; }
+.crumb-brand div > span { color: #9badc9; font-size: 9px; margin-top: 1px; }
+.top-actions { display: flex; align-items: center; gap: 16px; height: 100%; }
+.system-status, .mikrotik-status { display: flex; align-items: center; gap: 7px; white-space: nowrap; color: #d5dfef; font-size: 10px; font-weight: 600; }
+.system-status i { width: 7px; height: 7px; border-radius: 50%; background: #25c87d; box-shadow: 0 0 0 3px rgba(37,200,125,.13); }
+.mikrotik-status svg { color: #76baff; }
+.top-divider { height: 20px; width: 1px; background: rgba(185,204,235,.2); }
+.account-button, .icon-button { border: 0; color: inherit; background: transparent; }
+.account-button { display: flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 600; }
+.avatar { width: 26px; height: 26px; display: grid; place-items: center; border: 1px solid rgba(202,222,255,.3); border-radius: 50%; color: #cfe3ff; background: #183460; font-size: 10px; }
+.content { width: min(100%, 1540px); margin: 0 auto; padding: 28px 30px 20px; }
+.page-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 19px; }
+.eyebrow { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; color: #687a95; font-size: 9px; font-weight: 700; letter-spacing: .105em; }
+.eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: #1685ed; box-shadow: 0 0 0 3px #e0efff; }
+h1, h2, p { margin: 0; }
+h1 { color: #12213d; font: 800 28px/1.2 Manrope, sans-serif; letter-spacing: -.035em; }
+.page-heading p { margin-top: 5px; color: #73819a; font-size: 11.5px; }
+.page-date { min-height: 36px; display: flex; align-items: center; gap: 9px; padding: 0 11px; border: 1px solid #dfe7f1; border-radius: 7px; background: #fff; color: #253653; white-space: nowrap; font-size: 10px; font-weight: 600; box-shadow: 0 2px 6px rgba(25,46,80,.025); }
+.page-date > svg { color: #60738f; }
+.date-separator { height: 16px; width: 1px; margin: 0 2px; background: #e4eaf2; }
+.benin-tag { color: #65758c; font-size: 8px; letter-spacing: .08em; }
+.demo-notice { min-height: 39px; display: flex; align-items: center; gap: 9px; margin-bottom: 16px; padding: 8px 11px; border: 1px solid #cfe2ff; border-radius: 7px; background: #edf5ff; color: #42628c; font-size: 10px; }
+.demo-notice b { color: #1b4a8d; font-weight: 700; }
+.notice-icon { display: grid; place-items: center; color: #2878d9; }
+.notice-close { display: grid; place-items: center; margin-left: auto; padding: 3px; border: 0; background: transparent; color: #7c91ac; }
+.stats-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 13px; margin-bottom: 15px; }
+.stat { min-height: 87px; display: flex; align-items: center; gap: 13px; padding: 14px 16px; border: 1px solid #e2eaf5; border-radius: 9px; background: #fff; box-shadow: 0 2px 5px rgba(24,45,77,.025); }
+.stat-blue { background: #f4f8ff; border-color: #d9e7fb; }
+.stat-green { background: #f2faf6; border-color: #d9eee3; }
+.stat-slate { background: #fbfcfe; }
+.stat-icon { width: 43px; height: 43px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 8px; color: #196be6; background: #e4efff; }
+.stat-green .stat-icon { color: #15945a; background: #e1f5e9; }
+.stat-slate .stat-icon { color: #54708f; background: #ebf0f7; }
+.stat-copy > span, .stat-copy strong, .stat-copy small { display: block; }
+.stat-copy > span { color: #5d6c84; font-size: 10px; font-weight: 600; }
+.stat-copy strong { margin-top: 2px; color: #12203b; font: 800 22px/1.2 Manrope,sans-serif; letter-spacing: -.03em; }
+.stat-copy small { margin-top: 3px; color: #8b98a9; font-size: 9px; }
+.overview-grid { display: grid; grid-template-columns: minmax(0,1.12fr) minmax(0,.88fr); gap: 14px; margin-bottom: 14px; }
+.panel { min-width: 0; overflow: hidden; border: 1px solid #e2e9f2; border-radius: 9px; background: #fff; box-shadow: 0 2px 7px rgba(22,43,76,.025); }
+.panel-heading { min-height: 60px; padding: 12px 15px 9px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.panel-heading h2 { color: #1a2a46; font: 700 13px/1.3 Manrope,sans-serif; letter-spacing: -.015em; }
+.panel-heading p { margin-top: 3px; color: #8a97aa; font-size: 9px; }
+.subtle-action { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 5px 6px; border: 0; border-radius: 5px; background: transparent; color: #4774b3; white-space: nowrap; font-size: 9px; font-weight: 600; }
+.subtle-action:hover { background: #f0f5fc; color: #155ec1; }
+.table-scroll { width: 100%; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+.router-table { min-width: 580px; }
+th { color: #7988a0; font-size: 8px; font-weight: 600; letter-spacing: .015em; }
+.router-table th { height: 31px; padding: 0 9px; background: #f6f8fb; }
+.router-table th:first-child { padding-left: 15px; }
+td { border-bottom: 1px solid #edf0f5; color: #33425d; }
+.router-table td { height: 54px; padding: 7px 9px; font-size: 10px; }
+.router-table td:first-child { padding-left: 15px; }
+.router-table tbody tr:last-child td, .sessions-table tbody tr:last-child td { border-bottom: 0; }
+.number { text-align: right; }
+.router-table .number { padding-right: 14px; }
+.site-name, .device-name { display: flex; align-items: center; gap: 8px; }
+.site-name > svg { color: #1974eb; flex: 0 0 auto; }
+.site-name b, .site-name small, .router-table td > small, .device-name b, .device-name small { display: block; }
+.site-name b, .device-name b { color: #243451; font-size: 10px; font-weight: 700; }
+.site-name small, .router-table td > small, .device-name small { margin-top: 2px; color: #8b98aa; font-size: 8px; white-space: nowrap; }
+.router-model { display: block; color: #33435d; font-size: 9px; font-weight: 600; white-space: nowrap; }
+.status { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: 999px; color: #16834f; background: #e9f7ef; white-space: nowrap; font-size: 8px; font-weight: 700; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #19a361; }
+.session-count { color: #223656; font-weight: 700; }
+.panel-foot { min-height: 32px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; gap: 9px; border-top: 1px solid #edf1f6; color: #8693a6; font-size: 8px; }
+.panel-foot > span:first-child { display: flex; align-items: center; gap: 5px; }
+.foot-pulse { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #26b879; }
+.topology-panel { display: flex; flex-direction: column; }
+.panel-more { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid #e6edf5; border-radius: 6px; color: #7185a0; }
+.topology-content { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 9px; padding: 4px 15px 15px; }
+.internet-node { min-height: 48px; width: 72%; align-self: center; display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid #e3eaf4; border-radius: 7px; background: #fafcff; }
+.internet-node > span:first-child { color: #3788e6; }
+.internet-node b, .internet-node small, .core-node b, .core-node small { display: block; }
+.internet-node b, .core-node b { color: #273854; font-size: 9px; }
+.internet-node small, .core-node small { margin-top: 2px; color: #8b98aa; font-size: 8px; }
+.internet-node .status { margin-left: auto; padding: 4px 6px; font-size: 7px; }
+.core-node { min-height: 48px; align-self: center; width: 82%; display: flex; align-items: center; gap: 9px; padding: 8px 11px; border: 1px solid #bdd8fb; border-radius: 7px; background: #f2f7ff; }
+.core-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 7px; color: #166ce1; background: #e3efff; }
+.core-node > div { flex: 1; }
+.core-check { display: grid; place-items: center; color: #188c58; }
+.site-nodes { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+.site-node { min-width: 0; padding: 8px 8px 7px; border: 1px solid #dcebe3; border-radius: 7px; background: #fbfefc; }
+.site-node-top { display: flex; align-items: center; justify-content: space-between; gap: 3px; color: #26835a; }
+.site-node-top .status { gap: 3px; padding: 3px 5px; font-size: 7px; }
+.site-node-top .status-dot { width: 5px; height: 5px; }
+.site-node > b, .site-node > small { display: block; }
+.site-node > b { margin-top: 8px; color: #273854; font-size: 9px; }
+.site-node > small { margin-top: 3px; color: #8491a2; font-size: 7px; white-space: nowrap; }
+.site-node-sessions { display: block; margin-top: 7px; color: #1b8055; font-size: 10px; font-weight: 700; }
+.site-node-sessions small { color: #8693a4; font-size: 7px; font-weight: 500; }
+.sessions-panel { margin-bottom: 13px; }
+.sessions-heading { min-height: 63px; }
+.session-controls { display: flex; align-items: center; gap: 7px; }
+.search-field { height: 29px; min-width: 170px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid #e4eaf2; border-radius: 6px; color: #8997aa; background: #fff; }
+.search-field:focus-within { border-color: #8cb9f4; box-shadow: 0 0 0 2px #eaf3ff; }
+.search-field input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: #36465f; font-size: 9px; }
+.search-field input::placeholder { color: #9aa6b5; }
+.session-controls select { height: 29px; max-width: 125px; padding: 0 22px 0 8px; border: 1px solid #e4eaf2; border-radius: 6px; color: #64748b; background: #fff; font-size: 9px; }
+.sessions-table { min-width: 590px; }
+.sessions-table th { height: 29px; padding: 0 12px; background: #f6f8fb; }
+.sessions-table th:first-child { padding-left: 15px; }
+.sessions-table td { height: 43px; padding: 6px 12px; font-size: 9px; }
+.sessions-table td:first-child { padding-left: 15px; }
+.device-icon { width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid #e7edf5; border-radius: 6px; color: #53739b; background: #f7f9fc; }
+.hotspot-label, .time-label { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.hotspot-label svg { color: #2177e4; }
+.time-label { color: #6c7c93; }
+.sessions-table .status { min-width: 60px; justify-content: center; }
+.demo-inline { color: #a0aaba; }
+.empty-state { height: 60px; text-align: center; color: #8592a4; font-size: 10px; }
+.sales-rule { display: flex; gap: 11px; align-items: flex-start; padding: 12px 14px; border: 1px solid #cfe2ff; border-radius: 8px; background: #eff6ff; }
+.rule-icon { flex: 0 0 auto; width: 28px; height: 28px; display: grid; place-items: center; color: #2172d5; border-radius: 7px; background: #e1eeff; }
+.sales-rule b { display: block; color: #204476; font-size: 10px; font-weight: 700; }
+.sales-rule p { margin-top: 3px; color: #587394; font-size: 9px; line-height: 1.5; }
+.sales-rule p strong { color: #1d5eb0; }
+.page-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 1px 0; color: #8c98a9; font-size: 8px; letter-spacing: .015em; }
+.page-footer i { padding: 0 4px; color: #c1cad6; font-style: normal; }
+.page-footer span:last-child { display: flex; align-items: center; gap: 5px; }
+.page-footer svg { color: #4389d8; }
+.icon-button { display: none; }
+.menu-toggle, .mobile-close { color: white; }
+
+@media (min-width: 1500px) {
+  .content { padding: 34px 38px 23px; }
+  .overview-grid { grid-template-columns: minmax(0,1.05fr) minmax(0,.95fr); }
+  .stat { min-height: 94px; }
+  .router-table td { height: 59px; }
+  .sessions-table td { height: 47px; }
+}
+@media (max-width: 1180px) {
+  .sidebar { width: 236px; }
+  .app-main { margin-left: 236px; }
+  .content { padding: 25px 22px 18px; }
+  .topbar { padding: 0 19px; }
+  .top-actions { gap: 11px; }
+  .overview-grid { grid-template-columns: minmax(0,1fr); }
+  .topology-content { padding-top: 9px; padding-bottom: 13px; }
+}
+@media (max-width: 850px) {
+  .sidebar { width: 272px; transform: translateX(-100%); transition: transform .22s ease; box-shadow: 16px 0 38px rgba(4,15,36,.22); }
+  .sidebar.sidebar-open { transform: translateX(0); }
+  .app-main { margin-left: 0; }
+  .icon-button { display: grid; place-items: center; width: 33px; height: 33px; border-radius: 7px; }
+  .icon-button:hover { background: rgba(255,255,255,.09); }
+  .mobile-close { margin-left: auto; }
+  .menu-toggle { flex: 0 0 auto; margin-right: 10px; }
+  .topbar { justify-content: flex-start; padding: 0 16px; }
+  .crumb-brand { flex: 1; }
+  .top-actions { gap: 9px; margin-left: auto; }
+  .system-status, .top-actions .top-divider, .mikrotik-status { display: none; }
+  .account-button > span:not(.avatar) { display: none; }
+  .account-button { gap: 3px; }
+  .content { max-width: 760px; padding: 24px 20px 18px; }
+  .stats-grid { gap: 9px; }
+  .stat { gap: 10px; padding: 12px; }
+  .stat-icon { width: 37px; height: 37px; }
+}
+.scrim { position: fixed; inset: 0; z-index: 25; border: 0; background: rgba(5,15,34,.48); }
+@media (min-width: 851px) { .scrim, .mobile-close, .menu-toggle { display: none; } }
+@media (max-width: 600px) {
+  .topbar { height: 57px; padding: 0 11px; }
+  .crumb-mark { width: 27px; height: 27px; }
+  .crumb-brand { gap: 7px; }
+  .crumb-brand b { font-size: 9px; }
+  .crumb-brand div > span { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 8px; }
+  .content { padding: 20px 13px 16px; }
+  .page-heading { align-items: flex-start; flex-direction: column; gap: 11px; margin-bottom: 15px; }
+  h1 { font-size: 24px; }
+  .page-heading p { max-width: 390px; font-size: 10.5px; line-height: 1.5; }
+  .page-date { min-height: 32px; font-size: 9px; }
+  .demo-notice { align-items: flex-start; padding: 9px; font-size: 9px; line-height: 1.45; }
+  .notice-icon { padding-top: 1px; }
+  .notice-close { margin-top: -2px; }
+  .stats-grid { grid-template-columns: 1fr; gap: 8px; }
+  .stat { min-height: 69px; padding: 10px 12px; }
+  .stat-icon { width: 38px; height: 38px; }
+  .stat-copy strong { font-size: 19px; }
+  .stat-copy small { margin-top: 1px; font-size: 8px; }
+  .overview-grid { gap: 10px; margin-bottom: 10px; }
+  .panel-heading { padding: 11px 11px 8px; }
+  .panel-heading h2 { font-size: 12px; }
+  .panel-heading p { font-size: 8px; }
+  .router-table { min-width: 555px; }
+  .router-table td { height: 51px; }
+  .topology-content { padding: 5px 11px 11px; }
+  .site-nodes { gap: 5px; }
+  .site-node { padding: 7px 6px; }
+  .site-node > b { font-size: 8px; }
+  .site-node > small { font-size: 6.5px; }
+  .site-node-top .status { padding: 3px 4px; }
+  .site-node-top .status-dot { display: none; }
+  .sessions-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .session-controls { width: 100%; }
+  .search-field { flex: 1; min-width: 0; }
+  .session-controls select { max-width: 124px; }
+  .sessions-table { min-width: 545px; }
+  .sales-rule { padding: 10px; gap: 8px; }
+  .sales-rule b { font-size: 9px; }
+  .sales-rule p { font-size: 8px; }
+  .page-footer { align-items: flex-start; flex-direction: column; gap: 6px; font-size: 7px; }
+}
+
+
+
+:root{--blue:#1266f1;--green:#138b58}
+body{font-family:'DM Sans',Arial,sans-serif;background:#f4f7fb;color:#16233c}
+#app{min-height:100vh}
+.sidebar{width:260px;height:100vh;position:fixed;z-index:30;left:0;top:0;display:flex;flex-direction:column;background:linear-gradient(165deg,#0b1b3a,#07152f);color:#dbe5f6;padding:0}
+.brand-wrap{min-height:90px;padding:18px 20px;border-bottom:1px solid rgba(205,222,250,.13);margin:0 14px;display:flex;align-items:center}
+.brand{display:flex;align-items:center;gap:9px;margin:0;color:#fff;font-size:inherit}
+.brand strong{display:block;font:800 15px/1.15 Manrope,Arial,sans-serif;letter-spacing:.035em}
+.brand span{display:block;margin-top:4px;color:#a8bad4;font-size:8px;letter-spacing:.24em}
+.nav-label{padding:20px 24px 7px;font-size:9px;font-weight:700;letter-spacing:.13em;color:#8294af}
+.side-nav{display:block;padding:6px 11px;overflow-y:auto}
+.nav-group{margin:3px 0}
+.nav-link,.nav-toggle{width:100%;border:0;border-radius:8px;padding:11px 12px;display:flex;align-items:center;gap:12px;color:#cad6e8;background:transparent;text-align:left;font-size:12px;font-weight:600}
+.nav-link:hover,.nav-toggle:hover{background:rgba(255,255,255,.075);color:#fff}
+.nav-link.active{background:#1265ed;color:#fff;box-shadow:0 5px 13px rgba(0,79,208,.21)}
+.nav-link>span:first-child{flex:1}
+.nav-chevron{opacity:.76}
+.subnav{display:grid;gap:2px;padding:4px 0 5px 42px}
+.subnav-link{display:block;border:0;color:#91a2bc;background:transparent;border-radius:6px;padding:8px 9px;text-align:left;text-decoration:none;font-size:11px}
+.subnav-link:hover,.subnav-link.subnav-active{background:rgba(255,255,255,.08);color:#fff}
+.nav-submenu[hidden]{display:none}
+.sidebar-bottom{margin-top:auto;padding:12px 15px 16px}
+.side-help{border:1px solid rgba(181,205,241,.14);border-radius:9px;padding:11px 10px;display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.045)}
+.help-icon{width:27px;height:27px;display:grid;place-items:center;border-radius:7px;color:#69bdff;background:rgba(28,116,236,.17)}
+.side-help b,.side-help small{display:block}.side-help b{font-size:10px;color:#e5edf9}.side-help small{margin-top:3px;font-size:9px;color:#91a3bf}
+.sidebar-foot{padding:13px 6px 9px;color:#72839f;font-size:8px;letter-spacing:.14em}.sidebar-foot span{padding:0 5px}
+#logout{width:100%;margin-top:0;background:rgba(217,45,32,.14);color:#ffb4aa;border:1px solid rgba(255,120,105,.2)}
+.app-main{margin-left:260px;min-height:100vh}
+.topbar{height:61px;padding:0 27px;display:flex;align-items:center;justify-content:space-between;background:#081835;color:white}
+.crumb-brand{display:flex;align-items:center;gap:10px}.crumb-mark{width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(83,153,248,.35);border-radius:8px;color:#5db4ff;background:rgba(24,103,213,.14);font-size:20px}
+.crumb-brand b,.crumb-brand div>span{display:block}.crumb-brand b{font:700 10px Manrope,Arial,sans-serif}.crumb-brand div>span{color:#9badc9;font-size:9px;margin-top:1px}
+.top-actions{display:flex;align-items:center;gap:14px}.system-status{color:#d5dfef;font-size:10px;font-weight:600}.top-divider{height:20px;width:1px;background:rgba(185,204,235,.2)}.avatar{width:28px;height:28px;display:grid;place-items:center;border:1px solid rgba(202,222,255,.3);border-radius:50%;color:#cfe3ff;background:#183460;font-size:10px}
+main.content{width:min(100%,1540px);margin:0 auto;padding:28px 30px 20px}
+header:not(.topbar){display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:19px}
+h1,h2,h3{font-family:Manrope,'DM Sans',Arial,sans-serif;color:#12213d}
+button{font-family:inherit}
+:focus-visible{outline-color:#75aaff}
+.card,.panel{border:1px solid #e2e9f2;border-radius:9px;background:#fff;box-shadow:0 2px 7px rgba(22,43,76,.035)}
+.cards .card,.sales-period-grid .card{padding:16px}
+table{border-collapse:collapse;text-align:left}
+th{background:#f6f8fb;color:#7988a0;font-size:9px}
+th,td{border-bottom:1px solid #edf0f5}
+tbody tr:hover{background:#f7faff}
+.api-offline-banner{background:#fff8e7;border-color:#f3d77c;border-left-color:#d79a00}
+@media(max-width:1180px){.sidebar{width:236px}.app-main{margin-left:236px}main.content{padding:25px 22px 18px}}
+@media(max-width:850px){.sidebar{width:272px;transform:translateX(-100%);transition:transform .22s ease;box-shadow:16px 0 38px rgba(4,15,36,.22)}.sidebar.sidebar-open{transform:translateX(0)}.app-main{margin-left:0}.icon-button{display:grid;place-items:center;width:34px;height:34px;border-radius:7px;color:#fff;background:transparent}.mobile-close{margin-left:auto}.menu-toggle{margin-right:10px}.topbar{justify-content:flex-start;padding:0 16px}.crumb-brand{flex:1}.top-actions{gap:9px;margin-left:auto}main.content{max-width:760px;padding:24px 20px 18px}}
+@media(min-width:851px){.scrim,.mobile-close,.menu-toggle{display:none!important}}
+@media(max-width:600px){.topbar{height:57px;padding:0 11px}.crumb-mark{width:27px;height:27px}main.content{padding:20px 13px 16px}header:not(.topbar){align-items:flex-start;flex-direction:column;gap:11px}.cards{grid-template-columns:1fr 1fr;gap:9px}.sales-period-grid{grid-template-columns:1fr 1fr;gap:8px}.card,.panel{padding:14px;border-radius:11px}.filters{display:grid;grid-template-columns:1fr}.filters input,.filters select{max-width:none!important}.generator,.portal-layout{grid-template-columns:1fr}.table-wrap{overflow:auto}}
+@media(max-width:400px){.cards,.sales-period-grid,.overview-grid,.week-grid{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
 
@@ -402,35 +711,21 @@ tbody tr:hover{background:#f6faf6}
 </div>
 
 <div id="app" class="hidden">
-<aside>
-<div class="brand">AFRO<span>CONNECT</span><small>WIFI MANAGER</small></div>
+<aside class="sidebar" id="managerSidebar">
+<div class="brand-wrap"><div class="brand"><svg class="brand-wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9a11 11 0 0 1 14 0"/><path d="M8 12a6.5 6.5 0 0 1 8 0"/><path d="M11 15a2 2 0 0 1 2 0"/><circle cx="12" cy="18" r="1" fill="currentColor"/></svg><div><strong>AFROCONNECT</strong><span>WIFI MANAGER</span></div></div><button type="button" class="icon-button mobile-close" id="mobileNavClose" aria-label="Fermer le menu">×</button></div>
+<div class="nav-label">MENU PRINCIPAL</div>
 <nav class="side-nav" aria-label="Navigation principale">
-  <a class="side-link" href="#dashboard">Tableau de bord</a>
-  <div class="nav-group">
-    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-commercial">Commercial <span class="nav-chevron">⌄</span></button>
-    <div class="nav-submenu" id="nav-commercial" hidden>
-      <a href="#resellers">Revendeurs</a>
-      <a href="#tickets">Lots de tickets</a>
-      <a href="#plans">Forfaits</a>
-    </div>
-  </div>
-  <div class="nav-group">
-    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-network">Réseau <span class="nav-chevron">⌄</span></button>
-    <div class="nav-submenu" id="nav-network" hidden>
-      <a href="#captive-portal">Portail captif</a>
-      <a href="#mikrotik">Routeurs et sessions MikroTik</a>
-    </div>
-  </div>
-  <a class="side-link" href="https://www.afroconnectworld.com" target="_blank" rel="noopener">Site AfroConnect ↗</a>
+<a class="nav-link active side-link" href="#dashboard"><span>Vue d’ensemble</span></a>
+<div class="nav-group"><button class="nav-link nav-toggle" type="button" aria-expanded="false" aria-controls="nav-commercial"><span>Gestion commerciale</span><span class="nav-chevron">⌄</span></button><div class="nav-submenu subnav" id="nav-commercial" hidden><a class="subnav-link" href="#resellers">Revendeurs</a><a class="subnav-link" href="#tickets">Tickets et lots</a><a class="subnav-link" href="#plans">Forfaits Wi-Fi</a></div></div>
+<div class="nav-group"><button class="nav-link nav-toggle" type="button" aria-expanded="false" aria-controls="nav-network"><span>Réseau & sessions</span><span class="nav-chevron">⌄</span></button><div class="nav-submenu subnav" id="nav-network" hidden><a class="subnav-link" href="#mikrotik">Routeurs MikroTik</a><a class="subnav-link" href="#mikrotikClientsPanel">Sessions actives</a><a class="subnav-link" href="#captive-portal">Portail captif</a></div></div>
+<a class="nav-link side-link" href="#tickets"><span>Suivi des ventes</span></a>
+<a class="nav-link side-link" href="#activityList"><span>Historique des opérations</span></a>
+<a class="nav-link side-link" href="https://www.afroconnectworld.com" target="_blank" rel="noopener"><span>Site AfroConnect ↗</span></a>
 </nav>
-<button id="logout" class="red">Déconnexion</button>
-</aside>
+<div class="sidebar-bottom"><div class="side-help"><span class="help-icon">i</span><div><b>Gestion Wi-Fi</b><small>Tickets, ventes et réseau</small></div></div><div class="sidebar-foot">AFROCONNECT <span>·</span> BÉNIN</div><button id="logout" class="red">Déconnexion</button></div>
+</aside><button id="mobileNavScrim" class="scrim" hidden aria-label="Fermer le menu"></button>
 
-<main>
-<header>
-<div><small>AFROCONNECT · BÉNIN</small><h1>WiFi Manager</h1></div>
-<b class="online">Espace administrateur</b>
-</header>
+<div class="app-main"><header class="topbar"><button type="button" id="mobileNavOpen" class="icon-button menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">☰</button><div class="crumb-brand"><span class="crumb-mark">⌁</span><div><b>AFROCONNECT</b><span>Administration Wi-Fi</span></div></div><div class="top-actions"><span class="system-status">Espace administrateur</span><span class="top-divider"></span><span class="avatar">A</span></div></header><main class="content">
 <div id="apiOfflineBanner" class="api-offline-banner hidden" role="status">
   <div><strong>⚠ Base de données indisponible</strong><p id="apiOfflineMessage">Les données ne peuvent pas être synchronisées avec le serveur. Les actions nécessitant PostgreSQL ne fonctionneront pas.</p></div>
   <button type="button" id="retryApiConnection" class="gray">Réessayer</button>
@@ -641,6 +936,7 @@ tbody tr:hover{background:#f6faf6}
 
 </main>
 </div>
+</div>
 
 <div id="resellerModal" class="modal hidden">
 <form id="resellerForm">
@@ -686,6 +982,15 @@ tbody tr:hover{background:#f6faf6}
 </form>
 </div>
 
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+ const sidebar=document.getElementById("managerSidebar"),scrim=document.getElementById("mobileNavScrim"),open=document.getElementById("mobileNavOpen"),close=document.getElementById("mobileNavClose");
+ const closeMenu=()=>{sidebar?.classList.remove("sidebar-open");if(scrim)scrim.hidden=true;if(open)open.setAttribute("aria-expanded","false")};
+ open?.addEventListener("click",()=>{sidebar?.classList.add("sidebar-open");if(scrim)scrim.hidden=false;open.setAttribute("aria-expanded","true")});
+ close?.addEventListener("click",closeMenu);scrim?.addEventListener("click",closeMenu);
+ document.querySelectorAll(".side-nav a").forEach(a=>a.addEventListener("click",()=>{closeMenu();document.querySelectorAll(".side-nav .nav-link").forEach(n=>n.classList.remove("active"));if(a.classList.contains("nav-link"))a.classList.add("active");else a.classList.add("subnav-active")}));
+});
+</script>
 <script>
 // La connexion administrateur est vérifiée côté serveur Render.\n\n
 // API AfroConnect : les données principales sont désormais lues/écrites dans PostgreSQL.
