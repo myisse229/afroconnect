@@ -1,16 +1,17 @@
 AFROCONNECT — INSTALLATION DU PORTAIL CAPTIF MIKROTIK
 
 Fichiers :
-- login.html : page HotSpot personnalisable, à placer dans le dossier hotspot/
-- logo-afroconnect.png : logo utilisé par login.html, à placer au même endroit
+- login.html : fichier personnalisé généré depuis WiFi Manager.
+- logo-afroconnect.png : logo original fourni dans le ZIP initial de l'utilisateur.
 
 Installation prudente :
-1. Sauvegarder le dossier HotSpot actuel depuis WinBox > Files.
-2. Ouvrir le dossier hotspot/ du routeur.
-3. Copier login.html et logo-afroconnect.png dans ce dossier.
-4. Conserver les autres fichiers HotSpot existants (status.html, alogin.html, logout.html, etc.).
-5. Vérifier dans IP > Hotspot > Server Profiles que le bon profil utilise le dossier HTML Directory.
-6. Tester avec un ticket de test avant ouverture aux clients.
+1. Dans WiFi Manager > Portail captif, renseigner les paramètres et télécharger login.html personnalisé.
+2. Ouvrir le ZIP AfroConnect_portail_captif_MikroTik d'origine et extraire logo-afroconnect.png.
+3. Sauvegarder le dossier HotSpot actuel depuis WinBox > Files.
+4. Ouvrir le dossier hotspot/ du routeur et copier login.html et logo-afroconnect.png au même niveau.
+5. Conserver les autres fichiers HotSpot existants (status.html, alogin.html, logout.html, etc.).
+6. Vérifier dans IP > Hotspot > Server Profiles que le bon profil utilise le dossier HTML Directory.
+7. Tester avec un ticket de test avant ouverture aux clients.
 
 À vérifier avant mise en production :
 - Le tableau des forfaits de ce modèle est statique : 100, 200, 500, 1 000, 3 000 et 6 000 FCFA. Vérifier et modifier les montants, quotas et validités pour qu'ils correspondent aux forfaits actifs.
@@ -18,6 +19,6 @@ Installation prudente :
 - Le champ password est vide par défaut. Vérifier la méthode d'authentification du HotSpot : certains systèmes attendent le même code dans username et password, d'autres non.
 - Le bouton Mobile Money ouvre le lien d'achat configuré dans WiFi Manager. Le domaine de paiement doit être autorisé dans le Walled Garden si nécessaire.
 - Le bouton « Récupérer mon ticket » reste un emplacement visuel tant que l'URL réelle du service n'est pas fournie.
-- Le logo doit rester dans le même dossier que login.html si l'URL du logo est laissée sur le nom local.
+- Si une URL de logo externe est saisie dans WiFi Manager, le domaine doit être accessible avant authentification. Pour une installation captive isolée, utiliser le logo local fourni dans le ZIP et laisser le champ URL du logo vide.
 
 Ce modèle change l'apparence de la page. Il ne configure pas à lui seul le serveur HotSpot, le Walled Garden, les profils, les tickets, FedaPay ou la synchronisation des routeurs.

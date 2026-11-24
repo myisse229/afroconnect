@@ -421,7 +421,7 @@ tbody tr:hover{background:#f6faf7}
     <p class="muted">Génère le fichier login.html avec les réglages saisis ci-dessus, puis télécharge le logo AfroConnect. Place les deux fichiers dans le dossier hotspot/ du routeur.</p>
     <div class="actions">
       <button type="button" id="portalDownloadHtml">Télécharger login.html personnalisé</button>
-      <a class="btn gray" href="portal-template/logo-afroconnect.png" download="logo-afroconnect.png" style="display:inline-flex;align-items:center;text-decoration:none">Télécharger le logo PNG</a>
+      <span class="muted">Logo original : extrais « logo-afroconnect.png » du ZIP fourni et place-le à côté de login.html.</span>
     </div>
     <p class="notice" style="margin-top:12px">Avant remplacement : sauvegarde le dossier HotSpot actuel et conserve tous les autres fichiers MikroTik. Le tableau des tarifs du modèle est fixe : vérifie les prix, quotas et validités avant installation. Le bouton de récupération de ticket reste à connecter.</p>
     <p class="muted" id="portalDownloadStatus" aria-live="polite">Les fichiers ne sont pas encore installés sur le routeur : ce téléchargement prépare les fichiers pour un transfert manuel via WinBox ou WebFig.</p>
@@ -1128,7 +1128,7 @@ async function downloadPortalLogin(){
     link.href=url;link.download="login.html";
     document.body.appendChild(link);link.click();link.remove();
     setTimeout(()=>URL.revokeObjectURL(url),1500);
-    status.textContent="login.html personnalisé téléchargé. Télécharge aussi le logo PNG et copie les deux fichiers dans hotspot/.";
+    status.textContent="login.html personnalisé téléchargé. Extrais le logo-afroconnect.png du ZIP fourni et copie-le avec login.html dans hotspot/.";
     toast("Fichier login.html généré.");
   }catch(error){
     status.textContent="Génération impossible : "+error.message;
