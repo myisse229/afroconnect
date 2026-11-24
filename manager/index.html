@@ -119,6 +119,92 @@ th,td{padding:9px 11px}
 @media(max-width:650px){aside{width:100%;padding:14px;position:static}main{margin:0;width:100%;padding:14px}.sales-period-grid{grid-template-columns:1fr 1fr}header h1{font-size:21px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
+
+/* AFROCONNECT — finition visuelle */
+:root{
+  --af-green:#087f39;--af-green-dark:#06632e;--af-gold:#f5b400;
+  --af-ink:#172b24;--af-muted:#66756f;--af-line:#e5ece8;
+  --af-surface:#fff;--af-bg:#f3f7f4;--af-shadow:0 8px 28px rgba(20,55,38,.06);
+}
+body{font-family:Inter,"Segoe UI",Arial,sans-serif;background:radial-gradient(ellipse at 85% 0%,#e8f4ec 0,transparent 36%),var(--af-bg);color:var(--af-ink);line-height:1.5}
+aside{background:linear-gradient(180deg,#10271d 0%,#0c1d16 100%);border-right:1px solid #183b2a;padding:25px 17px;box-shadow:8px 0 28px rgba(15,45,28,.06)}
+.brand{font-size:22px;letter-spacing:-.6px;margin:4px 8px 34px}
+.brand span,.logo span{color:#f7c542}
+.brand small{font-weight:700;letter-spacing:2px;color:#9ab8a5}
+aside a{color:#c7d8cd;padding:12px 13px;margin:5px 0;border:1px solid transparent;border-radius:11px;font-weight:600;transition:all .18s ease}
+aside a:hover{background:#1b3a2a;border-color:#2c5a3e;color:#fff;transform:translateX(2px)}
+aside #logout{margin-top:28px;border:1px solid #85443d;background:#7d302b}
+main{padding:30px 34px;max-width:1680px}
+header{padding:4px 0 20px;border-bottom:1px solid rgba(213,226,217,.8);margin-bottom:24px}
+header small{font-size:11px;font-weight:800;letter-spacing:1.8px;color:var(--af-green)}
+header h1{font-size:27px;letter-spacing:-.8px;color:#183629}
+.online{font-size:12px;font-weight:800;letter-spacing:.2px;background:#e4f5e9;color:#167343;border:1px solid #c8e9d2}
+.card,.panel{background:var(--af-surface);border:1px solid var(--af-line);border-radius:17px;box-shadow:var(--af-shadow);padding:19px}
+.card{position:relative;overflow:hidden;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.card:after{content:"";position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,var(--af-green),#9acb9f);opacity:.85}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(20,55,38,.1);border-color:#cbded1}
+.card span{font-size:12px;font-weight:700;color:var(--af-muted)}
+.card b{font-size:29px;letter-spacing:-.8px;color:#183629;margin:11px 0 5px}
+.card small,.muted{color:var(--af-muted)}
+.title{margin-bottom:16px}
+.title h2{font-size:21px;letter-spacing:-.4px;color:#183629}
+.title h3{font-size:16px;color:#244434}
+button{border-radius:10px;padding:11px 16px;background:linear-gradient(135deg,var(--af-green),var(--af-green-dark));box-shadow:0 3px 8px rgba(8,127,57,.15);font-size:13px;letter-spacing:.1px}
+button:hover{filter:brightness(1.06);box-shadow:0 6px 14px rgba(8,127,57,.2)}
+button.gray{background:#eef3ef;color:#34483b;box-shadow:none;border:1px solid #dce7df}
+button.red{background:#b93830;box-shadow:none}
+button.orange{background:#f5bd35;color:#342800;box-shadow:none}
+input,select{border:1px solid #dce6df;border-radius:10px;padding:12px 13px;color:#20362a;background:#fff}
+input::placeholder{color:#9aa9a0}
+input:focus,select:focus{border-color:#36a267;box-shadow:0 0 0 3px rgba(8,127,57,.1);outline:none}
+table{border-collapse:separate;border-spacing:0;font-size:13px}
+th{background:#f2f7f3;color:#506459;font-size:11px;text-transform:uppercase;letter-spacing:.65px;font-weight:800}
+th:first-child{border-radius:9px 0 0 0}th:last-child{border-radius:0 9px 0 0}
+th,td{padding:13px 14px;border-bottom:1px solid #edf2ee}
+tbody tr:hover{background:#f6faf7}
+.table-wrap{border-radius:12px}
+.modal{background:rgba(10,28,18,.58);backdrop-filter:blur(5px)}
+.modal form{border:1px solid #e4ece6;border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.22);padding:30px}
+.close{background:#f1f5f2;color:#43564a;border:1px solid #e1e9e3;box-shadow:none}
+.notice{background:#fff9e8;border:1px solid #f3dfaa;color:#76530b}
+.activity-item{background:#f4f8f5;border-left-color:#219653;padding:13px 14px}
+.overview-grid>div,.week-grid>div{background:#f4f8f5;border:1px solid #e7efe9;border-radius:12px}
+.status-pill{background:#e6f6eb;color:#167343}
+.status-pill.warn{background:#fff3df;color:#9a5a08}
+.badge{background:#edf5ff;color:#2862a6;border:1px solid #dceaff}
+.quickbar input{box-shadow:0 4px 14px rgba(20,55,38,.04)}
+.sales-note{padding:0 4px}
+.api-offline-banner{border-radius:13px;box-shadow:0 5px 18px rgba(150,100,20,.06)}
+.login{background:radial-gradient(circle at 15% 15%,rgba(255,255,255,.18),transparent 25%),linear-gradient(135deg,#0b5d32 0%,#087f39 42%,#d49b16 100%)}
+.login form{border:1px solid rgba(255,255,255,.7);border-radius:24px;padding:38px 34px;box-shadow:0 28px 80px rgba(0,0,0,.24)}
+.login .logo{font-size:29px;letter-spacing:-.8px}
+.login h1{font-size:25px;letter-spacing:-.6px;color:#1e3327}
+.login p{font-size:13px}
+.login input{margin:6px 0}
+.login button{margin-top:14px;padding:13px}
+.toast{border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px)}
+@media(max-width:950px){main{padding:24px 22px}}
+@media(max-width:650px){
+  #app{display:block}
+  aside{position:relative;top:auto;bottom:auto;width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:13px 12px}
+  .brand{width:100%;margin:0 5px 8px;font-size:19px}
+  aside a{display:inline-flex;align-items:center;padding:9px 10px;margin:0;font-size:12px}
+  aside #logout{width:auto;margin:4px 0;padding:9px 12px}
+  main{padding:18px 13px;width:100%;margin:0}
+  header{align-items:flex-start;gap:12px;flex-wrap:wrap;padding-bottom:15px}
+  header h1{font-size:22px}
+  .card,.panel{padding:15px;border-radius:14px}
+  .cards{gap:9px}
+  .card b{font-size:23px}
+  .quickbar{flex-direction:column}
+  .quickbar button{width:100%}
+  .title{align-items:flex-start;flex-wrap:wrap}
+  .modal{padding:10px}
+  .modal form{padding:24px 17px}
+  .form-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.card,.card:hover,aside a:hover{transform:none}}
+
 </style>
 </head>
 <body>
