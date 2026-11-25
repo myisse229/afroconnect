@@ -48,6 +48,31 @@ footer strong{font-size:16px} footer span{font-size:14px;line-height:1.9} footer
  footer{padding-left:17px;padding-right:17px}
 }
 </style>
+$(if chap-id)
+<form name="sendin" action="$(link-login-only)" method="post" style="display:none">
+<input type="hidden" name="username"><input type="hidden" name="password">
+<input type="hidden" name="dst" value="$(link-orig)"><input type="hidden" name="popup" value="true">
+</form>
+<script src="md5.js"></script>
+$(endif)
+<script>
+function submitTicket(event){
+  event.preventDefault();
+  const code=document.getElementById("ticketCode").value.trim();
+  if(!code)return false;
+  $(if chap-id)
+  document.forms.sendin.username.value=code;
+  document.forms.sendin.password.value=hexMD5('$(chap-id)'+code+'$(chap-challenge)');
+  document.forms.sendin.submit();
+  $(else)
+  const form=document.forms.routerLogin;
+  form.username.value=code;
+  form.password.value=code;
+  form.submit();
+  $(endif)
+  return false;
+}
+</script>
 </head>
 <body>
 <div class="page">
@@ -73,19 +98,21 @@ footer strong{font-size:16px} footer span{font-size:14px;line-height:1.9} footer
 </table>
 </div>
 <!-- Modèle AfroConnect : les variables $(...) sont interprétées par MikroTik. -->
-<form class="form" name="login" action="$(link-login-only)" method="post">
+<form class="form" name="routerLogin" action="$(link-login-only)" method="post" onsubmit="return submitTicket(event)">
+  <input type="hidden" name="username" value="">
+  <input type="hidden" name="password" value="">
   <input type="hidden" name="dst" value="$(link-orig)">
   <input type="hidden" name="popup" value="true">
   <label class="ticket">
     <span class="ticket-icon">🎟️</span>
-    <input type="text" name="username" value="$(username)" placeholder="Entrez votre ticket" autocomplete="username" required>
+    <input id="ticketCode" type="text" value="$(username)" placeholder="Entrez votre ticket" autocomplete="username" required>
   </label>
   <!-- Vérifier le mode d'authentification HotSpot : certains profils utilisent le code comme mot de passe. -->
   <input type="hidden" name="password" value="">
   <button class="btn primary" type="submit">➤ &nbsp; Valider</button>
   <a class="btn dark" href="{{PURCHASE_URL}}" style="display:flex;align-items:center;justify-content:center;text-decoration:none">📱 &nbsp; Acheter via Mobile Money</a>
-  <button class="btn dark" type="button" onclick="alert('La récupération du ticket sera disponible après configuration de son service.')">🎫 &nbsp; Récupérer mon ticket</button>
-  <div class="error">$(if error)$(error)$(endif)</div>
+  <a class="btn dark" href="https://wa.me/{{WHATSAPP_DIGITS}}?text=Bonjour%20AfroConnect%2C%20je%20souhaite%20r%C3%A9cup%C3%A9rer%20mon%20ticket%20Wi-Fi." style="display:flex;align-items:center;justify-content:center;text-decoration:none">🎫 &nbsp; Récupérer mon ticket</a>
+  <div class="error" role="alert">$(if error)$(error)$(endif)</div>
 </form>
 <div class="features">
   <div class="feature"><span class="feature-icon">⌁</span><span>Connexion<br>rapide</span></div>
