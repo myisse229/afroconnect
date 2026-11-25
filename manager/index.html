@@ -1570,7 +1570,7 @@ localStorage.setItem("afro_tickets",JSON.stringify(tickets));
 localStorage.setItem("afro_lots",JSON.stringify(lots));
 localStorage.setItem("afro_activities",JSON.stringify(activities.slice(-30)));
 };
-if(!resellers.length&&!tickets.length&&!lots.length&&!demoMode){seedManagerDemo();}
+if(!resellers.length&&!tickets.length&&!lots.length){seedManagerDemo();}
 setDemoIndicators();
 const money=n=>Number(n||0).toLocaleString("fr-FR")+" F";
 const nowISO=()=>new Date().toISOString();
