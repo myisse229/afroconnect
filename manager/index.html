@@ -1045,7 +1045,7 @@ th{background:var(--surface-2);font-size:12px;color:var(--muted);text-transform:
 <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 9a14 14 0 0 1 18 0M6 12.5a9.5 9.5 0 0 1 12 0M9 16a5 5 0 0 1 6 0"/></svg></div>
 <div><h1>AfroConnect WiFi</h1><small>Gestion des points d’accès</small></div>
 </div>
-<div class="model-actions"><span class="model-status">Espace administrateur</span><button id="logout" type="button">Déconnexion</button></div>
+<div class="model-actions"><span id="demoDataBadge" class="model-status" hidden>MODE DÉMO · données fictives</span><span id="liveDataBadge" class="model-status" hidden>Connecté à l’API</span><button id="logout" type="button">Déconnexion</button></div>
 </div>
 <nav class="tabs" id="managerTabs" aria-label="Sections du Manager">
 <button class="tab" type="button" data-screen="dashboard" aria-current="true">Accueil</button>
@@ -1055,6 +1055,7 @@ th{background:var(--surface-2);font-size:12px;color:var(--muted);text-transform:
 <button class="tab" type="button" data-screen="captive-portal" aria-current="false">Portail captif</button>
 <button class="tab" type="button" data-screen="mikrotik" aria-current="false">Réseau MikroTik</button>
 </nav>
+<div id="demoDataNotice" class="msg" hidden role="status"><b>Données de démonstration fictives.</b> Elles restent dans ce navigateur, ne sont pas transmises à l’API et ne comptent pas comme des ventes réelles.</div>
 </div><main class="content">
 <div id="apiOfflineBanner" class="api-offline-banner hidden" role="status">
   <div><strong>⚠ Base de données indisponible</strong><p id="apiOfflineMessage">Les données ne peuvent pas être synchronisées avec le serveur. Les actions nécessitant PostgreSQL ne fonctionneront pas.</p></div>
@@ -1063,6 +1064,13 @@ th{background:var(--surface-2);font-size:12px;color:var(--muted);text-transform:
 
 <section id="dashboard">
 <div class="dashboard-intro"><div><small>ACTIVITÉ COMMERCIALE</small><h2>Ventes et activations</h2><p>Suivez les tickets activés et la performance commerciale.</p></div><span class="dashboard-period">Indicateurs calculés par période · XOF</span></div>
+<div id="demoReferencePanel" class="panel" hidden>
+<div class="title"><h3>Exemples inclus dans le modèle joint</h3><span class="badge">FICTIF</span></div>
+<p class="muted">Ces exemples apparaissent uniquement en mode démonstration.</p>
+<div class="week-grid"><div><span>Solde SMS (exemple)</span><b id="demoSmsBalance">146</b></div><div><span>Entreprise</span><b id="demoCompany">AfroConnect</b></div><div><span>Vérification client</span><b id="demoKyc">Activée</b></div></div>
+<h3 style="margin-top:18px">Appareils d’exemple</h3><div class="table-wrap"><table><thead><tr><th>Appareil</th><th>Adresse MAC</th><th>Règle</th></tr></thead><tbody id="demoDeviceTable"></tbody></table></div>
+<h3 style="margin-top:18px">Utilisateurs d’exemple</h3><div class="table-wrap"><table><thead><tr><th>Téléphone fictif</th><th>Vérifié</th><th>Appareils</th></tr></thead><tbody id="demoUserTable"></tbody></table></div>
+</div>
 <div class="quickbar">
 <input id="globalSearch" placeholder="🔎 Rechercher un ticket, un lot ou un revendeur...">
 <button id="quickCreate">📦 Créer un lot</button>
@@ -1397,6 +1405,10 @@ async function loadFromApi() {
     apiRequest("/api/v1/admin/reports/dashboard")
   ]);
   dashboardReport = dashboardData;
+  apiIsLive=true;
+  demoMode=false;
+  localStorage.removeItem("afroconnect_demo_seed_v1");
+  setDemoIndicators();
   resellers = (resellerData.rows || []).map(mapApiReseller);
   plans = (planData.rows || []).map(mapApiPlan);
   tickets = (ticketData.rows || []).map(mapApiTicket);
@@ -1420,12 +1432,10 @@ async function loadFromApi() {
 }
 
 const DEFAULT_PLANS=[
-{id:"100",name:"Afro Mini",type:"Limité (Temps)",amount:100,users:1,quota:"5 heures",validity:"1 jour",upload:"5 Mo",download:"5 Mo",builtin:true},
-{id:"200",name:"Afro Flash",type:"Limité (Temps)",amount:200,users:1,quota:"1 jour",validity:"1 jour",upload:"5 Mo",download:"5 Mo",builtin:true},
-{id:"500",name:"Afro Boost",type:"Limité (Temps)",amount:500,users:1,quota:"3 jours",validity:"3 jours",upload:"5 Mo",download:"5 Mo",builtin:true},
-{id:"1000",name:"Afro Plus",type:"Limité (Temps)",amount:1000,users:1,quota:"7 jours",validity:"7 jours",upload:"5 Mo",download:"5 Mo",builtin:true},
-{id:"3000",name:"Afro Premium",type:"Limité (Temps)",amount:3000,users:1,quota:"30 jours",validity:"30 jours",upload:"5 Mo",download:"5 Mo",builtin:true},
-{id:"family",name:"Afro Family",type:"Limité (Temps)",amount:6000,users:3,quota:"30 jours",validity:"30 jours",upload:"5 Mo",download:"5 Mo",builtin:true}
+{id:"p1",name:"Express",type:"Limité (Temps)",amount:100,users:1,quota:"1 heure",validity:"1 jour",upload:"5 Mo",download:"5 Mo",builtin:true},
+{id:"p2",name:"Journée",type:"Limité (Temps)",amount:300,users:1,quota:"1 jour",validity:"1 jour",upload:"5 Mo",download:"5 Mo",builtin:true},
+{id:"p3",name:"Semaine",type:"Limité (Temps)",amount:1500,users:1,quota:"7 jours",validity:"7 jours",upload:"5 Mo",download:"5 Mo",builtin:true},
+{id:"p4",name:"VIP mensuel",type:"Limité (Temps)",amount:5000,users:1,quota:"30 jours",validity:"30 jours",upload:"5 Mo",download:"5 Mo",builtin:true}
 ];
 
 let plans=JSON.parse(localStorage.getItem("afro_plans")||"null")||DEFAULT_PLANS;
@@ -1435,6 +1445,96 @@ let lots=JSON.parse(localStorage.getItem("afro_lots")||"null")||[];
 let activities=JSON.parse(localStorage.getItem("afro_activities")||"null")||[];
 let globalQuery="";
 let dashboardReport=null;
+
+let demoMode=localStorage.getItem("afroconnect_demo_seed_v1")==="1";
+let apiIsLive=false;
+const DEMO_DEVICES=[
+{id:"d1",name:"Télévision salon",mac:"02:00:00:00:00:01",rule:"Liste blanche"},
+{id:"d2",name:"Borne de caisse",mac:"02:00:00:00:00:02",rule:"Abonnement"},
+{id:"d3",name:"Appareil inconnu",mac:"02:00:00:00:00:03",rule:"Bloqué"}
+];
+const DEMO_USERS=Array.from({length:8},(_,u)=>({
+id:u+1,phone:"070000"+(100+u*7),verified:u%4!==2,devices:u%3===1?1:0,at:Date.now()-(u*2+1)*86400000
+}));
+const DEMO_ROUTERS=[
+{id:"r1",name:"Boutique principale",model:"Routeur AC1200",serial:"DEMO-0001",online:true},
+{id:"r2",name:"Terrasse",model:"Routeur AC1200",serial:"DEMO-0002",online:false}
+];
+const DEMO_PORTAL_SETTINGS={
+networkName:"AfroConnect WiFi",
+title:"Bienvenue chez AfroConnect",
+message:"Bienvenue. Achetez un ticket auprès de notre équipe puis saisissez son code.",
+support:"01 00 00 00 00",company:"AfroConnect",kyc:true,mac:"1",sms:146
+};
+function setDemoIndicators(){
+ const badge=$("demoDataBadge"),live=$("liveDataBadge"),notice=$("demoDataNotice"),panel=$("demoReferencePanel");
+ if(badge)badge.hidden=!demoMode;
+ if(live)live.hidden=!apiIsLive;
+ if(notice)notice.hidden=!demoMode;
+ if(panel)panel.hidden=!demoMode;
+ const devices=$("demoDeviceTable"),users=$("demoUserTable");
+ if(devices)devices.innerHTML=DEMO_DEVICES.map(d=>"<tr><td>"+esc(d.name)+"</td><td><code>"+esc(d.mac)+"</code></td><td>"+esc(d.rule)+"</td></tr>").join("");
+ if(users)users.innerHTML=DEMO_USERS.map(u=>"<tr><td>"+esc(u.phone)+"</td><td>"+(u.verified?"Oui":"Non")+"</td><td>"+u.devices+"</td></tr>").join("");
+}
+function seedManagerDemo(){
+ if(resellers.length||tickets.length||lots.length)return false;
+ plans=DEFAULT_PLANS.map(p=>({...p}));
+ resellers=[
+  {id:"demo-r1",name:"Boutique principale",code:"DEMO01",zone:"Porto-Novo",active:true},
+  {id:"demo-r2",name:"Terrasse AfroConnect",code:"DEMO02",zone:"Avrankou",active:true},
+  {id:"demo-r3",name:"Point central",code:"DEMO03",zone:"Adjarra",active:true}
+ ];
+ const now=Date.now(),alphabet="ABCDEFGHJKMNPQRSTUVWXYZ23456789",weights=[78,92,98,100];
+ tickets=[];lots=[];
+ for(let pi=0;pi<plans.length;pi++){
+  const reseller=resellers[pi%resellers.length],id="DEMO-LOT-"+(pi+1);
+  lots.push({id,resellerId:reseller.id,resellerName:reseller.name,zone:reseller.zone,planId:plans[pi].id,planName:plans[pi].name,amount:plans[pi].amount,quantity:0,codeLength:8,createdAt:new Date(now-40*86400000).toISOString()});
+ }
+ let serial=0;
+ const makeCode=()=>{let code;do{code="AFC";for(let k=0;k<5;k++)code+=alphabet[Math.floor(Math.random()*alphabet.length)];}while(tickets.some(t=>t.code===code));return code};
+ for(let d=34;d>=0;d--){
+  const count=d===0?8+Math.floor(Math.random()*15):12+Math.floor(Math.random()*31);
+  for(let i=0;i<count;i++){
+   const day=new Date();day.setHours(0,0,0,0);day.setDate(day.getDate()-d);
+   const at=d===0?day.getTime()+Math.random()*(now-day.getTime()):day.getTime()+(7+Math.random()*14)*3600000;
+   const roll=1+Math.floor(Math.random()*100),pi=roll<=weights[0]?0:roll<=weights[1]?1:roll<=weights[2]?2:3;
+   const plan=plans[pi],reseller=resellers[(serial++)%resellers.length],lotId="DEMO-LOT-"+(pi+1);
+   tickets.push({id:"demo-ticket-"+serial,code:makeCode(),lotId,resellerId:reseller.id,resellerName:reseller.name,zone:reseller.zone,planId:plan.id,planName:plan.name,amount:plan.amount,status:"Utilisé",createdAt:new Date(at-(1+Math.floor(Math.random()*3))*86400000).toISOString(),activatedAt:new Date(Math.min(now,at+(1+Math.floor(Math.random()*8))*60000)).toISOString()});
+   lots[pi].quantity++;
+  }
+ }
+ for(let batch=0;batch<2;batch++){
+  const plan=plans[batch],reseller=resellers[batch],lotId="DEMO-LOT-"+(batch+5),quantity=batch===0?50:30;
+  const lot={id:lotId,resellerId:reseller.id,resellerName:reseller.name,zone:reseller.zone,planId:plan.id,planName:plan.name,amount:plan.amount,quantity,codeLength:8,createdAt:new Date(now-40*86400000).toISOString()};
+  lots.push(lot);
+  for(let i=0;i<quantity;i++){
+   tickets.push({id:"demo-ticket-"+(++serial),code:makeCode(),lotId,resellerId:reseller.id,resellerName:reseller.name,zone:reseller.zone,planId:plan.id,planName:plan.name,amount:plan.amount,status:"Disponible",createdAt:new Date(now-40*86400000).toISOString(),activatedAt:null});
+  }
+ }
+ activities=[
+  {text:"Lot de tickets d’exemple créé",at:new Date(now-2*3600000).toISOString()},
+  {text:"Routeur de démonstration Boutique principale en ligne",at:new Date(now-5*3600000).toISOString()},
+  {text:"Configuration fictive du portail captif enregistrée",at:new Date(now-86400000).toISOString()}
+ ];
+ const used=tickets.filter(t=>t.status==="Utilisé");
+ const start=(offset,unit)=>{const d=new Date(now);d.setHours(0,0,0,0);if(unit==="day")d.setDate(d.getDate()+offset);if(unit==="month")d.setDate(1);if(unit==="year")d.setMonth(0,1);return d.getTime()};
+ const metric=since=>{const rows=used.filter(t=>new Date(t.activatedAt).getTime()>=since);return{count:rows.length,amount:rows.reduce((n,t)=>n+Number(t.amount),0)}};
+ const all={count:used.length,amount:used.reduce((n,t)=>n+Number(t.amount),0)};
+ dashboardReport={timezone:"Africa/Porto-Novo",generatedAt:new Date(now).toISOString(),summary:{today:metric(start(0,"day")),week:metric(start(-((new Date(now).getDay()+6)%7),"day")),month:metric(start(0,"month")),year:metric(start(0,"year")),total:all},recentActivations:used.slice().sort((a,b)=>new Date(b.activatedAt)-new Date(a.activatedAt)).slice(0,8).map(t=>({ticketCode:t.code,occurredAt:t.activatedAt,planName:t.planName,resellerName:t.resellerName,amount:t.amount}))};
+ demoMode=true;
+ try{localStorage.setItem("afroconnect_demo_seed_v1","1");save()}catch(e){}
+ return true;
+}
+function renderDemoMikrotik(){
+ const routers=DEMO_ROUTERS.map((r,i)=>({id:r.id,displayName:r.name,routerCode:r.serial,model:r.model,status:r.online?"ONLINE":"OFFLINE",activeSessions:r.online?5:0,lastSeenAt:r.online?new Date().toISOString():null}));
+ renderMikrotikRows(routers);
+ $("mikrotikClientTable").innerHTML=DEMO_USERS.map((u,i)=>"<tr><td><b>"+esc(u.phone)+"</b><br><small>"+(i%2?"Terrasse":"Boutique principale")+" · Démo</small></td><td>192.168.88."+(101+i)+"</td><td>"+("02:00:00:00:00:0"+(i+1))+"</td><td>—</td><td>"+(u.devices?"1h 24m":"—")+"</td><td><span class=\"badge\">Démo</span></td></tr>").join("");
+ $("overviewMikrotik").textContent="1/2 · Démo";
+ $("overviewClients").textContent="8 · Démo";
+}
+
+if(!resellers.length&&!tickets.length&&!lots.length&&!demoMode){seedManagerDemo();}
+setDemoIndicators();
 
 function debounce(fn,wait){
 let t;
@@ -1807,6 +1907,7 @@ document.querySelectorAll(".nav-submenu a, .side-nav > .side-link").forEach(link
 });
 
 function showAdminInterface(apiAvailable, message = "") {
+  apiIsLive=apiAvailable;
   $("login").classList.add("hidden");
   $("app").classList.remove("hidden");
   render();
@@ -1815,11 +1916,13 @@ function showAdminInterface(apiAvailable, message = "") {
     banner.classList.toggle("hidden", apiAvailable);
     $("apiOfflineMessage").textContent = message || "La base de données est momentanément indisponible. Les données affichées peuvent être incomplètes ou provenir de ce navigateur.";
   }
+  setDemoIndicators();
   if (apiAvailable) {
     loadMikrotik();
   } else {
     $("mikrotikStatus").textContent = "● API indisponible";
     $("mikrotikStatus").classList.add("warn");
+    if(demoMode){renderDemoMikrotik();loadCaptivePortal();}
   }
 }
 
@@ -2033,6 +2136,21 @@ async function loadCaptivePortal(){
     $("portalStatus").textContent="● API indisponible";
     $("portalStatus").classList.add("warn");
     $("portalNotice").textContent="Impossible de charger les routeurs : "+error.message;
+    if(demoMode){
+      select.innerHTML='<option value="demo">Boutique principale — Routeur de démonstration</option><option value="demo2">Terrasse — Routeur de démonstration</option>';
+      $("portalStatus").textContent="● Configuration fictive";
+      $("portalStatus").classList.add("warn");
+      $("portalNetworkName").value=DEMO_PORTAL_SETTINGS.networkName;
+      $("portalTitle").value=DEMO_PORTAL_SETTINGS.title;
+      $("portalMessage").value=DEMO_PORTAL_SETTINGS.message;
+      $("portalLogo").value="";
+      $("portalColor").value="#0e6b4a";
+      $("portalPurchaseUrl").value="https://afroconnectworld.com";
+      $("portalWhatsapp").value=DEMO_PORTAL_SETTINGS.support;
+      $("portalShowQr").checked=true;
+      $("portalTerms").value="Exemple de conditions d’utilisation — données fictives.";
+      setPortalPreview();
+    }
   }
 }
 async function loadPortalSettings(){
@@ -2120,6 +2238,7 @@ async function loadMikrotik(){
     $("mikrotikStatus").textContent="● API non disponible";
     $("mikrotikStatus").classList.add("warn");
     $("mikrotikRouterTable").innerHTML='<tr><td colspan="5">Données MikroTik indisponibles. Vérifie la migration PostgreSQL et le déploiement du backend.</td></tr>';
+    if(demoMode)renderDemoMikrotik();
   }
 }
 $("mikrotikConfig").onclick=()=>{
