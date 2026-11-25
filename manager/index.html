@@ -1536,7 +1536,6 @@ function renderDemoMikrotik(){
 }
 
 if(!resellers.length&&!tickets.length&&!lots.length&&!demoMode){seedManagerDemo();}
-setDemoIndicators();
 
 function debounce(fn,wait){
 let t;
@@ -1555,6 +1554,7 @@ setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300)},2800)
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const save=()=>{
+setDemoIndicators();
 localStorage.setItem("afro_plans",JSON.stringify(plans));
 localStorage.setItem("afro_resellers",JSON.stringify(resellers));
 localStorage.setItem("afro_tickets",JSON.stringify(tickets));
