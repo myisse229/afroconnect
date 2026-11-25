@@ -1,13 +1,1932 @@
 <!doctype html>
 <html lang="fr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>AfroConnect — Internet de proximité</title>
-    <script type="module" crossorigin src="/assets/afroconnect-rebuild.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/afroconnect-rebuild.css">
-  </head>
-  <body>
-    <div id="root"></div>
-  </body>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AfroConnect WiFi Manager</title>
+<style>
+:root{--ease:cubic-bezier(.22,1,.36,1)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f7fb;color:#172033}
+.hidden{display:none!important}
+:focus-visible{outline:2px solid #087f39;outline-offset:2px}
+button{border:0;border-radius:9px;padding:10px 14px;font-weight:700;cursor:pointer;background:#087f39;color:#fff;transition:filter .15s var(--ease),transform .15s var(--ease)}
+button:hover{filter:brightness(.95);transform:translateY(-1px)}
+button:active{transform:translateY(0)}
+button.red{background:#d92d20}button.gray{background:#667085}button.orange{background:#f5a000;color:#111}
+input,select{width:100%;padding:11px;border:1px solid #d0d5dd;border-radius:9px;background:#fff;font:inherit;transition:border-color .15s var(--ease)}
+input:focus,select:focus{border-color:#087f39}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(135deg,#087f39,#f5b400,#e52626)}
+.login form{width:min(420px,100%);background:#fff;border-radius:20px;padding:32px;box-shadow:0 20px 60px #0004;text-align:center;opacity:0;animation:rise .5s var(--ease) forwards}
+@keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.logo,.brand{font-weight:900;color:#087f39;font-size:27px}.logo span,.brand span{color:#f5a000}
+.login h1{margin:10px 0}.login p{color:#667085}.login button{width:100%;margin-top:10px}.error{color:#d92d20;min-height:20px;font-weight:700}
+#app{min-height:100vh;display:flex}
+aside{position:fixed;left:0;top:0;bottom:0;width:245px;background:#101828;color:#fff;padding:22px;z-index:5;overflow-y:auto}
+.brand{font-size:23px;margin-bottom:28px}.brand small{display:block;color:#98a2b3;font-size:11px;letter-spacing:1.5px;margin-top:4px}
+aside a{display:block;color:#d0d5dd;text-decoration:none;padding:11px;border-radius:9px;margin:5px 0;transition:background .15s var(--ease),color .15s var(--ease)}
+aside a:hover{background:#1d2939;color:#fff}
+.side-nav{display:flex;flex-direction:column;gap:5px}
+.side-nav .side-link{display:block}
+.nav-group{margin:0}
+.nav-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;background:transparent;color:#d0d5dd;border:0;border-radius:9px;padding:11px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s var(--ease),color .15s var(--ease)}
+.nav-toggle:hover,.nav-toggle[aria-expanded="true"]{background:#1d2939;color:#fff}
+.nav-chevron{font-size:18px;transition:transform .18s ease}
+.nav-toggle[aria-expanded="true"] .nav-chevron{transform:rotate(180deg)}
+.nav-submenu{padding:3px 0 5px 12px}
+.nav-submenu[hidden]{display:none}
+.nav-submenu a{font-size:13px;padding:9px 10px;margin:3px 0;border-left:2px solid #344054;border-radius:0 8px 8px 0}
+.nav-submenu a:hover{border-left-color:#f5a000}
+aside #logout{width:100%;margin-top:18px}
+main{margin-left:245px;width:calc(100% - 245px);max-width:1600px;padding:25px}
+header{display:flex;justify-content:space-between;align-items:center;margin-bottom:25px}
+header small{color:#667085}header h1{margin:5px 0}.online{background:#dcfae6;color:#067647;padding:9px 13px;border-radius:20px}
+section{margin-bottom:32px;scroll-margin-top:15px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:15px}
+.card,.panel{background:#fff;border:1px solid #eaecf0;border-radius:15px;padding:18px;box-shadow:0 3px 14px #1018280a}
+.card{transition:transform .15s var(--ease),box-shadow .15s var(--ease)}
+.card:hover{transform:translateY(-2px);box-shadow:0 10px 24px #10182812}
+.card span{color:#667085}.card b{font-size:30px;display:block;margin:9px 0}.card small{color:#667085}
+.title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.title h2,.title h3{margin:0}.title button{white-space:nowrap}
+table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:10px;border-bottom:1px solid #eaecf0;vertical-align:middle}
+th{background:#f9fafb;color:#475467}.table-wrap{overflow:auto}
+tbody tr{transition:background .1s var(--ease)}tbody tr:hover{background:#fafbfc}
+.generator{display:grid;grid-template-columns:1.2fr 1.2fr .6fr .8fr auto;gap:10px;align-items:end}
+.generator label{font-weight:700;font-size:13px}.generator input,.generator select{margin-top:5px}
+.actions{display:flex;gap:6px;flex-wrap:wrap}.small{padding:7px 10px;font-size:12px}
+.badge{display:inline-block;background:#eef4ff;color:#175cd3;padding:5px 9px;border-radius:15px;font-size:12px;font-weight:700}
+.notice{padding:12px 14px;background:#fff7e6;border:1px solid #ffd666;border-radius:10px;color:#7a4b00;margin-bottom:15px}
+.modal{position:fixed;inset:0;background:#0008;display:grid;place-items:center;padding:20px;z-index:20;animation:fade .15s var(--ease)}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal form{background:#fff;width:min(620px,100%);padding:25px;border-radius:18px;position:relative;animation:rise .2s var(--ease)}
+.close{position:absolute;right:12px;top:12px;background:#eee;color:#333;padding:5px 10px}
+
+.portal-download-status{font-size:12px;color:#667085}
+.portal-layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:15px;align-items:start}
+.portal-check{display:flex;align-items:center;gap:9px;margin-top:14px;font-weight:700;font-size:14px}
+.portal-check input{width:auto;accent-color:#087f39}
+.portal-preview{padding:18px;border-radius:14px;background:linear-gradient(145deg,#e8f4eb,#f5f7fa);display:grid;place-items:center;min-height:440px}
+.portal-preview-card{width:min(100%,340px);background:#fff;border:1px solid #e4e7ec;border-radius:20px;padding:24px 20px;text-align:center;box-shadow:0 15px 40px #10182818}
+.portal-preview-logo{font-size:22px;font-weight:900;color:#087f39;overflow-wrap:anywhere}
+.portal-preview-logo img{max-width:130px;max-height:54px;object-fit:contain}
+.portal-preview-card>small{display:block;color:#667085;margin-top:8px}
+.portal-preview-card h3{font-size:23px;margin:22px 0 8px}
+.portal-preview-card p{color:#667085;font-size:14px;margin:0 0 18px}
+.portal-preview-input{padding:12px;border:1px solid #d0d5dd;border-radius:9px;color:#98a2b3;font-size:13px}
+.portal-preview-button{margin-top:10px;padding:12px;border-radius:9px;color:#fff;background:#087f39;font-weight:800}
+.portal-preview-qr{margin:16px auto 10px;padding:12px;border:1px dashed #98a2b3;border-radius:9px;font-size:13px;color:#344054}
+.portal-preview-card #portalPreviewTerms{font-size:11px;line-height:1.4}
+@media(max-width:900px){.portal-layout{grid-template-columns:1fr}}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.form-grid label{font-size:13px;font-weight:700}
+.lot-code{font-weight:800;letter-spacing:.6px}.lot-row{cursor:pointer}.lot-row:hover{background:#f9fafb}
+.pdf-ticket{border:1px dashed #555;border-radius:8px;padding:12px;text-align:center}
+.muted{color:#667085;font-size:13px}
+.quickbar{display:flex;gap:10px;margin-bottom:15px}.quickbar input{flex:1}
+.filters{display:flex;gap:7px;flex-wrap:wrap}
+.activity{display:grid;gap:8px}.activity-item{padding:10px 12px;background:#f9fafb;border-radius:9px;border-left:3px solid #087f39}.activity-item small{display:block;color:#667085;margin-top:3px}
+.stock-alert{background:#fff4e5;border:1px solid #f5b400;color:#7a4b00;padding:12px 14px;border-radius:10px;font-weight:700}
+.stock-alert strong{font-size:18px}
+.sales-period-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:15px}
+.sales-period{min-width:0}
+.sales-period b{font-size:26px}
+.sales-period small{display:block;margin-top:4px}
+.sales-note{margin:10px 2px 0}
+.admin-overview{display:grid;grid-template-columns:1.4fr 1fr;gap:15px;margin-top:15px}
+.overview-main{padding:18px}
+.overview-head{display:flex;justify-content:space-between;align-items:center;gap:10px}.overview-head h2{margin:4px 0 0}
+.overview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:15px}
+.overview-grid>div,.week-grid>div{background:#f9fafb;border-radius:10px;padding:12px}
+.overview-grid span,.week-grid span{display:block;color:#667085;font-size:12px}
+.overview-grid b,.week-grid b{display:block;font-size:20px;margin-top:5px}
+.status-pill{background:#dcfae6;color:#067647;padding:7px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap}
+.status-pill.warn{background:#fff4e5;color:#b54708}
+.leader{display:flex;align-items:center;gap:12px;margin-top:18px}.leader-icon{font-size:34px}.leader b{display:block;font-size:20px}.leader small{color:#667085}
+.week-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+
+.toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,16px);background:#172033;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 14px 30px rgba(0,0,0,.25);opacity:0;transition:opacity .25s var(--ease),transform .25s var(--ease);z-index:100;max-width:90vw}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.error{background:#d92d20}
+
+@media(max-width:1100px){.sales-period-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:950px){aside{width:200px}main{margin-left:200px;width:calc(100% - 200px)}.cards{grid-template-columns:1fr 1fr}.generator{grid-template-columns:1fr 1fr}}
+@media(max-width:850px){.admin-overview{grid-template-columns:1fr}.overview-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.quickbar,.filters{display:grid;grid-template-columns:1fr}.quickbar button{width:100%}}
+@media(max-width:650px){#app{display:block}aside{position:static;width:100%}main{margin:0;width:100%;padding:15px}.cards,.generator,.form-grid{grid-template-columns:1fr}header{display:block}.online{display:inline-block;margin-top:10px}}
+@media(max-width:550px){.overview-grid,.week-grid,.sales-period-grid{grid-template-columns:1fr}.overview-grid,.week-grid{grid-template-columns:1fr}}
+
+/* Interface allégée : priorité aux ventes et aux tâches courantes */
+:root{--green:#087f39;--gold:#f5b400;--ink:#172033;--muted:#667085}
+body{background:#f5f7fa;color:var(--ink);font-size:14px}
+aside{width:218px;padding:20px 16px;background:#101828}
+main{margin-left:218px;width:calc(100% - 218px);padding:24px;max-width:1500px}
+.brand{font-size:21px;margin-bottom:22px}
+aside a{padding:10px 11px;margin:3px 0;font-size:14px}
+header{margin-bottom:18px}
+header h1{font-size:25px;letter-spacing:-.5px}
+section{margin-bottom:24px}
+.card,.panel{border-radius:13px;padding:16px;box-shadow:0 2px 8px #10182808}
+.cards{gap:12px}
+.card b{font-size:26px}
+.sales-period-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.sales-period b{font-size:23px}
+.title{margin-bottom:10px}
+th,td{padding:9px 11px}
+#globalSearch{display:block}
+.generator label:has(#codeLength){display:none}
+.admin-overview,#dashboard > .panel:has(#weekUsed),#dashboard > .panel:has(#activityList){display:grid}
+#dashboard > .panel:has(#activityList),#dashboard > .panel:has(#weekUsed){display:block}
+#mikrotik .actions{display:flex}
+#mikrotikClientsPanel:not(.hidden){display:block}
+#mikrotik .notice{margin-top:0!important;background:#f8fafc;border-color:#e4e7ec;color:#475467}
+.api-offline-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:14px 0;padding:14px 16px;border:1px solid #f2c078;border-left:4px solid #d97706;border-radius:10px;background:#fffaeb;color:#7a2e0e}
+.api-offline-banner p{margin:5px 0 0;font-size:13px;line-height:1.45}
+.api-offline-banner button{flex:0 0 auto}
+@media(max-width:650px){.api-offline-banner{align-items:stretch;flex-direction:column}}
+#recentSalesTable td{white-space:nowrap}
+@media(max-width:950px){aside{width:190px}main{margin-left:190px;width:calc(100% - 190px)}.sales-period-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){aside{width:100%;padding:14px;position:static}main{margin:0;width:100%;padding:14px}.sales-period-grid{grid-template-columns:1fr 1fr}header h1{font-size:21px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+
+/* AFROCONNECT — finition visuelle */
+:root{
+  --af-green:#087f39;--af-green-dark:#06632e;--af-gold:#f5b400;
+  --af-ink:#172b24;--af-muted:#66756f;--af-line:#e5ece8;
+  --af-surface:#fff;--af-bg:#f3f7f4;--af-shadow:0 8px 28px rgba(20,55,38,.06);
+}
+body{font-family:Inter,"Segoe UI",Arial,sans-serif;background:radial-gradient(ellipse at 85% 0%,#e8f4ec 0,transparent 36%),var(--af-bg);color:var(--af-ink);line-height:1.5}
+aside{background:linear-gradient(180deg,#10271d 0%,#0c1d16 100%);border-right:1px solid #183b2a;padding:25px 17px;box-shadow:8px 0 28px rgba(15,45,28,.06)}
+.brand{font-size:22px;letter-spacing:-.6px;margin:4px 8px 34px}
+.brand span,.logo span{color:#f7c542}
+.brand small{font-weight:700;letter-spacing:2px;color:#9ab8a5}
+aside a{color:#c7d8cd;padding:12px 13px;margin:5px 0;border:1px solid transparent;border-radius:11px;font-weight:600;transition:all .18s ease}
+aside a:hover{background:#1b3a2a;border-color:#2c5a3e;color:#fff;transform:translateX(2px)}
+aside #logout{margin-top:28px;border:1px solid #85443d;background:#7d302b}
+main{padding:30px 34px;max-width:1680px}
+header{padding:4px 0 20px;border-bottom:1px solid rgba(213,226,217,.8);margin-bottom:24px}
+header small{font-size:11px;font-weight:800;letter-spacing:1.8px;color:var(--af-green)}
+header h1{font-size:27px;letter-spacing:-.8px;color:#183629}
+.online{font-size:12px;font-weight:800;letter-spacing:.2px;background:#e4f5e9;color:#167343;border:1px solid #c8e9d2}
+.card,.panel{background:var(--af-surface);border:1px solid var(--af-line);border-radius:17px;box-shadow:var(--af-shadow);padding:19px}
+.card{position:relative;overflow:hidden;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.card:after{content:"";position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,var(--af-green),#9acb9f);opacity:.85}
+.card:hover{transform:translateY(-3px);box-shadow:0 14px 32px rgba(20,55,38,.1);border-color:#cbded1}
+.card span{font-size:12px;font-weight:700;color:var(--af-muted)}
+.card b{font-size:29px;letter-spacing:-.8px;color:#183629;margin:11px 0 5px}
+.card small,.muted{color:var(--af-muted)}
+.title{margin-bottom:16px}
+.title h2{font-size:21px;letter-spacing:-.4px;color:#183629}
+.title h3{font-size:16px;color:#244434}
+button{border-radius:10px;padding:11px 16px;background:linear-gradient(135deg,var(--af-green),var(--af-green-dark));box-shadow:0 3px 8px rgba(8,127,57,.15);font-size:13px;letter-spacing:.1px}
+button:hover{filter:brightness(1.06);box-shadow:0 6px 14px rgba(8,127,57,.2)}
+button.gray{background:#eef3ef;color:#34483b;box-shadow:none;border:1px solid #dce7df}
+button.red{background:#b93830;box-shadow:none}
+button.orange{background:#f5bd35;color:#342800;box-shadow:none}
+input,select{border:1px solid #dce6df;border-radius:10px;padding:12px 13px;color:#20362a;background:#fff}
+input::placeholder{color:#9aa9a0}
+input:focus,select:focus{border-color:#36a267;box-shadow:0 0 0 3px rgba(8,127,57,.1);outline:none}
+table{border-collapse:separate;border-spacing:0;font-size:13px}
+th{background:#f2f7f3;color:#506459;font-size:11px;text-transform:uppercase;letter-spacing:.65px;font-weight:800}
+th:first-child{border-radius:9px 0 0 0}th:last-child{border-radius:0 9px 0 0}
+th,td{padding:13px 14px;border-bottom:1px solid #edf2ee}
+tbody tr:hover{background:#f6faf7}
+.table-wrap{border-radius:12px}
+.modal{background:rgba(10,28,18,.58);backdrop-filter:blur(5px)}
+.modal form{border:1px solid #e4ece6;border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.22);padding:30px}
+.close{background:#f1f5f2;color:#43564a;border:1px solid #e1e9e3;box-shadow:none}
+.notice{background:#fff9e8;border:1px solid #f3dfaa;color:#76530b}
+.activity-item{background:#f4f8f5;border-left-color:#219653;padding:13px 14px}
+.overview-grid>div,.week-grid>div{background:#f4f8f5;border:1px solid #e7efe9;border-radius:12px}
+.status-pill{background:#e6f6eb;color:#167343}
+.status-pill.warn{background:#fff3df;color:#9a5a08}
+.badge{background:#edf5ff;color:#2862a6;border:1px solid #dceaff}
+.quickbar input{box-shadow:0 4px 14px rgba(20,55,38,.04)}
+.sales-note{padding:0 4px}
+.api-offline-banner{border-radius:13px;box-shadow:0 5px 18px rgba(150,100,20,.06)}
+.login{background:radial-gradient(circle at 15% 15%,rgba(255,255,255,.18),transparent 25%),linear-gradient(135deg,#0b5d32 0%,#087f39 42%,#d49b16 100%)}
+.login form{border:1px solid rgba(255,255,255,.7);border-radius:24px;padding:38px 34px;box-shadow:0 28px 80px rgba(0,0,0,.24)}
+.login .logo{font-size:29px;letter-spacing:-.8px}
+.login h1{font-size:25px;letter-spacing:-.6px;color:#1e3327}
+.login p{font-size:13px}
+.login input{margin:6px 0}
+.login button{margin-top:14px;padding:13px}
+.toast{border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px)}
+@media(max-width:950px){main{padding:24px 22px}}
+@media(max-width:650px){
+  #app{display:block}
+  aside{position:relative;top:auto;bottom:auto;width:100%;display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:13px 12px}
+  .brand{width:100%;margin:0 5px 8px;font-size:19px}
+  aside a{display:inline-flex;align-items:center;padding:9px 10px;margin:0;font-size:12px}
+  aside #logout{width:auto;margin:4px 0;padding:9px 12px}
+  main{padding:18px 13px;width:100%;margin:0}
+  header{align-items:flex-start;gap:12px;flex-wrap:wrap;padding-bottom:15px}
+  header h1{font-size:22px}
+  .card,.panel{padding:15px;border-radius:14px}
+  .cards{gap:9px}
+  .card b{font-size:23px}
+  .quickbar{flex-direction:column}
+  .quickbar button{width:100%}
+  .title{align-items:flex-start;flex-wrap:wrap}
+  .modal{padding:10px}
+  .modal form{padding:24px 17px}
+  .form-grid{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){.card,.card:hover,aside a:hover{transform:none}}
+
+
+/* AFROCONNECT · direction 3 : activité commerciale */
+:root{
+  --af-blue-950:#092718;--af-blue-900:#0c3b22;--af-blue-800:#075d2c;
+  --af-blue-700:#087a38;--af-blue-600:#008b3f;--af-blue-500:#18a957;
+  --af-cyan:#ffd000;--af-ink:#17291d;--af-muted:#647269;
+  --af-line:#e1e9e1;--af-bg:#f4f8f4;--af-surface:#fff;
+}
+html{scroll-padding-top:22px}
+body{font-family:Inter,"Segoe UI",Arial,sans-serif;background:var(--af-bg);color:var(--af-ink);line-height:1.5}
+.hidden{display:none!important}
+:focus-visible{outline:3px solid #ffd000;outline-offset:3px}
+.login{
+  min-height:100vh;padding:24px;
+  background:radial-gradient(ellipse at 80% 15%,rgba(255,208,0,.20),transparent 34%),
+    radial-gradient(ellipse at 15% 85%,rgba(0,139,63,.20),transparent 36%),
+    linear-gradient(145deg,#06351d,#08763a 58%,#0b4d2b);
+}
+.login form{
+  width:min(440px,100%);padding:40px 38px 36px;border:1px solid rgba(255,255,255,.7);
+  border-radius:22px;background:rgba(255,255,255,.97);box-shadow:0 28px 90px rgba(2,14,37,.38);
+}
+.logo{color:var(--af-blue-950);font-size:25px;letter-spacing:-.7px}.logo span{color:var(--af-blue-600)}
+.login h1{margin:12px 0 5px;color:var(--af-blue-950);font-size:26px;letter-spacing:-.5px}
+.login p{margin:0 0 22px;color:var(--af-muted);font-size:13px}
+.login form input{margin:6px 0;padding:13px 14px;background:#f9fbfe}
+.login button{width:100%;margin-top:14px;padding:13px}
+.error{color:#c53b4b}
+#app{min-height:100vh;display:flex}
+aside{
+  position:fixed;inset:0 auto 0 0;width:258px;padding:24px 16px;
+  background:linear-gradient(180deg,var(--af-blue-950),#0a214b 72%,#0b2d62);
+  border:0;box-shadow:8px 0 30px rgba(7,29,69,.08);z-index:5;overflow-y:auto;
+}
+.brand{font-size:20px;letter-spacing:-.4px;margin:4px 8px 34px;color:#fff}
+.brand span,.logo span{color:#ffd000}
+.brand small{display:block;color:#b7d6c1;font-size:10px;letter-spacing:2.2px;margin-top:4px}
+.side-nav{display:flex;flex-direction:column;gap:7px}
+aside a,.nav-toggle{
+  color:#c7ddcd;border-radius:11px;padding:11px 13px;margin:0;
+  font-size:13px;font-weight:650;text-decoration:none;transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+.side-nav .side-link{display:block}
+aside a:hover,.nav-toggle:hover,.nav-toggle[aria-expanded=true]{
+  background:rgba(38,156,83,.18);border-color:transparent;color:#fff;transform:none;
+}
+.nav-toggle{
+  width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  text-align:left;background:transparent;border:1px solid transparent;font:inherit;font-size:13px;font-weight:650;box-shadow:none;
+}
+.nav-chevron{font-size:17px;color:#a6d2b2}
+.nav-submenu{padding:5px 0 7px 12px}
+.nav-submenu[hidden]{display:none}
+.nav-submenu a{font-size:12px;border-left:2px solid rgba(134,190,148,.35);border-radius:0 8px 8px 0;padding:9px 12px}
+.nav-submenu a:hover{border-left-color:var(--af-blue-500);background:rgba(38,156,83,.12)}
+aside #logout{width:100%;margin-top:24px;padding:10px 13px;background:#0c6332;border:1px solid #29834b;box-shadow:none;color:#fff}
+main{margin-left:258px;width:calc(100% - 258px);max-width:1680px;padding:28px 34px}
+header{align-items:center;border-bottom:1px solid var(--af-line);padding:0 0 18px;margin-bottom:22px}
+header small{font-size:10px;color:#008b3f;font-weight:800;letter-spacing:1.8px}
+header h1{font-size:24px;letter-spacing:-.55px;color:var(--af-blue-950);margin:4px 0}
+.online{background:#eaf6ee;color:#126b36;border:1px solid #cde7d4;padding:8px 12px;border-radius:99px;font-size:11px;font-weight:750}
+section{scroll-margin-top:20px;margin-bottom:29px}
+.dashboard-intro{display:flex;align-items:end;justify-content:space-between;gap:16px;margin:2px 0 17px}
+.dashboard-intro small{color:var(--af-blue-600);font-size:10px;font-weight:800;letter-spacing:1.6px}
+.dashboard-intro h2{font-size:25px;letter-spacing:-.7px;margin:3px 0;color:var(--af-blue-950)}
+.dashboard-intro p{margin:0;color:var(--af-muted);font-size:13px}
+.dashboard-period{white-space:nowrap;color:#61738f;background:#fff;border:1px solid var(--af-line);border-radius:10px;padding:9px 12px;font-size:11px}
+.quickbar{gap:10px;margin-bottom:14px}
+.quickbar input{max-width:560px;border-color:var(--af-line);box-shadow:0 3px 12px rgba(23,57,105,.04)}
+button{background:linear-gradient(135deg,var(--af-blue-600),#0e55da);border-radius:10px;padding:10px 15px;box-shadow:0 4px 10px rgba(23,105,245,.15);font-size:12px}
+button:hover{filter:brightness(1.04);box-shadow:0 6px 14px rgba(23,105,245,.2)}
+button.gray{background:#f3f6fb;color:#405875;border:1px solid #dce5f1;box-shadow:none}
+button.red{background:#c9454d;color:#fff;box-shadow:none}
+button.orange{background:#fff3db;color:#84530c;border:1px solid #f4dfb4;box-shadow:none}
+input,select{border:1px solid #dce5f1;border-radius:10px;color:var(--af-ink);padding:11px 12px}
+input:focus,select:focus{border-color:#5590f4;box-shadow:0 0 0 3px rgba(49,130,255,.12);outline:0}
+.card,.panel{border:1px solid var(--af-line);border-radius:15px;background:#fff;box-shadow:0 5px 20px rgba(19,48,92,.045);padding:18px}
+.card{transition:transform .18s ease,box-shadow .18s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 11px 25px rgba(19,48,92,.08)}
+.card:after{display:none}
+.card span{font-size:12px;font-weight:650;color:#667b98}
+.card b{font-size:27px;letter-spacing:-.5px;color:var(--af-blue-950);margin:8px 0 3px}
+.card small,.muted{color:var(--af-muted)}
+.cards{gap:13px}
+.sales-period-grid{grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;margin:13px 0}
+.sales-period{position:relative;min-height:96px;padding:15px 15px 13px 18px;border-radius:13px}
+.sales-period:before{content:"";position:absolute;left:0;top:16px;bottom:16px;width:3px;border-radius:4px;background:var(--af-blue-500)}
+.sales-period b{font-size:23px}
+.sales-note{margin:5px 2px 12px;font-size:11px}
+.sales-rule-note{display:flex;align-items:center;gap:11px;margin:0 0 15px;padding:12px 14px;border:1px solid #d3ead9;border-radius:12px;background:#eff8f1;color:#294b35}
+.sales-rule-mark{display:grid;place-items:center;flex:0 0 25px;height:25px;border-radius:50%;background:#e1f3e5;color:#16723b;font-weight:800}
+.sales-rule-note strong{display:block;font-size:11px;color:#23643a}
+.sales-rule-note p{margin:2px 0 0;font-size:12px;line-height:1.45}
+.title{margin-bottom:12px}
+.title h2,.title h3{color:var(--af-blue-950);letter-spacing:-.25px}
+.title h2{font-size:20px}.title h3{font-size:15px}
+.admin-overview{gap:13px;margin-top:14px}
+.overview-head small{color:#368152;font-size:9px;letter-spacing:1.4px;font-weight:800}
+.overview-head h2{font-size:18px}
+.overview-grid>div,.week-grid>div{border:1px solid #e6eee7;background:#f5f9f5;border-radius:11px;padding:11px}
+.overview-grid b,.week-grid b{color:var(--af-blue-950);font-size:18px}
+.leader-icon{font-size:25px}
+.status-pill{background:background:#eaf6ee;color:#176b38}
+.status-pill.warn{background:#fff4e5;color:#9a5a08}
+.badge{background:#eaf6ee;color:#176b38;border:1px solid #d5eadb}
+.table-wrap{border:1px solid #e7edf5;border-radius:12px}
+table{border-collapse:separate;border-spacing:0;font-size:12px}
+th{background:#f2f7f2;color:#566b5b;font-size:10px;text-transform:uppercase;letter-spacing:.55px}
+th:first-child{border-radius:10px 0 0 0}th:last-child{border-radius:0 10px 0 0}
+th,td{padding:11px 13px;border-bottom:1px solid #e7eee8}
+tbody tr:hover{background:#f6faf6}
+.activity-item{background:#f3f8f4;border-left-color:var(--af-blue-500)}
+.api-offline-banner{background:#fff8e7;border-color:#f3d77c;border-left-color:#d79a00}
+.modal{background:rgba(6,24,58,.58);backdrop-filter:blur(5px)}
+.modal form{border:1px solid var(--af-line);border-radius:17px;box-shadow:0 24px 80px rgba(7,28,64,.22)}
+.portal-preview{background:linear-gradient(145deg,#edf7ef,#f7faf7)}
+.portal-preview-button{background:var(--af-blue-600)}
+.toast{background:#0b572b}
+@media(max-width:1100px){main{padding:24px}.sales-period-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:850px){aside{width:220px}main{margin-left:220px;width:calc(100% - 220px);padding:21px}.sales-period-grid,.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){
+  #app{display:block}
+  aside{position:relative;inset:auto;width:100%;padding:14px 13px}
+  .brand{margin:0 5px 10px;font-size:18px}
+  .side-nav{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .side-nav>.side-link:last-child{grid-column:1/-1}
+  .nav-submenu{padding-left:5px}
+  aside a,.nav-toggle{font-size:12px;padding:9px 10px}
+  main{margin:0;width:100%;padding:18px 13px}
+  header{align-items:flex-start;gap:10px;flex-wrap:wrap}
+  header h1{font-size:21px}
+  .dashboard-intro{align-items:flex-start;flex-direction:column}
+  .dashboard-intro h2{font-size:22px}
+  .quickbar{display:grid;grid-template-columns:1fr}
+  .quickbar input{max-width:none}
+  .quickbar button{width:100%}
+  .cards{grid-template-columns:1fr 1fr;gap:9px}
+  .card,.panel{padding:14px;border-radius:13px}
+  .card b{font-size:22px}
+  .sales-period-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .sales-period{min-height:90px;padding:13px}
+  .sales-period b{font-size:20px}
+  .title{align-items:flex-start;flex-wrap:wrap}
+  .filters{display:grid;grid-template-columns:1fr}
+  .filters input,.filters select{max-width:none!important}
+  .generator,.portal-layout{grid-template-columns:1fr}
+  .overview-grid,.week-grid{grid-template-columns:1fr 1fr}
+  .sales-rule-note{align-items:flex-start}
+  .table-wrap{overflow:auto}
+}
+@media(max-width:400px){.cards,.sales-period-grid,.overview-grid,.week-grid{grid-template-columns:1fr}.online{padding:7px 9px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.card,.card:hover{transform:none}}
+</style>
+<style>
+/* AFROCONNECT manager visual refresh: prototype palette and responsive shell */
+500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+
+:root {
+  font-family: 'DM Sans', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: #16233c;
+  background: #f4f7fb;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --navy: #081835;
+  --navy-2: #10274c;
+  --blue: #1266f1;
+  --blue-2: #2380ff;
+  --muted: #78869d;
+  --line: #e7edf5;
+  --green: #138b58;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; background: #f4f7fb; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #75aaff; outline-offset: 2px; }
+.app-shell { min-height: 100vh; }
+.sidebar { width: 260px; height: 100vh; position: fixed; z-index: 30; left: 0; top: 0; display: flex; flex-direction: column; color: #dbe5f6; background: linear-gradient(165deg, #0b1b3a 0%, #07152f 100%); }
+.brand-wrap { display: flex; align-items: center; min-height: 111px; padding: 23px 22px 20px; border-bottom: 1px solid rgba(205,222,250,.13); margin: 0 19px; }
+.brand { display: flex; align-items: center; gap: 8px; color: #fff; }
+.brand-wifi { width: 36px; height: 36px; color: #38a7ff; flex: 0 0 auto; }
+.brand strong { display: block; font: 800 16px/1.15 Manrope, sans-serif; letter-spacing: .035em; }
+.brand span { display: block; margin-top: 4px; color: #a8bad4; font-size: 9px; letter-spacing: .28em; text-align: center; }
+.nav-label { padding: 25px 24px 9px; font-size: 9px; font-weight: 700; letter-spacing: .13em; color: #8294af; }
+.side-nav { padding: 6px 11px; overflow-y: auto; }
+.nav-group { margin: 3px 0; }
+.nav-link { width: 100%; border: 0; border-radius: 8px; padding: 11px 12px; display: flex; align-items: center; gap: 12px; color: #cad6e8; background: transparent; text-align: left; font-size: 12.5px; font-weight: 600; transition: background .16s ease, color .16s ease; }
+.nav-link:hover { background: rgba(255,255,255,.075); color: #fff; }
+.nav-link.active { background: #1265ed; color: #fff; box-shadow: 0 5px 13px rgba(0,79,208,.21); }
+.nav-link > span { flex: 1; }
+.nav-chevron { opacity: .76; }
+.subnav { display: grid; gap: 2px; padding: 4px 0 5px 42px; }
+.subnav-link { border: 0; color: #91a2bc; background: transparent; border-radius: 6px; padding: 8px 9px; text-align: left; font-size: 11px; transition: color .15s, background .15s; }
+.subnav-link:hover, .subnav-link.subnav-active { background: rgba(255,255,255,.08); color: #fff; }
+.sidebar-bottom { margin-top: auto; padding: 12px 15px 16px; }
+.side-help { border: 1px solid rgba(181,205,241,.14); border-radius: 9px; padding: 11px 10px; display: flex; align-items: center; gap: 9px; background: rgba(255,255,255,.045); }
+.help-icon { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 7px; color: #69bdff; background: rgba(28,116,236,.17); }
+.side-help b, .side-help small { display: block; }
+.side-help b { font-size: 10px; font-weight: 600; color: #e5edf9; }
+.side-help small { margin-top: 3px; font-size: 9px; color: #91a3bf; }
+.help-dot { width: 7px; height: 7px; border-radius: 50%; background: #27c47b; margin-left: auto; }
+.sidebar-foot { padding: 15px 6px 0; color: #72839f; font-size: 8px; letter-spacing: .14em; }
+.sidebar-foot span { padding: 0 5px; }
+.app-main { margin-left: 260px; min-height: 100vh; }
+.topbar { height: 61px; padding: 0 27px; display: flex; align-items: center; justify-content: space-between; background: #081835; color: white; }
+.crumb-brand { display: flex; align-items: center; gap: 10px; }
+.crumb-mark { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid rgba(83,153,248,.35); border-radius: 8px; color: #5db4ff; background: rgba(24,103,213,.14); }
+.crumb-brand b, .crumb-brand span { display: block; }
+.crumb-brand b { font: 700 10px/1.4 Manrope, sans-serif; letter-spacing: .025em; }
+.crumb-brand div > span { color: #9badc9; font-size: 9px; margin-top: 1px; }
+.top-actions { display: flex; align-items: center; gap: 16px; height: 100%; }
+.system-status, .mikrotik-status { display: flex; align-items: center; gap: 7px; white-space: nowrap; color: #d5dfef; font-size: 10px; font-weight: 600; }
+.system-status i { width: 7px; height: 7px; border-radius: 50%; background: #25c87d; box-shadow: 0 0 0 3px rgba(37,200,125,.13); }
+.mikrotik-status svg { color: #76baff; }
+.top-divider { height: 20px; width: 1px; background: rgba(185,204,235,.2); }
+.account-button, .icon-button { border: 0; color: inherit; background: transparent; }
+.account-button { display: flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 600; }
+.avatar { width: 26px; height: 26px; display: grid; place-items: center; border: 1px solid rgba(202,222,255,.3); border-radius: 50%; color: #cfe3ff; background: #183460; font-size: 10px; }
+.content { width: min(100%, 1540px); margin: 0 auto; padding: 28px 30px 20px; }
+.page-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; margin-bottom: 19px; }
+.eyebrow { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; color: #687a95; font-size: 9px; font-weight: 700; letter-spacing: .105em; }
+.eyebrow-dot { width: 6px; height: 6px; border-radius: 50%; background: #1685ed; box-shadow: 0 0 0 3px #e0efff; }
+h1, h2, p { margin: 0; }
+h1 { color: #12213d; font: 800 28px/1.2 Manrope, sans-serif; letter-spacing: -.035em; }
+.page-heading p { margin-top: 5px; color: #73819a; font-size: 11.5px; }
+.page-date { min-height: 36px; display: flex; align-items: center; gap: 9px; padding: 0 11px; border: 1px solid #dfe7f1; border-radius: 7px; background: #fff; color: #253653; white-space: nowrap; font-size: 10px; font-weight: 600; box-shadow: 0 2px 6px rgba(25,46,80,.025); }
+.page-date > svg { color: #60738f; }
+.date-separator { height: 16px; width: 1px; margin: 0 2px; background: #e4eaf2; }
+.benin-tag { color: #65758c; font-size: 8px; letter-spacing: .08em; }
+.demo-notice { min-height: 39px; display: flex; align-items: center; gap: 9px; margin-bottom: 16px; padding: 8px 11px; border: 1px solid #cfe2ff; border-radius: 7px; background: #edf5ff; color: #42628c; font-size: 10px; }
+.demo-notice b { color: #1b4a8d; font-weight: 700; }
+.notice-icon { display: grid; place-items: center; color: #2878d9; }
+.notice-close { display: grid; place-items: center; margin-left: auto; padding: 3px; border: 0; background: transparent; color: #7c91ac; }
+.stats-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 13px; margin-bottom: 15px; }
+.stat { min-height: 87px; display: flex; align-items: center; gap: 13px; padding: 14px 16px; border: 1px solid #e2eaf5; border-radius: 9px; background: #fff; box-shadow: 0 2px 5px rgba(24,45,77,.025); }
+.stat-blue { background: #f4f8ff; border-color: #d9e7fb; }
+.stat-green { background: #f2faf6; border-color: #d9eee3; }
+.stat-slate { background: #fbfcfe; }
+.stat-icon { width: 43px; height: 43px; flex: 0 0 auto; display: grid; place-items: center; border-radius: 8px; color: #196be6; background: #e4efff; }
+.stat-green .stat-icon { color: #15945a; background: #e1f5e9; }
+.stat-slate .stat-icon { color: #54708f; background: #ebf0f7; }
+.stat-copy > span, .stat-copy strong, .stat-copy small { display: block; }
+.stat-copy > span { color: #5d6c84; font-size: 10px; font-weight: 600; }
+.stat-copy strong { margin-top: 2px; color: #12203b; font: 800 22px/1.2 Manrope,sans-serif; letter-spacing: -.03em; }
+.stat-copy small { margin-top: 3px; color: #8b98a9; font-size: 9px; }
+.overview-grid { display: grid; grid-template-columns: minmax(0,1.12fr) minmax(0,.88fr); gap: 14px; margin-bottom: 14px; }
+.panel { min-width: 0; overflow: hidden; border: 1px solid #e2e9f2; border-radius: 9px; background: #fff; box-shadow: 0 2px 7px rgba(22,43,76,.025); }
+.panel-heading { min-height: 60px; padding: 12px 15px 9px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.panel-heading h2 { color: #1a2a46; font: 700 13px/1.3 Manrope,sans-serif; letter-spacing: -.015em; }
+.panel-heading p { margin-top: 3px; color: #8a97aa; font-size: 9px; }
+.subtle-action { display: inline-flex; align-items: center; justify-content: center; gap: 5px; padding: 5px 6px; border: 0; border-radius: 5px; background: transparent; color: #4774b3; white-space: nowrap; font-size: 9px; font-weight: 600; }
+.subtle-action:hover { background: #f0f5fc; color: #155ec1; }
+.table-scroll { width: 100%; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; text-align: left; }
+.router-table { min-width: 580px; }
+th { color: #7988a0; font-size: 8px; font-weight: 600; letter-spacing: .015em; }
+.router-table th { height: 31px; padding: 0 9px; background: #f6f8fb; }
+.router-table th:first-child { padding-left: 15px; }
+td { border-bottom: 1px solid #edf0f5; color: #33425d; }
+.router-table td { height: 54px; padding: 7px 9px; font-size: 10px; }
+.router-table td:first-child { padding-left: 15px; }
+.router-table tbody tr:last-child td, .sessions-table tbody tr:last-child td { border-bottom: 0; }
+.number { text-align: right; }
+.router-table .number { padding-right: 14px; }
+.site-name, .device-name { display: flex; align-items: center; gap: 8px; }
+.site-name > svg { color: #1974eb; flex: 0 0 auto; }
+.site-name b, .site-name small, .router-table td > small, .device-name b, .device-name small { display: block; }
+.site-name b, .device-name b { color: #243451; font-size: 10px; font-weight: 700; }
+.site-name small, .router-table td > small, .device-name small { margin-top: 2px; color: #8b98aa; font-size: 8px; white-space: nowrap; }
+.router-model { display: block; color: #33435d; font-size: 9px; font-weight: 600; white-space: nowrap; }
+.status { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: 999px; color: #16834f; background: #e9f7ef; white-space: nowrap; font-size: 8px; font-weight: 700; }
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: #19a361; }
+.session-count { color: #223656; font-weight: 700; }
+.panel-foot { min-height: 32px; padding: 0 14px; display: flex; align-items: center; justify-content: space-between; gap: 9px; border-top: 1px solid #edf1f6; color: #8693a6; font-size: 8px; }
+.panel-foot > span:first-child { display: flex; align-items: center; gap: 5px; }
+.foot-pulse { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #26b879; }
+.topology-panel { display: flex; flex-direction: column; }
+.panel-more { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid #e6edf5; border-radius: 6px; color: #7185a0; }
+.topology-content { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 9px; padding: 4px 15px 15px; }
+.internet-node { min-height: 48px; width: 72%; align-self: center; display: flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid #e3eaf4; border-radius: 7px; background: #fafcff; }
+.internet-node > span:first-child { color: #3788e6; }
+.internet-node b, .internet-node small, .core-node b, .core-node small { display: block; }
+.internet-node b, .core-node b { color: #273854; font-size: 9px; }
+.internet-node small, .core-node small { margin-top: 2px; color: #8b98aa; font-size: 8px; }
+.internet-node .status { margin-left: auto; padding: 4px 6px; font-size: 7px; }
+.core-node { min-height: 48px; align-self: center; width: 82%; display: flex; align-items: center; gap: 9px; padding: 8px 11px; border: 1px solid #bdd8fb; border-radius: 7px; background: #f2f7ff; }
+.core-icon { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 7px; color: #166ce1; background: #e3efff; }
+.core-node > div { flex: 1; }
+.core-check { display: grid; place-items: center; color: #188c58; }
+.site-nodes { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+.site-node { min-width: 0; padding: 8px 8px 7px; border: 1px solid #dcebe3; border-radius: 7px; background: #fbfefc; }
+.site-node-top { display: flex; align-items: center; justify-content: space-between; gap: 3px; color: #26835a; }
+.site-node-top .status { gap: 3px; padding: 3px 5px; font-size: 7px; }
+.site-node-top .status-dot { width: 5px; height: 5px; }
+.site-node > b, .site-node > small { display: block; }
+.site-node > b { margin-top: 8px; color: #273854; font-size: 9px; }
+.site-node > small { margin-top: 3px; color: #8491a2; font-size: 7px; white-space: nowrap; }
+.site-node-sessions { display: block; margin-top: 7px; color: #1b8055; font-size: 10px; font-weight: 700; }
+.site-node-sessions small { color: #8693a4; font-size: 7px; font-weight: 500; }
+.sessions-panel { margin-bottom: 13px; }
+.sessions-heading { min-height: 63px; }
+.session-controls { display: flex; align-items: center; gap: 7px; }
+.search-field { height: 29px; min-width: 170px; display: flex; align-items: center; gap: 6px; padding: 0 8px; border: 1px solid #e4eaf2; border-radius: 6px; color: #8997aa; background: #fff; }
+.search-field:focus-within { border-color: #8cb9f4; box-shadow: 0 0 0 2px #eaf3ff; }
+.search-field input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: #36465f; font-size: 9px; }
+.search-field input::placeholder { color: #9aa6b5; }
+.session-controls select { height: 29px; max-width: 125px; padding: 0 22px 0 8px; border: 1px solid #e4eaf2; border-radius: 6px; color: #64748b; background: #fff; font-size: 9px; }
+.sessions-table { min-width: 590px; }
+.sessions-table th { height: 29px; padding: 0 12px; background: #f6f8fb; }
+.sessions-table th:first-child { padding-left: 15px; }
+.sessions-table td { height: 43px; padding: 6px 12px; font-size: 9px; }
+.sessions-table td:first-child { padding-left: 15px; }
+.device-icon { width: 27px; height: 27px; display: grid; place-items: center; border: 1px solid #e7edf5; border-radius: 6px; color: #53739b; background: #f7f9fc; }
+.hotspot-label, .time-label { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.hotspot-label svg { color: #2177e4; }
+.time-label { color: #6c7c93; }
+.sessions-table .status { min-width: 60px; justify-content: center; }
+.demo-inline { color: #a0aaba; }
+.empty-state { height: 60px; text-align: center; color: #8592a4; font-size: 10px; }
+.sales-rule { display: flex; gap: 11px; align-items: flex-start; padding: 12px 14px; border: 1px solid #cfe2ff; border-radius: 8px; background: #eff6ff; }
+.rule-icon { flex: 0 0 auto; width: 28px; height: 28px; display: grid; place-items: center; color: #2172d5; border-radius: 7px; background: #e1eeff; }
+.sales-rule b { display: block; color: #204476; font-size: 10px; font-weight: 700; }
+.sales-rule p { margin-top: 3px; color: #587394; font-size: 9px; line-height: 1.5; }
+.sales-rule p strong { color: #1d5eb0; }
+.page-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 16px 1px 0; color: #8c98a9; font-size: 8px; letter-spacing: .015em; }
+.page-footer i { padding: 0 4px; color: #c1cad6; font-style: normal; }
+.page-footer span:last-child { display: flex; align-items: center; gap: 5px; }
+.page-footer svg { color: #4389d8; }
+.icon-button { display: none; }
+.menu-toggle, .mobile-close { color: white; }
+
+@media (min-width: 1500px) {
+  .content { padding: 34px 38px 23px; }
+  .overview-grid { grid-template-columns: minmax(0,1.05fr) minmax(0,.95fr); }
+  .stat { min-height: 94px; }
+  .router-table td { height: 59px; }
+  .sessions-table td { height: 47px; }
+}
+@media (max-width: 1180px) {
+  .sidebar { width: 236px; }
+  .app-main { margin-left: 236px; }
+  .content { padding: 25px 22px 18px; }
+  .topbar { padding: 0 19px; }
+  .top-actions { gap: 11px; }
+  .overview-grid { grid-template-columns: minmax(0,1fr); }
+  .topology-content { padding-top: 9px; padding-bottom: 13px; }
+}
+@media (max-width: 850px) {
+  .sidebar { width: 272px; transform: translateX(-100%); transition: transform .22s ease; box-shadow: 16px 0 38px rgba(4,15,36,.22); }
+  .sidebar.sidebar-open { transform: translateX(0); }
+  .app-main { margin-left: 0; }
+  .icon-button { display: grid; place-items: center; width: 33px; height: 33px; border-radius: 7px; }
+  .icon-button:hover { background: rgba(255,255,255,.09); }
+  .mobile-close { margin-left: auto; }
+  .menu-toggle { flex: 0 0 auto; margin-right: 10px; }
+  .topbar { justify-content: flex-start; padding: 0 16px; }
+  .crumb-brand { flex: 1; }
+  .top-actions { gap: 9px; margin-left: auto; }
+  .system-status, .top-actions .top-divider, .mikrotik-status { display: none; }
+  .account-button > span:not(.avatar) { display: none; }
+  .account-button { gap: 3px; }
+  .content { max-width: 760px; padding: 24px 20px 18px; }
+  .stats-grid { gap: 9px; }
+  .stat { gap: 10px; padding: 12px; }
+  .stat-icon { width: 37px; height: 37px; }
+}
+.scrim { position: fixed; inset: 0; z-index: 25; border: 0; background: rgba(5,15,34,.48); }
+@media (min-width: 851px) { .scrim, .mobile-close, .menu-toggle { display: none; } }
+@media (max-width: 600px) {
+  .topbar { height: 57px; padding: 0 11px; }
+  .crumb-mark { width: 27px; height: 27px; }
+  .crumb-brand { gap: 7px; }
+  .crumb-brand b { font-size: 9px; }
+  .crumb-brand div > span { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 8px; }
+  .content { padding: 20px 13px 16px; }
+  .page-heading { align-items: flex-start; flex-direction: column; gap: 11px; margin-bottom: 15px; }
+  h1 { font-size: 24px; }
+  .page-heading p { max-width: 390px; font-size: 10.5px; line-height: 1.5; }
+  .page-date { min-height: 32px; font-size: 9px; }
+  .demo-notice { align-items: flex-start; padding: 9px; font-size: 9px; line-height: 1.45; }
+  .notice-icon { padding-top: 1px; }
+  .notice-close { margin-top: -2px; }
+  .stats-grid { grid-template-columns: 1fr; gap: 8px; }
+  .stat { min-height: 69px; padding: 10px 12px; }
+  .stat-icon { width: 38px; height: 38px; }
+  .stat-copy strong { font-size: 19px; }
+  .stat-copy small { margin-top: 1px; font-size: 8px; }
+  .overview-grid { gap: 10px; margin-bottom: 10px; }
+  .panel-heading { padding: 11px 11px 8px; }
+  .panel-heading h2 { font-size: 12px; }
+  .panel-heading p { font-size: 8px; }
+  .router-table { min-width: 555px; }
+  .router-table td { height: 51px; }
+  .topology-content { padding: 5px 11px 11px; }
+  .site-nodes { gap: 5px; }
+  .site-node { padding: 7px 6px; }
+  .site-node > b { font-size: 8px; }
+  .site-node > small { font-size: 6.5px; }
+  .site-node-top .status { padding: 3px 4px; }
+  .site-node-top .status-dot { display: none; }
+  .sessions-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .session-controls { width: 100%; }
+  .search-field { flex: 1; min-width: 0; }
+  .session-controls select { max-width: 124px; }
+  .sessions-table { min-width: 545px; }
+  .sales-rule { padding: 10px; gap: 8px; }
+  .sales-rule b { font-size: 9px; }
+  .sales-rule p { font-size: 8px; }
+  .page-footer { align-items: flex-start; flex-direction: column; gap: 6px; font-size: 7px; }
+}
+
+
+
+:root{--blue:#1266f1;--green:#138b58}
+body{font-family:'DM Sans',Arial,sans-serif;background:#f4f7fb;color:#16233c}
+#app{min-height:100vh}
+.sidebar{width:260px;height:100vh;position:fixed;z-index:30;left:0;top:0;display:flex;flex-direction:column;background:linear-gradient(165deg,#0b1b3a,#07152f);color:#dbe5f6;padding:0}
+.brand-wrap{min-height:90px;padding:18px 20px;border-bottom:1px solid rgba(205,222,250,.13);margin:0 14px;display:flex;align-items:center}
+.brand{display:flex;align-items:center;gap:9px;margin:0;color:#fff;font-size:inherit}
+.brand strong{display:block;font:800 15px/1.15 Manrope,Arial,sans-serif;letter-spacing:.035em}
+.brand span{display:block;margin-top:4px;color:#a8bad4;font-size:8px;letter-spacing:.24em}
+.nav-label{padding:20px 24px 7px;font-size:9px;font-weight:700;letter-spacing:.13em;color:#8294af}
+.side-nav{display:block;padding:6px 11px;overflow-y:auto}
+.nav-group{margin:3px 0}
+.nav-link,.nav-toggle{width:100%;border:0;border-radius:8px;padding:11px 12px;display:flex;align-items:center;gap:12px;color:#cad6e8;background:transparent;text-align:left;font-size:12px;font-weight:600}
+.nav-link:hover,.nav-toggle:hover{background:rgba(255,255,255,.075);color:#fff}
+.nav-link.active{background:#1265ed;color:#fff;box-shadow:0 5px 13px rgba(0,79,208,.21)}
+.nav-link>span:first-child{flex:1}
+.nav-chevron{opacity:.76}
+.subnav{display:grid;gap:2px;padding:4px 0 5px 42px}
+.subnav-link{display:block;border:0;color:#91a2bc;background:transparent;border-radius:6px;padding:8px 9px;text-align:left;text-decoration:none;font-size:11px}
+.subnav-link:hover,.subnav-link.subnav-active{background:rgba(255,255,255,.08);color:#fff}
+.nav-submenu[hidden]{display:none}
+.sidebar-bottom{margin-top:auto;padding:12px 15px 16px}
+.side-help{border:1px solid rgba(181,205,241,.14);border-radius:9px;padding:11px 10px;display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.045)}
+.help-icon{width:27px;height:27px;display:grid;place-items:center;border-radius:7px;color:#69bdff;background:rgba(28,116,236,.17)}
+.side-help b,.side-help small{display:block}.side-help b{font-size:10px;color:#e5edf9}.side-help small{margin-top:3px;font-size:9px;color:#91a3bf}
+.sidebar-foot{padding:13px 6px 9px;color:#72839f;font-size:8px;letter-spacing:.14em}.sidebar-foot span{padding:0 5px}
+#logout{width:100%;margin-top:0;background:rgba(217,45,32,.14);color:#ffb4aa;border:1px solid rgba(255,120,105,.2)}
+.app-main{margin-left:260px;min-height:100vh}
+.topbar{height:61px;padding:0 27px;display:flex;align-items:center;justify-content:space-between;background:#081835;color:white}
+.crumb-brand{display:flex;align-items:center;gap:10px}.crumb-mark{width:30px;height:30px;display:grid;place-items:center;border:1px solid rgba(83,153,248,.35);border-radius:8px;color:#5db4ff;background:rgba(24,103,213,.14);font-size:20px}
+.crumb-brand b,.crumb-brand div>span{display:block}.crumb-brand b{font:700 10px Manrope,Arial,sans-serif}.crumb-brand div>span{color:#9badc9;font-size:9px;margin-top:1px}
+.top-actions{display:flex;align-items:center;gap:14px}.system-status{color:#d5dfef;font-size:10px;font-weight:600}.top-divider{height:20px;width:1px;background:rgba(185,204,235,.2)}.avatar{width:28px;height:28px;display:grid;place-items:center;border:1px solid rgba(202,222,255,.3);border-radius:50%;color:#cfe3ff;background:#183460;font-size:10px}
+main.content{width:min(100%,1540px);margin:0 auto;padding:28px 30px 20px}
+header:not(.topbar){display:flex;justify-content:space-between;align-items:flex-end;gap:20px;margin-bottom:19px}
+h1,h2,h3{font-family:Manrope,'DM Sans',Arial,sans-serif;color:#12213d}
+button{font-family:inherit}
+:focus-visible{outline-color:#75aaff}
+.card,.panel{border:1px solid #e2e9f2;border-radius:9px;background:#fff;box-shadow:0 2px 7px rgba(22,43,76,.035)}
+.cards .card,.sales-period-grid .card{padding:16px}
+table{border-collapse:collapse;text-align:left}
+th{background:#f6f8fb;color:#7988a0;font-size:9px}
+th,td{border-bottom:1px solid #edf0f5}
+tbody tr:hover{background:#f7faff}
+.api-offline-banner{background:#fff8e7;border-color:#f3d77c;border-left-color:#d79a00}
+@media(max-width:1180px){.sidebar{width:236px}.app-main{margin-left:236px}main.content{padding:25px 22px 18px}}
+@media(max-width:850px){.sidebar{width:272px;transform:translateX(-100%);transition:transform .22s ease;box-shadow:16px 0 38px rgba(4,15,36,.22)}.sidebar.sidebar-open{transform:translateX(0)}.app-main{margin-left:0}.icon-button{display:grid;place-items:center;width:34px;height:34px;border-radius:7px;color:#fff;background:transparent}.mobile-close{margin-left:auto}.menu-toggle{margin-right:10px}.topbar{justify-content:flex-start;padding:0 16px}.crumb-brand{flex:1}.top-actions{gap:9px;margin-left:auto}main.content{max-width:760px;padding:24px 20px 18px}}
+@media(min-width:851px){.scrim,.mobile-close,.menu-toggle{display:none!important}}
+@media(max-width:600px){.topbar{height:57px;padding:0 11px}.crumb-mark{width:27px;height:27px}main.content{padding:20px 13px 16px}header:not(.topbar){align-items:flex-start;flex-direction:column;gap:11px}.cards{grid-template-columns:1fr 1fr;gap:9px}.sales-period-grid{grid-template-columns:1fr 1fr;gap:8px}.card,.panel{padding:14px;border-radius:11px}.filters{display:grid;grid-template-columns:1fr}.filters input,.filters select{max-width:none!important}.generator,.portal-layout{grid-template-columns:1fr}.table-wrap{overflow:auto}}
+@media(max-width:400px){.cards,.sales-period-grid,.overview-grid,.week-grid{grid-template-columns:1fr}}
+/* Login palette matched to the navy and electric-blue prototype */
+.login{background:radial-gradient(ellipse at 18% 12%,rgba(43,126,255,.28),transparent 38%),linear-gradient(145deg,#07152f 0%,#0b1b3a 52%,#102c55 100%)}
+.login form{border:1px solid #dfe8f4;border-radius:18px;box-shadow:0 24px 80px rgba(2,12,30,.34)}
+.login .logo{color:#081835;font-family:Manrope,'DM Sans',Arial,sans-serif}
+.login .logo span{color:#1266f1}
+.login h1{color:#12213d}
+.login form>button[type=submit],.login button[type=submit]{background:#1266f1}
+.login form>button[type=submit]:hover,.login button[type=submit]:hover{background:#0d57d1}
+.login input:focus{border-color:#1266f1}
+</style>
+<style>
+:root{--navy:#092d19;--navy-2:#0b4022;--blue:#10813b;--blue-2:#169747;--muted:#6d7d72;--line:#e1e9e2;--green:#138b58}
+body{font-family:"DM Sans",Inter,Arial,sans-serif;background:#f5f7f4;color:#16251a}
+button{font-family:inherit}:focus-visible{outline-color:#f8bf19}
+.sidebar{background:linear-gradient(165deg,#0b4022 0%,#071f11 100%);color:#e3eee6}
+.brand-wifi{color:#f8bf19}.brand strong{color:#fff}.brand span{color:#c4d8ca}.nav-label{color:#9ab6a1}
+.nav-link,.nav-toggle{color:#d2e2d7}.nav-link:hover,.nav-toggle:hover{background:rgba(255,255,255,.09);color:#fff}
+.nav-link.active{background:#138b45;color:#fff;box-shadow:0 5px 14px rgba(0,0,0,.18)}
+.subnav-link{color:#b3c8b8}.subnav-link:hover,.subnav-link.subnav-active{background:rgba(255,255,255,.09);color:#fff}
+.help-icon{color:#f8bf19;background:rgba(248,191,25,.12)}
+#logout{background:rgba(217,48,40,.12);color:#ffc0ba;border-color:rgba(255,130,120,.18)}
+.topbar{background:#092d19}.crumb-mark{color:#f8bf19;border-color:rgba(248,191,25,.26);background:rgba(248,191,25,.08)}
+.crumb-brand div>span{color:#b4cbb9}.avatar{background:#14512b;color:#e5f0e8}
+h1,h2,h3{color:#173122}.card,.panel{border-color:#e1e9e2}.api-offline-banner{border-left-color:#d99f06}
+@media(max-width:850px){.sidebar{box-shadow:16px 0 38px rgba(4,25,12,.32)}}
+.login{background:radial-gradient(ellipse at 18% 12%,rgba(53,151,82,.32),transparent 38%),linear-gradient(145deg,#061f11,#0b4022 60%,#0b5a2d)}
+.login form{border:1px solid #dfe8e1;border-radius:18px;box-shadow:0 24px 80px rgba(2,20,9,.34)}
+.login .logo{color:#092d19;font-family:Manrope,"DM Sans",Arial,sans-serif}.login .logo span{color:#138b45}
+.login h1{color:#173122}.login form>button[type=submit],.login button[type=submit]{background:#10813b}
+.login form>button[type=submit]:hover,.login button[type=submit]:hover{background:#0b6f32}.login input:focus{border-color:#10813b}
+</style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><style>
+/* Présentation inspirée du modèle AfroConnect WiFi joint */
+:root{
+  --ac-bg:#eef2ee;--ac-surface:#fff;--ac-soft:#e4ebe5;--ac-ink:#12241d;--ac-muted:#5b6e64;
+  --ac-line:#cfdad2;--ac-green:#0e6b4a;--ac-green-deep:#0b5039;--ac-gold:#d98e04;
+  --ac-good:#1a7f4b;--ac-warn:#9a6200;--ac-bad:#b3341f;--ac-info:#1d5fa8;
+}
+body{background:var(--ac-bg);color:var(--ac-ink);font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,h3,h4,.dashboard-intro h2,.brand strong{font-family:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif}
+button{background:var(--ac-green);border-radius:11px;box-shadow:0 3px 8px #0e6b4a20}
+button:hover{background:var(--ac-green-deep)}
+button.orange,.nav-submenu a:hover{background:var(--ac-gold);color:#fff}
+button.gray{background:#5b6e64}
+:focus-visible{outline:3px solid #d98e0480;outline-offset:2px}
+input,select,textarea{border-color:var(--ac-line);border-radius:11px;background:#fff;color:var(--ac-ink)}
+input:focus,select:focus,textarea:focus{border-color:var(--ac-green);box-shadow:0 0 0 3px #0e6b4a18}
+.login{background:radial-gradient(ellipse at 90% 8%,#f1c66b44,transparent 34%),linear-gradient(145deg,#e4ebe5 0%,#f7f8f5 48%,#dbe8df 100%)}
+.login form{border:1px solid #cfdad2;border-radius:24px;box-shadow:0 24px 65px #12241d20}
+.login button{background:var(--ac-green);color:#fff}
+.logo,.brand{color:var(--ac-green)}
+.logo span,.brand span{color:var(--ac-gold)}
+#app{background:var(--ac-bg)}
+aside{background:#12241d;border-right:1px solid #2b4439}
+aside a{color:#d3e2d8}
+aside a:hover,.nav-toggle:hover,.nav-toggle[aria-expanded=true]{background:#1c382b;color:#fff}
+.nav-submenu a{border-left-color:#496257}
+.nav-submenu a:hover{border-left-color:var(--ac-gold);background:#1c382b;color:#fff}
+main{background:var(--ac-bg)}
+header small,.card span,.card small,.muted,.portal-download-status{color:var(--ac-muted)}
+header h1{font-family:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;letter-spacing:-.035em}
+.online,.status-pill{background:#dff3e6;color:#17633f}
+.card,.panel{border-color:var(--ac-line);border-radius:17px;box-shadow:0 5px 18px #12241d0a}
+.card:hover{box-shadow:0 12px 28px #12241d13}
+.card b{color:var(--ac-ink);font-variant-numeric:tabular-nums}
+.title{align-items:center}
+table{border-color:var(--ac-line)}
+th{background:#eaf0eb;color:#40554a}
+th,td{border-bottom-color:var(--ac-line)}
+tbody tr:hover{background:#f3f7f3}
+.badge{background:#dce9f7;color:#1d5fa8}
+.notice,.stock-alert{background:#fbeccb;border-color:#efcf85;color:#805309}
+.portal-check input{accent-color:var(--ac-green)}
+.portal-preview{background:linear-gradient(145deg,#e4ebe5,#f5f7f4)}
+.portal-preview-card{border-color:var(--ac-line);box-shadow:0 18px 44px #12241d20}
+.portal-preview-logo{color:var(--ac-green)}
+.portal-preview-button{background:var(--ac-green)}
+.activity-item{background:#eaf0eb;border-left-color:var(--ac-green)}
+.toast{background:#12241d}
+.toast.error{background:#b3341f}
+@media(max-width:650px){
+  aside{background:#12241d}
+  main{background:var(--ac-bg)}
+  .card,.panel{border-radius:15px}
+  header h1{font-size:24px}
+}
+</style></head>
+<body>
+
+<div id="login" class="login">
+<form id="loginForm">
+<div class="logo">AFRO<span>CONNECT</span></div>
+<h1>WiFi Manager</h1><p>Espace administrateur</p>
+<input id="user" placeholder="Identifiant" autocomplete="username" required>
+<input id="pass" type="password" placeholder="Mot de passe" autocomplete="current-password" required>
+<div id="loginError" class="error"></div>
+<button type="submit">Se connecter</button>
+</form>
+</div>
+
+<div id="app" class="hidden">
+<aside class="sidebar" id="managerSidebar">
+<div class="brand-wrap"><div class="brand"><svg class="brand-wifi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9a11 11 0 0 1 14 0"/><path d="M8 12a6.5 6.5 0 0 1 8 0"/><path d="M11 15a2 2 0 0 1 2 0"/><circle cx="12" cy="18" r="1" fill="currentColor"/></svg><div><strong>AFROCONNECT</strong><span>WIFI MANAGER</span></div></div><button type="button" class="icon-button mobile-close" id="mobileNavClose" aria-label="Fermer le menu">×</button></div>
+<div class="nav-label">MENU PRINCIPAL</div>
+<nav class="side-nav" aria-label="Navigation principale">
+<a class="nav-link active side-link" href="#dashboard"><span>Vue d’ensemble</span></a>
+<div class="nav-group"><button class="nav-link nav-toggle" type="button" aria-expanded="false" aria-controls="nav-commercial"><span>Gestion commerciale</span><span class="nav-chevron">⌄</span></button><div class="nav-submenu subnav" id="nav-commercial" hidden><a class="subnav-link" href="#resellers">Revendeurs</a><a class="subnav-link" href="#tickets">Tickets et lots</a><a class="subnav-link" href="#plans">Forfaits Wi-Fi</a></div></div>
+<div class="nav-group"><button class="nav-link nav-toggle" type="button" aria-expanded="false" aria-controls="nav-network"><span>Réseau & sessions</span><span class="nav-chevron">⌄</span></button><div class="nav-submenu subnav" id="nav-network" hidden><a class="subnav-link" href="#mikrotik">Routeurs MikroTik</a><a class="subnav-link" href="#mikrotikClientsPanel">Sessions actives</a><a class="subnav-link" href="#captive-portal">Portail captif</a></div></div>
+<a class="nav-link side-link" href="#tickets"><span>Suivi des ventes</span></a>
+<a class="nav-link side-link" href="#activityList"><span>Historique des opérations</span></a>
+<a class="nav-link side-link" href="https://www.afroconnectworld.com" target="_blank" rel="noopener"><span>Site AfroConnect ↗</span></a>
+</nav>
+<div class="sidebar-bottom"><div class="side-help"><span class="help-icon">i</span><div><b>Gestion Wi-Fi</b><small>Tickets, ventes et réseau</small></div></div><div class="sidebar-foot">AFROCONNECT <span>·</span> BÉNIN</div><button id="logout" class="red">Déconnexion</button></div>
+</aside><button id="mobileNavScrim" class="scrim" hidden aria-label="Fermer le menu"></button>
+
+<div class="app-main"><header class="topbar"><button type="button" id="mobileNavOpen" class="icon-button menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">☰</button><div class="crumb-brand"><span class="crumb-mark">⌁</span><div><b>AFROCONNECT</b><span>Administration Wi-Fi</span></div></div><div class="top-actions"><span class="system-status">Espace administrateur</span><span class="top-divider"></span><span class="avatar">A</span></div></header><main class="content">
+<div id="apiOfflineBanner" class="api-offline-banner hidden" role="status">
+  <div><strong>⚠ Base de données indisponible</strong><p id="apiOfflineMessage">Les données ne peuvent pas être synchronisées avec le serveur. Les actions nécessitant PostgreSQL ne fonctionneront pas.</p></div>
+  <button type="button" id="retryApiConnection" class="gray">Réessayer</button>
+</div>
+
+<section id="dashboard">
+<div class="dashboard-intro"><div><small>ACTIVITÉ COMMERCIALE</small><h2>Ventes et activations</h2><p>Suivez les tickets activés et la performance commerciale.</p></div><span class="dashboard-period">Indicateurs calculés par période · XOF</span></div>
+<div class="quickbar">
+<input id="globalSearch" placeholder="🔎 Rechercher un ticket, un lot ou un revendeur...">
+<button id="quickCreate">📦 Créer un lot</button>
+</div>
+<div class="cards">
+<div class="card"><span>🤝 Revendeurs</span><b id="resellerCount">0</b><small>Actifs</small></div>
+<div class="card"><span>📦 Lots</span><b id="lotCount">0</b><small>Créés</small></div>
+<div class="card"><span>🎟️ Tickets</span><b id="ticketCount">0</b><small><span id="availableCount">0</span> disponibles</small></div>
+<div class="card"><span>💰 Valeur activée</span><b id="revenue">0 F</b><small>Estimation au prix des tickets activés</small></div>
+</div>
+<div class="sales-period-grid" aria-label="Ventes par période">
+<div class="card sales-period"><span>💸 Activés aujourd'hui</span><b id="salesTodayCount">0</b><small id="salesTodayAmount">0 F</small></div>
+<div class="card sales-period"><span>📅 Cette semaine</span><b id="salesWeekCount">0</b><small id="salesWeekAmount">0 F</small></div>
+<div class="card sales-period"><span>🗓️ Ce mois</span><b id="salesMonthCount">0</b><small id="salesMonthAmount">0 F</small></div>
+<div class="card sales-period"><span>📆 Cette année</span><b id="salesYearCount">0</b><small id="salesYearAmount">0 F</small></div>
+<div class="card sales-period"><span>🎟️ Total activés</span><b id="salesTotalCount">0</b><small id="salesTotalAmount">0 F</small></div>
+</div>
+<div class="muted sales-note" id="salesDataNote">Les montants sont estimés à partir des tickets activés.</div>
+<div class="sales-rule-note"><span class="sales-rule-mark" aria-hidden="true">i</span><div><strong>Règle de comptabilisation</strong><p>Une vente est enregistrée uniquement lors de la première activation réussie d’un ticket sur MikroTik.</p></div></div>
+<div class="panel" style="margin-top:15px">
+<div class="title"><h3>🧾 Derniers tickets activés</h3><span class="muted" id="salesUpdatedAt">Chargement…</span></div>
+<div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Date</th><th>Forfait</th><th>Revendeur</th><th>Montant</th><th>Paiement</th></tr></thead><tbody id="recentSalesTable"><tr><td colspan="6">Chargement des données…</td></tr></tbody></table></div>
+</div>
+<div class="admin-overview">
+<div class="overview-main panel">
+<div class="overview-head"><div><small>SUPER ADMIN</small><h2>Vue d'ensemble</h2></div><span id="lowStockBadge" class="status-pill">● Stock OK</span></div>
+<div class="overview-grid">
+<div><span>📡 MikroTik</span><b id="overviewMikrotik">PRÊT</b></div>
+<div><span>👥 Clients</span><b id="overviewClients">—</b></div>
+<div><span>⚠️ Lots faibles</span><b id="overviewLowLots">0</b></div>
+<div><span>📈 Ventes 7 jours</span><b id="overviewWeekTickets">0</b></div>
+</div>
+</div>
+<div class="overview-main panel">
+<div class="overview-head"><div><small>PERFORMANCE</small><h2>Meilleur revendeur</h2></div></div>
+<div class="leader"><div class="leader-icon">🏆</div><div><b id="topReseller">Aucune vente</b><small id="topResellerInfo">Cette semaine</small></div></div>
+</div>
+</div>
+<div class="panel" style="margin-top:15px">
+<div class="title"><h3>📅 Résumé de la semaine</h3><span class="muted" id="weekRange"></span></div>
+<div class="week-grid">
+<div><span>Tickets utilisés</span><b id="weekUsed">0</b></div>
+<div><span>Chiffre d'affaires</span><b id="weekRevenue">0 F</b></div>
+<div><span>Meilleure zone</span><b id="topZone">Aucune</b></div>
+</div>
+</div>
+<div class="panel" style="margin-top:15px">
+<div class="title"><h3>⚡ Dernières actions</h3></div>
+<div id="activityList" class="activity"></div>
+</div>
+<div id="stockAlerts" class="stock-alert hidden" style="margin-top:12px"></div>
+</section>
+
+<section id="resellers">
+<div class="title"><h2>Revendeurs</h2><button id="addReseller">+ Ajouter</button></div>
+<div class="panel"><div class="table-wrap">
+<table><thead><tr><th>Revendeur</th><th>Code</th><th>Zone</th><th>Tickets</th><th>CA</th><th>Action</th></tr></thead>
+<tbody id="resellerTable"></tbody></table>
+</div></div>
+</section>
+
+<section id="tickets">
+<div class="title"><div><h2>Lots de tickets</h2><small class="muted">Génération, suivi et impression</small></div></div>
+<div class="panel generator">
+<label>Revendeur<select id="ticketReseller"></select></label>
+<label>Forfait<select id="ticketPlan"></select></label>
+<label>Quantité<input id="ticketQty" type="number" min="1" max="500" value="10"></label>
+<label>Longueur du code<select id="codeLength">
+<option value="1">1 caractère</option><option value="2">2 caractères</option>
+<option value="3">3 caractères</option><option value="4">4 caractères</option>
+<option value="5">5 caractères</option><option value="6">6 caractères</option>
+<option value="7">7 caractères</option><option value="8">8 caractères</option>
+<option value="9">9 caractères</option><option value="10" selected>10 caractères</option>
+</select></label>
+<button id="generate">📦 Créer le lot</button>
+</div>
+
+<div class="panel" style="margin-top:15px">
+<div class="title">
+<h3>Lots créés</h3>
+<div class="filters">
+<input id="lotSearch" placeholder="🔎 Rechercher..." style="max-width:220px">
+<select id="zoneFilter" style="max-width:180px"><option value="all">Toutes les zones</option></select>
+<select id="lotFilter" style="max-width:240px"><option value="all">Tous les lots</option></select>
+</div>
+</div>
+<div class="table-wrap">
+<table><thead><tr><th>Lot</th><th>Revendeur</th><th>Zone</th><th>Forfait</th><th>Tickets</th><th>Disponibles</th><th>Utilisés</th><th>Date</th><th>Actions</th></tr></thead>
+<tbody id="lotTable"></tbody></table>
+</div>
+</div>
+
+<div id="lotDetails" class="panel hidden" style="margin-top:15px">
+<div class="title">
+<h3 id="lotTitle">Détail du lot</h3>
+<div class="actions"><button id="printLot" class="orange small">🖨️ Imprimer / PDF</button><button id="closeLot" class="gray small">Fermer</button></div>
+</div>
+<div class="table-wrap"><table><thead><tr><th>Ticket</th><th>Forfait</th><th>Statut</th><th>Date</th><th>Action</th></tr></thead>
+<tbody id="lotTicketTable"></tbody></table></div>
+</div>
+</section>
+
+<section id="plans">
+<div class="title"><h2>Forfaits</h2><button id="addPlan">+ Créer un forfait</button></div>
+<div class="panel"><div class="table-wrap">
+<table><thead><tr><th>Forfait</th><th>Montant</th><th>Type</th><th>Quota</th><th>Validité</th><th>Action</th></tr></thead>
+<tbody id="planTable"></tbody></table>
+</div></div>
+</section>
+
+
+
+
+<section id="captive-portal">
+<div class="title">
+  <div><h2>Gestion du portail captif</h2><small class="muted">Personnalise la page affichée aux clients lorsqu’ils se connectent au Wi-Fi</small></div>
+  <span id="portalStatus" class="status-pill warn">● À configurer</span>
+</div>
+<div class="portal-layout">
+  <div class="panel">
+    <form id="portalForm">
+      <div class="form-grid">
+        <label>Routeur MikroTik<select id="portalRouter" required><option value="">Chargement des routeurs…</option></select></label>
+        <label>Nom du réseau<input id="portalNetworkName" maxlength="80" value="AfroConnect Wi-Fi" required></label>
+        <label>Titre d’accueil<input id="portalTitle" maxlength="80" value="Bienvenue chez AfroConnect" required></label>
+        <label>Message d’accueil<input id="portalMessage" maxlength="180" value="Connectez-vous simplement et profitez d’Internet." required></label>
+        <label>URL du logo<input id="portalLogo" type="url" maxlength="500" placeholder="https://…"></label>
+        <label>Couleur principale<input id="portalColor" type="color" value="#06285f"></label>
+        <label>Lien d’achat des pass<input id="portalPurchaseUrl" type="url" maxlength="500" placeholder="https://afroconnectworld.com"></label>
+        <label>WhatsApp assistance<input id="portalWhatsapp" maxlength="24" placeholder="+2290196109244"></label>
+      </div>
+      <label class="portal-check"><input id="portalShowQr" type="checkbox" checked> Afficher l’accès QR code vers l’achat des pass</label>
+      <label style="display:block;margin-top:12px">Conditions d’utilisation<textarea id="portalTerms" rows="3" maxlength="1000" placeholder="Conditions d’utilisation du réseau Wi-Fi…"></textarea></label>
+      <div class="actions" style="margin-top:16px">
+        <button type="submit" id="portalSave">Enregistrer la configuration</button>
+        <button type="button" id="portalReload" class="gray">Recharger</button>
+      </div>
+      <p class="notice" id="portalNotice" style="margin-top:12px">Configuration enregistrée par routeur. Le déploiement automatique du fichier HTML sur MikroTik n’est pas encore activé : cette étape nécessite la connexion d’administration RouterOS.</p>
+    </form>
+  </div>
+  <div class="panel">
+    <div class="title"><h3>Aperçu de la page client</h3><span class="muted">Prévisualisation</span></div>
+    <div class="portal-preview" id="portalPreview">
+      <div class="portal-preview-card">
+        <div id="portalPreviewLogo" class="portal-preview-logo">AFROCONNECT</div>
+        <small id="portalPreviewNetwork">AfroConnect Wi-Fi</small>
+        <h3 id="portalPreviewTitle">Bienvenue chez AfroConnect</h3>
+        <p id="portalPreviewMessage">Connectez-vous simplement et profitez d’Internet.</p>
+        <div class="portal-preview-input">Code du ticket ou identifiant</div>
+        <div class="portal-preview-button">Se connecter</div>
+        <div id="portalPreviewQr" class="portal-preview-qr">▦ Accès QR code vers l’achat des pass</div>
+        <small id="portalPreviewTerms">En vous connectant, vous acceptez les conditions d’utilisation.</small>
+      </div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:15px">
+    <div class="title"><h3>Fichiers HotSpot pour MikroTik</h3><span class="muted">Modèle fourni</span></div>
+    <p class="muted">Génère le fichier login.html avec les réglages saisis ci-dessus, puis télécharge le logo AfroConnect. Place les deux fichiers dans le dossier hotspot/ du routeur.</p>
+    <div class="actions">
+      <button type="button" id="portalDownloadHtml">Télécharger login.html personnalisé</button>
+      <span class="muted">Logo original : extrais « logo-afroconnect.png » du ZIP fourni et place-le à côté de login.html.</span>
+      <a class="btn gray" href="portal-template/INSTALLATION.txt" download="INSTALLATION.txt" style="display:inline-flex;align-items:center;text-decoration:none">Guide d’installation</a>
+    </div>
+    <p class="notice" style="margin-top:12px">Avant remplacement : sauvegarde le dossier HotSpot actuel et conserve tous les autres fichiers MikroTik. Le tableau des tarifs du modèle est fixe : vérifie les prix, quotas et validités avant installation. Le bouton de récupération de ticket reste à connecter.</p>
+    <p class="muted" id="portalDownloadStatus" aria-live="polite">Les fichiers ne sont pas encore installés sur le routeur : ce téléchargement prépare les fichiers pour un transfert manuel via WinBox ou WebFig.</p>
+  </div>
+</div>
+</section>
+
+<section id="mikrotik">
+<div class="title">
+  <div><h2>Contrôle MikroTik</h2><small class="muted">État de l’intégration routeur</small></div>
+  <span id="mikrotikStatus" class="status-pill warn">● À configurer</span>
+</div>
+
+<div class="panel">
+<div class="title"><h3>📡 Routeurs enregistrés</h3><span class="muted" id="mikrotikLastUpdate">Pas encore synchronisé</span></div>
+<div class="table-wrap"><table><thead><tr><th>Routeur</th><th>Modèle</th><th>État</th><th>Clients actifs</th><th>Dernier contact</th></tr></thead>
+<tbody id="mikrotikRouterTable"><tr><td colspan="5">Chargement des routeurs…</td></tr></tbody></table></div>
+</div>
+
+<div class="panel" style="margin-top:15px">
+<div class="title"><h3>Actions rapides</h3></div>
+<div class="actions">
+<button id="mikrotikConfig" class="gray">⚙️ Configurer</button><button id="mikrotikRefresh">🔄 Actualiser</button>
+<button id="mikrotikClientsBtn">👥 Voir les clients</button>
+<button id="mikrotikDisconnectBtn" class="orange">⛔ Déconnecter un client</button>
+</div>
+<div class="notice" style="margin-top:12px">L’état passe en ligne uniquement après réception d’un signal réel du routeur. Un routeur sans contact récent reste affiché hors ligne.</div>
+</div>
+
+<div id="mikrotikClientsPanel" class="panel hidden" style="margin-top:15px">
+<div class="title"><h3>Clients connectés</h3><input id="clientSearch" placeholder="🔎 Rechercher un client" style="max-width:260px"></div>
+<div class="table-wrap">
+<table><thead><tr><th>Client</th><th>IP</th><th>MAC</th><th>Ticket</th><th>Durée</th><th>Action</th></tr></thead>
+<tbody id="mikrotikClientTable"><tr><td colspan="6">La liste sera fournie par l'API serveur.</td></tr></tbody>
+</table>
+</div>
+</div>
+</section>
+
+</main>
+</div>
+</div>
+
+<div id="resellerModal" class="modal hidden">
+<form id="resellerForm">
+<button type="button" id="closeReseller" class="close">×</button>
+<h2>Ajouter un revendeur</h2>
+<input id="rName" placeholder="Nom du revendeur" required>
+<input id="rCode" placeholder="Code revendeur" required>
+<input id="rZone" placeholder="Zone" required>
+<button type="submit">Enregistrer</button>
+</form>
+</div>
+
+<div id="planModal" class="modal hidden">
+<form id="planForm">
+<button type="button" id="closePlan" class="close">×</button>
+<h2>Créer un forfait personnalisé</h2>
+<div class="form-grid">
+<label>Nom<input id="pName" placeholder="Ex : Afro Business" required></label>
+<label>Montant (F)<input id="pAmount" type="number" min="0" required></label>
+<label>Type<select id="pType"><option>Limité (Temps)</option><option>Quota</option><option>Illimité</option></select></label>
+<label>Nombre d'utilisateurs<input id="pUsers" type="number" min="1" value="1" required></label>
+<label>Quota / Temps<input id="pQuota" placeholder="Ex : 10 heures" required></label>
+<label>Validité<input id="pValidity" placeholder="Ex : 7 jours" required></label>
+<label>Limite Upload<input id="pUpload" value="5 Mo"></label>
+<label>Limite Download<input id="pDownload" value="5 Mo"></label>
+</div>
+<button type="submit" style="margin-top:12px">Créer le forfait</button>
+</form>
+</div>
+
+<div id="mikrotikModal" class="modal hidden">
+<form id="mikrotikForm">
+<button type="button" id="closeMikrotik" class="close">×</button>
+<h2>Enregistrer un routeur MikroTik</h2>
+<div class="form-grid">
+<label>Nom affiché<input id="mName" placeholder="Ex : Routeur principal" required></label>
+<label>Code unique<input id="mCode" placeholder="Ex : AFRO-ROUTEUR-01" required></label>
+<label>Modèle<select id="mModel"><option value="MikroTik hAP ac²">MikroTik hAP ac²</option><option value="MikroTik RB2011UiAS-RM">MikroTik RB2011UiAS-RM</option></select></label>
+</div>
+<div class="notice" style="margin-top:12px">Un jeton individuel sera généré. Il ne sera affiché qu’une seule fois. Ne le partage pas et ne l’inscris jamais dans GitHub.</div>
+<div id="routerTokenBox" class="hidden"><label>Jeton secret du routeur<textarea id="routerTokenValue" rows="3" readonly></textarea></label><button type="button" id="copyRouterToken" class="gray">Copier le jeton</button></div>
+<button type="submit">Enregistrer et générer le jeton</button>
+</form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+ const sidebar=document.getElementById("managerSidebar"),scrim=document.getElementById("mobileNavScrim"),open=document.getElementById("mobileNavOpen"),close=document.getElementById("mobileNavClose");
+ const closeMenu=()=>{sidebar?.classList.remove("sidebar-open");if(scrim)scrim.hidden=true;if(open)open.setAttribute("aria-expanded","false")};
+ open?.addEventListener("click",()=>{sidebar?.classList.add("sidebar-open");if(scrim)scrim.hidden=false;open.setAttribute("aria-expanded","true")});
+ close?.addEventListener("click",closeMenu);scrim?.addEventListener("click",closeMenu);
+ document.querySelectorAll(".side-nav a").forEach(a=>a.addEventListener("click",()=>{closeMenu();document.querySelectorAll(".side-nav .nav-link").forEach(n=>n.classList.remove("active"));if(a.classList.contains("nav-link"))a.classList.add("active");else a.classList.add("subnav-active")}));
+});
+</script>
+<script>
+// La connexion administrateur est vérifiée côté serveur Render.\n\n
+// API AfroConnect : les données principales sont désormais lues/écrites dans PostgreSQL.
+const API_BASE = "https://afroconnect-api.onrender.com";
+let adminToken = sessionStorage.getItem("afro_manager_token") || "";
+
+async function apiRequest(path, options = {}) {
+  const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
+  if (adminToken) headers.Authorization = `Bearer ${adminToken}`;
+  const response = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const message = data.error || `Erreur API (${response.status})`;
+    throw new Error(message);
+  }
+  return data;
+}
+
+function mapApiReseller(row) {
+  return {
+    id: String(row.id),
+    dbId: Number(row.id),
+    name: row.display_name,
+    code: row.reseller_code,
+    zone: row.zone || "—",
+    active: row.active !== false
+  };
+}
+
+function mapApiPlan(row) {
+  return {
+    id: String(row.id),
+    dbId: Number(row.id),
+    name: row.name,
+    amount: Number(row.price_minor || 0),
+    currency: row.currency || "XOF",
+    type: "Limité (Temps)",
+    users: 1,
+    quota: "Voir configuration du routeur",
+    validity: "Voir configuration du routeur",
+    upload: "—",
+    download: "—",
+    builtin: true
+  };
+}
+
+function mapApiTicket(row) {
+  return {
+    id: String(row.id),
+    dbId: Number(row.id),
+    code: row.ticket_code,
+    lotId: `LOT-${row.reseller_code}-${row.plan_code}-${String(row.generated_at || "").slice(0,16)}`,
+    resellerId: String(row.reseller_id),
+    resellerName: row.reseller_name,
+    zone: "—",
+    planId: String(row.plan_id),
+    planName: row.plan_name,
+    amount: Number(row.price_minor_snapshot || 0),
+    status: row.status === "ACTIVATED" ? "Utilisé" :
+      row.status === "REVOKED" ? "Révoqué" : "Disponible",
+    createdAt: row.generated_at || nowISO(),
+    activatedAt: row.first_activated_at || null
+  };
+}
+
+async function loadFromApi() {
+  const [resellerData, planData, ticketData, dashboardData] = await Promise.all([
+    apiRequest("/api/v1/resellers"),
+    apiRequest("/api/v1/plans"),
+    apiRequest("/api/v1/tickets?limit=2000"),
+    apiRequest("/api/v1/admin/reports/dashboard")
+  ]);
+  dashboardReport = dashboardData;
+  resellers = (resellerData.rows || []).map(mapApiReseller);
+  plans = (planData.rows || []).map(mapApiPlan);
+  tickets = (ticketData.rows || []).map(mapApiTicket);
+
+  // Les lots sont reconstruits à partir des tickets renvoyés par l'API.
+  const grouped = new Map();
+  for (const t of tickets) {
+    const key = t.lotId;
+    if (!grouped.has(key)) grouped.set(key, {
+      id: key, resellerId: t.resellerId, resellerName: t.resellerName,
+      zone: t.zone, planId: t.planId, planName: t.planName,
+      amount: t.amount, quantity: 0, codeLength: 10, createdAt: t.createdAt
+    });
+    grouped.get(key).quantity++;
+    if (new Date(t.createdAt) < new Date(grouped.get(key).createdAt)) {
+      grouped.get(key).createdAt = t.createdAt;
+    }
+  }
+  lots = [...grouped.values()];
+  save();
+}
+
+const DEFAULT_PLANS=[
+{id:"100",name:"Afro Mini",type:"Limité (Temps)",amount:100,users:1,quota:"5 heures",validity:"1 jour",upload:"5 Mo",download:"5 Mo",builtin:true},
+{id:"200",name:"Afro Flash",type:"Limité (Temps)",amount:200,users:1,quota:"1 jour",validity:"1 jour",upload:"5 Mo",download:"5 Mo",builtin:true},
+{id:"500",name:"Afro Boost",type:"Limité (Temps)",amount:500,users:1,quota:"3 jours",validity:"3 jours",upload:"5 Mo",download:"5 Mo",builtin:true},
+{id:"1000",name:"Afro Plus",type:"Limité (Temps)",amount:1000,users:1,quota:"7 jours",validity:"7 jours",upload:"5 Mo",download:"5 Mo",builtin:true},
+{id:"3000",name:"Afro Premium",type:"Limité (Temps)",amount:3000,users:1,quota:"30 jours",validity:"30 jours",upload:"5 Mo",download:"5 Mo",builtin:true},
+{id:"family",name:"Afro Family",type:"Limité (Temps)",amount:6000,users:3,quota:"30 jours",validity:"30 jours",upload:"5 Mo",download:"5 Mo",builtin:true}
+];
+
+let plans=JSON.parse(localStorage.getItem("afro_plans")||"null")||DEFAULT_PLANS;
+let resellers=JSON.parse(localStorage.getItem("afro_resellers")||"null")||[];
+let tickets=JSON.parse(localStorage.getItem("afro_tickets")||"null")||[];
+let lots=JSON.parse(localStorage.getItem("afro_lots")||"null")||[];
+let activities=JSON.parse(localStorage.getItem("afro_activities")||"null")||[];
+let globalQuery="";
+let dashboardReport=null;
+
+function debounce(fn,wait){
+let t;
+return (...args)=>{clearTimeout(t);t=setTimeout(()=>fn(...args),wait)};
+}
+
+function toast(message,type){
+const t=document.createElement("div");
+t.className="toast"+(type?" "+type:"");
+t.textContent=message;
+document.body.appendChild(t);
+requestAnimationFrame(()=>t.classList.add("show"));
+setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300)},2800);
+}
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+const save=()=>{
+localStorage.setItem("afro_plans",JSON.stringify(plans));
+localStorage.setItem("afro_resellers",JSON.stringify(resellers));
+localStorage.setItem("afro_tickets",JSON.stringify(tickets));
+localStorage.setItem("afro_lots",JSON.stringify(lots));
+localStorage.setItem("afro_activities",JSON.stringify(activities.slice(-30)));
+};
+const money=n=>Number(n||0).toLocaleString("fr-FR")+" F";
+const nowISO=()=>new Date().toISOString();
+
+function addActivity(text){
+activities.push({text,at:nowISO()});
+activities=activities.slice(-30);
+}
+function renderActivity(){
+const items=activities.slice().reverse().slice(0,8);
+$("activityList").innerHTML=items.length?items.map(a=>`<div class="activity-item">🟢 ${esc(a.text)}<small>${new Date(a.at).toLocaleString("fr-FR")}</small></div>`).join(""):'<div class="muted">Aucune action récente.</div>';
+}
+function renderStockAlerts(){
+const low=lots.map(l=>{
+  const available=tickets.filter(t=>t.lotId===l.id && t.status!=="Utilisé").length;
+  return {...l,available};
+}).filter(l=>l.available<10 && l.available>0).sort((a,b)=>a.available-b.available);
+
+const box=$("stockAlerts");
+if(!box)return;
+if(!low.length){
+  box.classList.add("hidden");
+  box.innerHTML="";
+  return;
+}
+box.classList.remove("hidden");
+box.innerHTML="⚠️ <strong>Stock faible</strong> — "+low.map(l=>
+  `<span style="display:block;margin-top:5px">📦 ${esc(l.id)} : <b>${l.available}</b> ticket(s) disponible(s) — ${esc(l.resellerName)} / ${esc(l.planName)}</span>`
+).join("");
+}
+function renderAdminOverview(){
+const now=new Date();
+const start=new Date(now);
+start.setHours(0,0,0,0);
+start.setDate(start.getDate()-6);
+
+const weekTickets=tickets.filter(t=>t.status==="Utilisé" && new Date(t.activatedAt||t.createdAt)>=start);
+const weekRevenue=weekTickets.reduce((s,t)=>s+Number(t.amount||0),0);
+
+const resellerStats={};
+weekTickets.forEach(t=>{
+  resellerStats[t.resellerId]=resellerStats[t.resellerId]||{name:t.resellerName,n:0,ca:0};
+  resellerStats[t.resellerId].n++;
+  resellerStats[t.resellerId].ca+=Number(t.amount||0);
+});
+const top=Object.values(resellerStats).sort((a,b)=>b.n-a.n)[0];
+
+const zoneStats={};
+weekTickets.forEach(t=>{
+  zoneStats[t.zone]=zoneStats[t.zone]||0;
+  zoneStats[t.zone]++;
+});
+const topZ=Object.entries(zoneStats).sort((a,b)=>b[1]-a[1])[0];
+
+const lowLots=lots.map(l=>({
+  ...l,
+  available:tickets.filter(t=>t.lotId===l.id&&t.status!=="Utilisé").length
+})).filter(l=>l.available<10&&l.available>0);
+
+$("overviewLowLots").textContent=lowLots.length;
+$("overviewWeekTickets").textContent=weekTickets.length;
+$("overviewMikrotik").textContent=$("mikrotikStatus")?.textContent?.replace("● ","")||"PRÊT";
+$("overviewClients").textContent=$("mikrotikClients")?.textContent||"—";
+$("topReseller").textContent=top?top.name:"Aucune vente";
+$("topResellerInfo").textContent=top?`${top.n} ticket(s) cette semaine — ${money(top.ca)}`:"Cette semaine";
+$("weekUsed").textContent=weekTickets.length;
+$("weekRevenue").textContent=money(weekRevenue);
+$("topZone").textContent=topZ?`${topZ[0]} (${topZ[1]})`:"Aucune";
+$("weekRange").textContent=`depuis le ${start.toLocaleDateString("fr-FR")}`;
+
+const badge=$("lowStockBadge");
+if(lowLots.length){
+  badge.textContent=`⚠️ ${lowLots.length} lot(s) faible(s)`;
+  badge.classList.add("warn");
+}else{
+  badge.textContent="● Stock OK";
+  badge.classList.remove("warn");
+}
+}
+function renderSalesDashboard(){
+  const report=dashboardReport;
+  if(!report||!report.summary){
+    $("recentSalesTable").innerHTML='<tr><td colspan="6">Les statistiques ne sont pas disponibles.</td></tr>';
+    $("salesDataNote").textContent="Impossible de charger le rapport du serveur.";
+    return;
+  }
+  const fmtAmount=value=>money(Number(value||0));
+  const fmtCount=value=>Number(value||0).toLocaleString("fr-FR");
+  const pairs=[
+    ["today","salesTodayCount","salesTodayAmount"],
+    ["week","salesWeekCount","salesWeekAmount"],
+    ["month","salesMonthCount","salesMonthAmount"],
+    ["year","salesYearCount","salesYearAmount"],
+    ["total","salesTotalCount","salesTotalAmount"]
+  ];
+  for(const [key,countId,amountId] of pairs){
+    const data=report.summary[key]||{count:0,amount:0};
+    $(countId).textContent=fmtCount(data.count);
+    $(amountId).textContent=fmtAmount(data.amount);
+  }
+  $("salesDataNote").textContent="Estimations selon le prix des tickets activés (fuseau : "+(report.timezone||"serveur")+"). Les paiements encaissés, les modes de paiement et les sessions en direct ne sont pas encore enregistrés par l'API.";
+  $("salesUpdatedAt").textContent=report.generatedAt
+    ?"Mis à jour le "+new Date(report.generatedAt).toLocaleString("fr-FR",{timeZone:report.timezone||undefined})
+    :"Données du serveur";
+  const rows=report.recentActivations||[];
+  $("recentSalesTable").innerHTML=rows.map(item=>`<tr>
+    <td><b>${esc(item.ticketCode)}</b></td>
+    <td>${item.occurredAt?new Date(item.occurredAt).toLocaleString("fr-FR",{timeZone:report.timezone||undefined}):"—"}</td>
+    <td>${esc(item.planName||"—")}</td>
+    <td>${esc(item.resellerName||"—")}</td>
+    <td>${fmtAmount(item.amount)}</td>
+    <td><span class="badge">Non suivi</span></td>
+  </tr>`).join("")||'<tr><td colspan="6">Aucun ticket activé enregistré.</td></tr>';
+}
+
+function render(){
+$("resellerCount").textContent=resellers.length;
+$("lotCount").textContent=lots.length;
+$("ticketCount").textContent=tickets.length;
+$("availableCount").textContent=tickets.filter(t=>t.status!=="Utilisé").length;
+const used=tickets.filter(t=>t.status==="Utilisé");
+$("revenue").textContent=money(used.reduce((s,t)=>s+Number(t.amount||0),0));
+renderSalesDashboard();
+
+const gq=globalQuery.trim().toLowerCase();
+const filteredResellers=resellers.filter(r=>!gq||(r.name+r.code+r.zone).toLowerCase().includes(gq));
+$("resellerTable").innerHTML=filteredResellers.length?filteredResellers.map(r=>{
+const rt=tickets.filter(t=>t.resellerId===r.id);
+const ca=rt.filter(t=>t.status==="Utilisé").reduce((s,t)=>s+Number(t.amount||0),0);
+return `<tr><td><b>${esc(r.name)}</b></td><td>${esc(r.code)}</td><td>${esc(r.zone)}</td><td>${rt.length}</td><td>${money(ca)}</td><td><button class="red small" onclick="deleteReseller('${esc(r.id)}')">🗑️ Supprimer</button></td></tr>`;
+}).join(""):`<tr><td colspan="6">${resellers.length?"Aucun résultat pour cette recherche.":"Aucun revendeur."}</td></tr>`;
+
+$("ticketReseller").innerHTML=resellers.map(r=>`<option value="${esc(r.id)}">${esc(r.name)} — ${esc(r.zone)}</option>`).join("")||'<option value="">Ajoute un revendeur</option>';
+$("ticketPlan").innerHTML=plans.map(p=>`<option value="${esc(p.id)}">${esc(p.name)} — ${money(p.amount)}</option>`).join("");
+
+$("planTable").innerHTML=plans.map(p=>`<tr><td><b>${esc(p.name)}</b></td><td>${money(p.amount)}</td><td>${esc(p.type)}</td><td>${esc(p.quota)}</td><td>${esc(p.validity)}</td><td>${p.builtin?'<span class="badge">Par défaut</span>':`<button class="red small" onclick="deletePlan('${esc(p.id)}')">🗑️ Supprimer</button>`}</td></tr>`).join("")||'<tr><td colspan="6">Aucun forfait.</td></tr>';
+
+renderLots();
+renderActivity();
+renderStockAlerts();
+renderAdminOverview();
+save();
+}
+
+function renderLots(){
+const old=$("lotFilter").value||"all";
+const oldZone=$("zoneFilter").value||"all";
+const q=($("lotSearch")?.value||"").trim().toLowerCase()||globalQuery.trim().toLowerCase();
+
+$("lotFilter").innerHTML='<option value="all">Tous les lots</option>'+
+lots.slice().reverse().map(l=>`<option value="${esc(l.id)}">${esc(l.id)} — ${esc(l.planName)}</option>`).join("");
+$("lotFilter").value=[...$("lotFilter").options].some(o=>o.value===old)?old:"all";
+
+const zones=[...new Set(lots.map(l=>l.zone).filter(Boolean))].sort();
+$("zoneFilter").innerHTML='<option value="all">Toutes les zones</option>'+zones.map(z=>`<option value="${esc(z)}">${esc(z)}</option>`).join("");
+$("zoneFilter").value=zones.includes(oldZone)?oldZone:"all";
+
+const selected=$("lotFilter").value;
+let list=selected==="all"?lots:lots.filter(l=>l.id===selected);
+if($("zoneFilter").value!=="all") list=list.filter(l=>l.zone===$("zoneFilter").value);
+if(q) list=list.filter(l=>[l.id,l.resellerName,l.zone,l.planName].some(v=>String(v).toLowerCase().includes(q)));
+
+$("lotTable").innerHTML=list.slice().reverse().map(l=>{
+const lt=tickets.filter(t=>t.lotId===l.id);
+const available=lt.filter(t=>t.status!=="Utilisé").length;
+const used=lt.filter(t=>t.status==="Utilisé").length;
+return `<tr>
+<td class="lot-code">${esc(l.id)}</td><td>${esc(l.resellerName)}</td><td>${esc(l.zone)}</td><td>${esc(l.planName)}</td>
+<td>${lt.length}</td><td>${available<10&&available>0?`<b style="color:#b54708">⚠️ ${available}</b>`:available}</td><td>${used}</td><td>${new Date(l.createdAt).toLocaleString("fr-FR")}</td>
+<td class="actions"><button class="small" onclick="openLot('${esc(l.id)}')">👁️ Gérer</button><button class="orange small" onclick="printLot('${esc(l.id)}')">🖨️ PDF</button><button class="red small" onclick="deleteLot('${esc(l.id)}')">🗑️ Lot</button></td>
+</tr>`;
+}).join("")||'<tr><td colspan="9">Aucun lot correspondant.</td></tr>';
+}
+function openLot(id){
+const lot=lots.find(l=>l.id===id);if(!lot)return;
+$("lotDetails").classList.remove("hidden");
+$("lotDetails").dataset.lot=id;
+$("lotTitle").textContent=`Lot ${lot.id} — ${lot.planName}`;
+const lt=tickets.filter(t=>t.lotId===id);
+$("lotTicketTable").innerHTML=lt.map(t=>`<tr>
+<td class="lot-code">${esc(t.code)}</td><td>${esc(t.planName)}</td><td><span class="badge">${esc(t.status)}</span></td>
+<td>${new Date(t.createdAt).toLocaleString("fr-FR")}</td><td><button class="red small" onclick="deleteTicket('${esc(t.id)}')">🗑️</button></td>
+</tr>`).join("")||'<tr><td colspan="5">Aucun ticket dans ce lot.</td></tr>';
+$("lotDetails").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function deleteTicket(id){
+const t=tickets.find(x=>x.id===id);if(!t)return;
+if(!confirm(`Supprimer le ticket ${t.code} ?`))return;
+tickets=tickets.filter(x=>x.id!==id);
+addActivity(`Ticket ${t.code} supprimé`);
+save();render();
+if($("lotDetails").dataset.lot)openLot($("lotDetails").dataset.lot);
+}
+window.deleteTicket=deleteTicket;
+
+function deleteLot(id){
+const lot=lots.find(l=>l.id===id);if(!lot)return;
+const count=tickets.filter(t=>t.lotId===id).length;
+if(!confirm(`Supprimer le lot ${lot.id} et ses ${count} tickets ?`))return;
+lots=lots.filter(l=>l.id!==id);
+tickets=tickets.filter(t=>t.lotId!==id);
+addActivity(`Lot ${lot.id} supprimé`);
+$("lotDetails").classList.add("hidden");
+save();render();
+}
+window.deleteLot=deleteLot;
+
+function deleteReseller(id){
+const r=resellers.find(x=>x.id===id);if(!r)return;
+const relatedLots=lots.filter(l=>l.resellerId===id);
+const count=tickets.filter(t=>t.resellerId===id).length;
+if(!confirm(`Supprimer le revendeur ${r.name} ?\n\n${relatedLots.length} lot(s) et ${count} ticket(s) associés seront supprimés.`))return;
+const lotIds=new Set(relatedLots.map(l=>l.id));
+resellers=resellers.filter(x=>x.id!==id);
+lots=lots.filter(l=>l.resellerId!==id);
+addActivity(`Revendeur ${r.name} supprimé`);
+tickets=tickets.filter(t=>t.resellerId!==id&&!lotIds.has(t.lotId));
+save();render();
+}
+window.deleteReseller=deleteReseller;
+
+function deletePlan(id){
+const p=plans.find(x=>x.id===id);if(!p||p.builtin)return;
+if(!confirm(`Supprimer le forfait ${p.name} ? Les tickets déjà créés avec ce forfait ne sont pas affectés.`))return;
+plans=plans.filter(x=>x.id!==id);
+addActivity(`Forfait ${p.name} supprimé`);
+save();render();
+}
+window.deletePlan=deletePlan;
+
+function generateCode(length,used){
+const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+length=Math.max(1,Math.min(10,Number(length)||10));
+const rand=window.crypto?.getRandomValues?()=>crypto.getRandomValues(new Uint32Array(1))[0]:()=>Math.floor(Math.random()*4294967296);
+for(let attempt=0;attempt<20000;attempt++){
+let code="";
+for(let i=0;i<length;i++)code+=chars[rand()%chars.length];
+if(!used.has(code))return code;
+}
+return null;
+}
+
+$("generate").onclick = async () => {
+  const rid = $("ticketReseller").value;
+  const pid = $("ticketPlan").value;
+  const qty = Math.max(1, Math.min(500, Number($("ticketQty").value) || 1));
+  const r = resellers.find(x => x.id === rid);
+  const p = plans.find(x => x.id === pid);
+  if (!r || !p || !r.dbId || !p.dbId) {
+    toast("Sélectionne un revendeur et un forfait déjà enregistrés dans PostgreSQL.", "error");
+    return;
+  }
+
+  $("generate").disabled = true;
+  $("generate").textContent = "Création en cours…";
+  try {
+    const result = await apiRequest("/api/v1/tickets/batches", {
+      method: "POST",
+      body: JSON.stringify({ resellerId: r.dbId, planId: p.dbId, quantity: qty })
+    });
+    await loadFromApi();
+    const created = (result.tickets || []).map(t => String(t.ticket_code));
+    const createdIds = new Set(created);
+    let lot = lots.find(l => tickets.some(t => createdIds.has(t.code) && t.lotId === l.id));
+    if (!lot) {
+      const first = tickets.find(t => createdIds.has(t.code));
+      if (first) {
+        lot = {
+          id: `LOT-${r.code}-${p.id}-${new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 12)}`,
+          resellerId: r.id, resellerName: r.name, zone: r.zone || "—",
+          planId: p.id, planName: p.name, amount: p.amount,
+          quantity: created.length, codeLength: Number($("codeLength").value) || 10,
+          createdAt: first.createdAt
+        };
+        for (const t of tickets) if (createdIds.has(t.code)) t.lotId = lot.id;
+        lots.push(lot);
+      }
+    }
+    addActivity(`Lot créé dans PostgreSQL pour ${r.name} — ${created.length} ticket(s)`);
+    save(); render();
+    if (lot) openLot(lot.id);
+    toast(`${created.length} ticket(s) enregistrés dans PostgreSQL.`);
+  } catch (error) {
+    toast("Création du lot impossible : " + error.message, "error");
+  } finally {
+    $("generate").disabled = false;
+    $("generate").textContent = "📦 Créer le lot";
+  }
+};
+
+function printLot(id){
+const lot=lots.find(l=>l.id===id);if(!lot)return;
+const lt=tickets.filter(t=>t.lotId===id);
+const w=window.open("","_blank");
+if(!w){toast("Autorise les fenêtres pop-up pour imprimer le lot.","error");return;}
+const rows=lt.map(t=>`<div class="pdf-ticket"><b>AFROCONNECT</b><div style="font-size:24px;font-weight:800;margin:8px">${esc(t.code)}</div><small>${esc(lot.planName)}<br>${esc(lot.resellerName)} — ${esc(lot.zone)}</small></div>`).join("");
+w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${esc(lot.id)}</title>
+<style>body{font-family:Arial;margin:20px}.head{text-align:center;margin-bottom:20px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.pdf-ticket{border:1px dashed #555;border-radius:8px;padding:12px;text-align:center}@media print{body{margin:8mm}}
+/* Login page uses the same AFROCONNECT navy and electric blue identity */
+.login{background:radial-gradient(ellipse at 18% 12%,rgba(43,126,255,.28),transparent 38%),linear-gradient(145deg,#07152f 0%,#0b1b3a 52%,#102c55 100%)}
+.login form{border:1px solid #dfe8f4;border-radius:18px;box-shadow:0 24px 80px rgba(2,12,30,.34)}
+.login .logo{color:#081835;font-family:Manrope,'DM Sans',Arial,sans-serif}
+.login .logo span{color:#1266f1}
+.login h1{color:#12213d}
+.login form>button[type=submit],.login button[type=submit]{background:#1266f1}
+.login form>button[type=submit]:hover,.login button[type=submit]:hover{background:#0d57d1}
+.login input:focus{border-color:#1266f1}
+</style>
+</head><body><div class="head"><h1>AFROCONNECT</h1><h2>${esc(lot.id)}</h2><p>${esc(lot.planName)} — ${esc(lot.resellerName)} — ${esc(lot.zone)}</p><p>${lt.length} ticket(s)</p></div><div class="grid">${rows}</div>
+<script>window.onload=function(){window.print()}<\/script>
+</body></html>`);
+w.document.close();
+}
+window.printLot=printLot;
+
+$("lotFilter").onchange=renderLots;
+$("closeLot").onclick=()=>$("lotDetails").classList.add("hidden");
+$("printLot").onclick=()=>{const id=$("lotDetails").dataset.lot;if(id)printLot(id)};
+
+
+// Menus latéraux : ouverture uniquement au clic, un seul groupe ouvert à la fois.
+document.querySelectorAll(".nav-toggle").forEach(toggle => {
+  toggle.addEventListener("click", () => {
+    const willOpen = toggle.getAttribute("aria-expanded") !== "true";
+    document.querySelectorAll(".nav-toggle").forEach(other => {
+      other.setAttribute("aria-expanded", "false");
+      const panel = document.getElementById(other.getAttribute("aria-controls"));
+      if (panel) panel.hidden = true;
+    });
+    if (willOpen) {
+      toggle.setAttribute("aria-expanded", "true");
+      const panel = document.getElementById(toggle.getAttribute("aria-controls"));
+      if (panel) panel.hidden = false;
+    }
+  });
+});
+document.querySelectorAll(".nav-submenu a, .side-nav > .side-link").forEach(link => {
+  link.addEventListener("click", () => {
+    if (link.target === "_blank") return;
+    document.querySelectorAll(".nav-toggle").forEach(toggle => {
+      toggle.setAttribute("aria-expanded", "false");
+      const panel = document.getElementById(toggle.getAttribute("aria-controls"));
+      if (panel) panel.hidden = true;
+    });
+  });
+});
+
+function showAdminInterface(apiAvailable, message = "") {
+  $("login").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  render();
+  const banner = $("apiOfflineBanner");
+  if (banner) {
+    banner.classList.toggle("hidden", apiAvailable);
+    $("apiOfflineMessage").textContent = message || "La base de données est momentanément indisponible. Les données affichées peuvent être incomplètes ou provenir de ce navigateur.";
+  }
+  if (apiAvailable) {
+    loadMikrotik();
+  } else {
+    $("mikrotikStatus").textContent = "● API indisponible";
+    $("mikrotikStatus").classList.add("warn");
+  }
+}
+
+async function refreshApiData() {
+  const button = $("retryApiConnection");
+  if (button) { button.disabled = true; button.textContent = "Vérification…"; }
+  try {
+    await loadFromApi();
+    $("apiOfflineBanner")?.classList.add("hidden");
+    render();
+    loadMikrotik();
+    loadCaptivePortal();
+    toast("Connexion à la base de données rétablie.");
+  } catch (error) {
+    $("apiOfflineBanner")?.classList.remove("hidden");
+    $("apiOfflineMessage").textContent = "Base de données indisponible : " + error.message + ". L'interface reste accessible en lecture limitée.";
+    toast("Synchronisation impossible : " + error.message, "error");
+  } finally {
+    if (button) { button.disabled = false; button.textContent = "Réessayer"; }
+  }
+}
+$("retryApiConnection").onclick = refreshApiData;
+
+$("loginForm").onsubmit = async e => {
+  e.preventDefault();
+  $("loginError").textContent = "Vérification des identifiants…";
+  try {
+    const result = await apiRequest("/api/v1/auth/login", {
+      method: "POST",
+      body: JSON.stringify({
+        username: $("user").value.trim(),
+        password: $("pass").value
+      })
+    });
+    adminToken = result.token;
+    sessionStorage.setItem("afro_manager_token", adminToken);
+    sessionStorage.setItem("afro_manager_auth", "1");
+    $("loginError").textContent = "";
+    showAdminInterface(false, "Identifiants validés. Chargement des données en cours…");
+    try {
+      await loadFromApi();
+      $("apiOfflineBanner").classList.add("hidden");
+      render();
+      loadMikrotik();
+      loadCaptivePortal();
+      toast("Connexion à PostgreSQL réussie.");
+    } catch (dataError) {
+      showAdminInterface(false, "Base de données indisponible : " + dataError.message + ". L'interface est ouverte, mais les opérations nécessitant le serveur restent désactivées.");
+    }
+  } catch (error) {
+    $("loginError").textContent =
+      error.message === "invalid_credentials"
+        ? "Identifiant ou mot de passe incorrect."
+        : "Impossible de vérifier les identifiants auprès du serveur : " + error.message;
+  }
+};
+
+$("logout").onclick = () => {
+  sessionStorage.removeItem("afro_manager_auth");
+  sessionStorage.removeItem("afro_manager_token");
+  adminToken = "";
+  location.reload();
+};
+
+$("addReseller").onclick=()=>$("resellerModal").classList.remove("hidden");
+$("closeReseller").onclick=()=>$("resellerModal").classList.add("hidden");
+
+$("resellerForm").onsubmit = async e => {
+  e.preventDefault();
+  const name = $("rName").value.trim();
+  const code = $("rCode").value.trim().toUpperCase();
+  const zone = $("rZone").value.trim();
+  if (resellers.some(r => r.code === code)) {
+    toast("Ce code revendeur existe déjà.", "error");
+    return;
+  }
+  try {
+    const result = await apiRequest("/api/v1/resellers", {
+      method: "POST",
+      body: JSON.stringify({ name, code })
+    });
+    const r = mapApiReseller(result.reseller);
+    r.zone = zone; // Le backend actuel ne conserve pas encore la zone.
+    resellers.push(r);
+    addActivity(`Revendeur ${name} ajouté`);
+    save(); e.target.reset(); $("resellerModal").classList.add("hidden"); render();
+    toast("Revendeur créé dans PostgreSQL. La zone sera persistée après adaptation du backend.");
+  } catch (error) {
+    toast("Création du revendeur impossible : " + error.message, "error");
+  }
+};
+
+$("addPlan").onclick=()=>$("planModal").classList.remove("hidden");
+$("closePlan").onclick=()=>$("planModal").classList.add("hidden");
+
+$("planForm").onsubmit = async e => {
+  e.preventDefault();
+  const name = $("pName").value.trim();
+  const amount = Number($("pAmount").value);
+  const code = name.toUpperCase().replace(/[^A-Z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 35);
+  try {
+    const result = await apiRequest("/api/v1/plans", {
+      method: "POST",
+      body: JSON.stringify({ code, name, priceMinor: amount, currency: "XOF" })
+    });
+    plans.push(mapApiPlan(result.plan));
+    addActivity(`Forfait ${name} créé`);
+    save(); e.target.reset(); $("pUsers").value = 1; $("pUpload").value = "5 Mo"; $("pDownload").value = "5 Mo";
+    $("planModal").classList.add("hidden"); render();
+    toast("Forfait enregistré dans PostgreSQL. Les paramètres avancés nécessitent une extension du backend.");
+  } catch (error) {
+    toast("Création du forfait impossible : " + error.message, "error");
+  }
+};
+
+
+$("lotSearch").oninput=debounce(renderLots,150);
+$("zoneFilter").onchange=renderLots;
+$("globalSearch").oninput=debounce(()=>{globalQuery=$("globalSearch").value;render();},150);
+$("quickCreate").onclick=()=>{location.hash="tickets";window.scrollTo({top:document.getElementById("tickets").offsetTop-10,behavior:"smooth"});setTimeout(()=>$("ticketQty").focus(),250)};
+
+
+
+async function downloadPortalLogin(){
+  const status=$("portalDownloadStatus");
+  const button=$("portalDownloadHtml");
+  button.disabled=true;
+  button.textContent="Préparation…";
+  try{
+    const response=await fetch("portal-template/login.html",{cache:"no-store"});
+    if(!response.ok)throw new Error("Modèle login.html introuvable ("+response.status+")");
+    let html=await response.text();
+    const val=id=>$(id).value.trim();
+    const logoInput=val("portalLogo");
+    let logoSrc="logo-afroconnect.png";
+    if(logoInput){
+      try{
+        const u=new URL(logoInput);
+        if(u.protocol==="https:"||u.protocol==="http:")logoSrc=u.href;
+      }catch{}
+    }
+    const values={
+      "{{NETWORK_NAME}}":esc(val("portalNetworkName")||"AfroConnect Wi-Fi"),
+      "{{PORTAL_TITLE}}":esc(val("portalTitle")||"Bienvenue chez AfroConnect"),
+      "{{PORTAL_MESSAGE}}":esc(val("portalMessage")||"Connectez-vous simplement et profitez d’Internet."),
+      "{{BRAND_COLOR}}":/^#[0-9a-fA-F]{6}$/.test(val("portalColor"))?val("portalColor"):"#06285f",
+      "{{PURCHASE_URL}}":esc(val("portalPurchaseUrl")||"https://afroconnectworld.com"),
+      "{{WHATSAPP}}":esc(val("portalWhatsapp")||"01 96 10 92 44"),
+      "{{WHATSAPP_DIGITS}}":(val("portalWhatsapp")||"0196109244").replace(/\\D/g,""),
+      "{{LOGO_SRC}}":esc(logoSrc)
+    };
+    for(const [token,value] of Object.entries(values))html=html.replaceAll(token,value);
+    if(/\{\{[A-Z_]+\}\}/.test(html))throw new Error("Certains champs du modèle n’ont pas été remplacés.");
+    const blob=new Blob([html],{type:"text/html;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement("a");
+    link.href=url;link.download="login.html";
+    document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1500);
+    status.textContent="login.html personnalisé téléchargé. Extrais le logo-afroconnect.png du ZIP fourni et copie-le avec login.html dans hotspot/.";
+    toast("Fichier login.html généré.");
+  }catch(error){
+    status.textContent="Génération impossible : "+error.message;
+    toast("Génération impossible : "+error.message,"error");
+  }finally{
+    button.disabled=false;button.textContent="Télécharger login.html personnalisé";
+  }
+}
+$("portalDownloadHtml").onclick=downloadPortalLogin;
+
+function setPortalPreview(){
+  const value=id=>$(id).value.trim();
+  $("portalPreviewNetwork").textContent=value("portalNetworkName")||"AfroConnect Wi-Fi";
+  $("portalPreviewTitle").textContent=value("portalTitle")||"Bienvenue";
+  $("portalPreviewMessage").textContent=value("portalMessage");
+  const color=value("portalColor")||"#087f39";
+  $("portalPreview").querySelector(".portal-preview-button").style.background=color;
+  const logo=value("portalLogo");
+  const logoBox=$("portalPreviewLogo");
+  logoBox.replaceChildren();
+  if(logo){
+    const img=document.createElement("img");
+    img.src=logo;img.alt="Logo AfroConnect";
+    img.onerror=()=>{logoBox.textContent="AFROCONNECT";};
+    logoBox.appendChild(img);
+  }else logoBox.textContent=value("portalNetworkName")||"AFROCONNECT";
+  $("portalPreviewQr").classList.toggle("hidden",!$("portalShowQr").checked);
+  $("portalPreviewTerms").textContent=value("portalTerms")||"En vous connectant, vous acceptez les conditions d’utilisation.";
+}
+["portalNetworkName","portalTitle","portalMessage","portalLogo","portalColor","portalTerms","portalShowQr"].forEach(id=>{
+  $(id).addEventListener("input",setPortalPreview);
+  $(id).addEventListener("change",setPortalPreview);
+});
+async function loadCaptivePortal(){
+  const select=$("portalRouter");
+  const previous=select.value;
+  try{
+    const data=await apiRequest("/api/v1/admin/routers");
+    const rows=data.rows||[];
+    select.innerHTML=rows.map(r=>'<option value="'+Number(r.id)+'">'+esc(r.displayName)+' — '+esc(r.model||"MikroTik")+'</option>').join("");
+    if(!rows.length){
+      select.innerHTML='<option value="">Aucun routeur enregistré</option>';
+      $("portalStatus").textContent="● Aucun routeur";
+      $("portalStatus").classList.add("warn");
+      return;
+    }
+    if(rows.some(r=>String(r.id)===previous))select.value=previous;
+    await loadPortalSettings();
+  }catch(error){
+    select.innerHTML='<option value="">Routeurs indisponibles</option>';
+    $("portalStatus").textContent="● API indisponible";
+    $("portalStatus").classList.add("warn");
+    $("portalNotice").textContent="Impossible de charger les routeurs : "+error.message;
+  }
+}
+async function loadPortalSettings(){
+  const routerId=$("portalRouter").value;
+  if(!routerId)return;
+  try{
+    const data=await apiRequest("/api/v1/admin/captive-portal/settings?router_id="+encodeURIComponent(routerId));
+    const p=data.settings||{};
+    $("portalNetworkName").value=p.networkName||"AfroConnect Wi-Fi";
+    $("portalTitle").value=p.title||"Bienvenue chez AfroConnect";
+    $("portalMessage").value=p.message||"Connectez-vous simplement et profitez d’Internet.";
+    $("portalLogo").value=p.logoUrl||"";
+    $("portalColor").value=p.brandColor||"#06285f";
+    $("portalPurchaseUrl").value=p.purchaseUrl||"https://afroconnectworld.com";
+    $("portalWhatsapp").value=p.whatsapp||"+2290196109244";
+    $("portalShowQr").checked=p.showQr!==false;
+    $("portalTerms").value=p.terms||"";
+    $("portalStatus").textContent=p.updatedAt?"● Configuration enregistrée":"● Configuration par défaut";
+    $("portalStatus").classList.toggle("warn",!p.updatedAt);
+    $("portalNotice").textContent="Paramètres chargés pour ce routeur. L’enregistrement conserve la configuration ; le transfert automatique du portail HTML vers MikroTik reste à connecter.";
+    setPortalPreview();
+  }catch(error){
+    $("portalStatus").textContent="● Non synchronisé";
+    $("portalStatus").classList.add("warn");
+    $("portalNotice").textContent="Chargement impossible : "+error.message+". Vérifie la disponibilité de PostgreSQL et applique la migration captive_portal.sql.";
+  }
+}
+$("portalRouter").addEventListener("change",loadPortalSettings);
+$("portalReload").onclick=loadCaptivePortal;
+$("portalForm").onsubmit=async e=>{
+  e.preventDefault();
+  const button=$("portalSave");
+  button.disabled=true;button.textContent="Enregistrement…";
+  try{
+    const payload={
+      routerId:Number($("portalRouter").value),
+      networkName:$("portalNetworkName").value.trim(),
+      title:$("portalTitle").value.trim(),
+      message:$("portalMessage").value.trim(),
+      logoUrl:$("portalLogo").value.trim(),
+      brandColor:$("portalColor").value,
+      purchaseUrl:$("portalPurchaseUrl").value.trim(),
+      whatsapp:$("portalWhatsapp").value.trim(),
+      showQr:$("portalShowQr").checked,
+      terms:$("portalTerms").value.trim()
+    };
+    await apiRequest("/api/v1/admin/captive-portal/settings",{method:"PUT",body:JSON.stringify(payload)});
+    $("portalStatus").textContent="● Enregistré";
+    $("portalStatus").classList.remove("warn");
+    $("portalNotice").textContent="Configuration sauvegardée pour ce routeur. Elle n’est pas encore transférée automatiquement dans les fichiers Hotspot MikroTik.";
+    toast("Configuration du portail captif enregistrée.");
+    setPortalPreview();
+  }catch(error){
+    toast("Enregistrement impossible : "+error.message,"error");
+    $("portalNotice").textContent="Enregistrement impossible : "+error.message+". Vérifie la base PostgreSQL et la migration captive_portal.sql.";
+  }finally{button.disabled=false;button.textContent="Enregistrer la configuration";}
+};
+
+// MikroTik : inventaire et sessions fournis par les API réelles.
+function renderMikrotikRows(rows){
+  const body=$("mikrotikRouterTable");
+  if(!rows.length){
+    body.innerHTML='<tr><td colspan="5">Aucun routeur enregistré. Utilise « Configurer » pour ajouter les deux appareils.</td></tr>';
+    $("mikrotikStatus").textContent="● À configurer";
+    $("mikrotikStatus").classList.add("warn");
+    return;
+  }
+  const online=rows.filter(r=>r.status==="ONLINE").length;
+  const clients=rows.reduce((n,r)=>n+Number(r.activeSessions||0),0);
+  $("mikrotikStatus").textContent=online===rows.length?"● Tous en ligne":online?("● "+online+"/"+rows.length+" en ligne"):"● Hors ligne";
+  $("mikrotikStatus").classList.toggle("warn",online!==rows.length);
+  body.innerHTML=rows.map(r=>'<tr><td><b>'+esc(r.displayName)+'</b><br><small>'+esc(r.routerCode)+'</small></td><td>'+esc(r.model)+'</td><td><span class="status-pill '+(r.status==="ONLINE"?"":"warn")+'">'+(r.status==="ONLINE"?"● En ligne":"● Hors ligne")+'</span></td><td>'+Number(r.activeSessions||0)+'</td><td>'+(r.lastSeenAt?new Date(r.lastSeenAt).toLocaleString("fr-FR"):"Jamais")+'</td></tr>').join("");
+  $("mikrotikLastUpdate").textContent="Actualisé à "+new Date().toLocaleTimeString("fr-FR");
+}
+async function loadMikrotik(){
+  try{
+    const pair=await Promise.all([apiRequest("/api/v1/admin/routers"),apiRequest("/api/v1/admin/routers/sessions")]);
+    const routerData=pair[0],sessionData=pair[1];
+    renderMikrotikRows(routerData.rows||[]);
+    const rows=sessionData.rows||[];
+    $("mikrotikClientTable").innerHTML=rows.map(x=>'<tr><td><b>'+esc(x.username)+'</b><br><small>'+esc(x.router_name)+'</small></td><td>'+esc(x.ip_address)+'</td><td>'+esc(x.mac_address)+'</td><td>—</td><td>'+esc(x.session_uptime||"—")+'</td><td><span class="badge">Connecté</span></td></tr>').join("")||'<tr><td colspan="6">Aucun client actif remonté par les routeurs.</td></tr>';
+    $("overviewMikrotik").textContent=(routerData.rows||[]).filter(x=>x.status==="ONLINE").length+"/"+(routerData.rows||[]).length;
+    $("overviewClients").textContent=String(rows.length);
+  }catch(error){
+    $("mikrotikStatus").textContent="● API non disponible";
+    $("mikrotikStatus").classList.add("warn");
+    $("mikrotikRouterTable").innerHTML='<tr><td colspan="5">Données MikroTik indisponibles. Vérifie la migration PostgreSQL et le déploiement du backend.</td></tr>';
+  }
+}
+$("mikrotikConfig").onclick=()=>{
+  $("mName").value="";
+  $("mCode").value="";
+  $("mModel").value="MikroTik hAP ac²";
+  $("routerTokenBox").classList.add("hidden");
+  $("routerTokenValue").value="";
+  $("mikrotikModal").classList.remove("hidden");
+};
+$("closeMikrotik").onclick=()=>$("mikrotikModal").classList.add("hidden");
+$("mikrotikForm").onsubmit=async e=>{
+  e.preventDefault();
+  const button=e.submitter;
+  button.disabled=true;
+  try{
+    const result=await apiRequest("/api/v1/admin/routers/provision",{method:"POST",body:JSON.stringify({displayName:$("mName").value.trim(),routerCode:$("mCode").value.trim().toUpperCase(),model:$("mModel").value})});
+    $("routerTokenValue").value=result.token;
+    $("routerTokenBox").classList.remove("hidden");
+    toast("Routeur enregistré. Copie son jeton secret maintenant.");
+    await loadMikrotik();
+  }catch(error){toast("Enregistrement impossible : "+error.message,"error");}
+  finally{button.disabled=false;}
+};
+$("copyRouterToken").onclick=()=>{
+  const value=$("routerTokenValue").value;
+  if(value)navigator.clipboard.writeText(value).then(()=>toast("Jeton copié.")).catch(()=>toast("Copie impossible : sélectionne le jeton manuellement.","error"));
+};
+$("mikrotikRefresh").onclick=loadMikrotik;
+$("mikrotikClientsBtn").onclick=()=>{
+  $("mikrotikClientsPanel").classList.toggle("hidden");
+  if(!$("mikrotikClientsPanel").classList.contains("hidden"))loadMikrotik();
+};
+$("mikrotikDisconnectBtn").onclick=()=>toast("La commande de déconnexion sera ajoutée après validation des premières remontées de sessions.");
+$("clientSearch").oninput=()=>{
+  const q=$("clientSearch").value.trim().toLowerCase();
+  for(const row of $("mikrotikClientTable").rows)row.hidden=!row.textContent.toLowerCase().includes(q);
+};
+// Initial render
+renderMikrotik();
+if(sessionStorage.getItem("afro_manager_auth")==="1" && adminToken){loadCaptivePortal();}
+
+if (sessionStorage.getItem("afro_manager_auth") === "1" && adminToken) {
+  showAdminInterface(false, "Session administrateur restaurée. Vérification de la base de données…");
+  loadFromApi().then(() => {
+    $("apiOfflineBanner")?.classList.add("hidden");
+    render();
+    loadMikrotik();
+  }).catch(error => {
+    $("apiOfflineBanner")?.classList.remove("hidden");
+    $("apiOfflineMessage").textContent = "Base de données indisponible : " + error.message + ". L'interface reste accessible en lecture limitée.";
+  });
+}
+</script>
+</body>
 </html>
