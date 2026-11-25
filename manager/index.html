@@ -2131,6 +2131,22 @@ function setPortalPreview(){
 });
 async function loadCaptivePortal(){
   const select=$("portalRouter");
+  if(demoMode){
+    select.innerHTML='<option value="demo">Boutique principale — Routeur de démonstration</option><option value="demo2">Terrasse — Routeur de démonstration</option>';
+    $("portalStatus").textContent="● Configuration fictive";
+    $("portalStatus").classList.add("warn");
+    $("portalNetworkName").value=DEMO_PORTAL_SETTINGS.networkName;
+    $("portalTitle").value=DEMO_PORTAL_SETTINGS.title;
+    $("portalMessage").value=DEMO_PORTAL_SETTINGS.message;
+    $("portalLogo").value="";
+    $("portalColor").value="#0e6b4a";
+    $("portalPurchaseUrl").value="https://afroconnectworld.com";
+    $("portalWhatsapp").value=DEMO_PORTAL_SETTINGS.support;
+    $("portalShowQr").checked=true;
+    $("portalTerms").value="Exemple de conditions d’utilisation — données fictives.";
+    setPortalPreview();
+    return;
+  }
   const previous=select.value;
   try{
     const data=await apiRequest("/api/v1/admin/routers");
@@ -2239,6 +2255,7 @@ function renderMikrotikRows(rows){
   $("mikrotikLastUpdate").textContent="Actualisé à "+new Date().toLocaleTimeString("fr-FR");
 }
 async function loadMikrotik(){
+  if(demoMode){renderDemoMikrotik();return;}
   try{
     const pair=await Promise.all([apiRequest("/api/v1/admin/routers"),apiRequest("/api/v1/admin/routers/sessions")]);
     const routerData=pair[0],sessionData=pair[1];
@@ -2291,7 +2308,7 @@ $("clientSearch").oninput=()=>{
   for(const row of $("mikrotikClientTable").rows)row.hidden=!row.textContent.toLowerCase().includes(q);
 };
 // Initial render
-renderMikrotik();
+if(demoMode)renderDemoMikrotik();else renderMikrotikRows([]);
 if(sessionStorage.getItem("afro_manager_auth")==="1" && adminToken){loadCaptivePortal();}
 
 if (sessionStorage.getItem("afro_manager_auth") === "1" && adminToken) {
