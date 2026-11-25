@@ -726,59 +726,81 @@ h1,h2,h3{color:#173122}.card,.panel{border-color:#e1e9e2}.api-offline-banner{bor
 .login h1{color:#173122}.login form>button[type=submit],.login button[type=submit]{background:#10813b}
 .login form>button[type=submit]:hover,.login button[type=submit]:hover{background:#0b6f32}.login input:focus{border-color:#10813b}
 </style><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><style>
-/* Présentation inspirée du modèle AfroConnect WiFi joint */
-:root{
-  --ac-bg:#eef2ee;--ac-surface:#fff;--ac-soft:#e4ebe5;--ac-ink:#12241d;--ac-muted:#5b6e64;
-  --ac-line:#cfdad2;--ac-green:#0e6b4a;--ac-green-deep:#0b5039;--ac-gold:#d98e04;
-  --ac-good:#1a7f4b;--ac-warn:#9a6200;--ac-bad:#b3341f;--ac-info:#1d5fa8;
-}
-body{background:var(--ac-bg);color:var(--ac-ink);font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
-h1,h2,h3,h4,.dashboard-intro h2,.brand strong{font-family:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif}
-button{background:var(--ac-green);border-radius:11px;box-shadow:0 3px 8px #0e6b4a20}
-button:hover{background:var(--ac-green-deep)}
-button.orange,.nav-submenu a:hover{background:var(--ac-gold);color:#fff}
-button.gray{background:#5b6e64}
-:focus-visible{outline:3px solid #d98e0480;outline-offset:2px}
-input,select,textarea{border-color:var(--ac-line);border-radius:11px;background:#fff;color:var(--ac-ink)}
-input:focus,select:focus,textarea:focus{border-color:var(--ac-green);box-shadow:0 0 0 3px #0e6b4a18}
-.login{background:radial-gradient(ellipse at 90% 8%,#f1c66b44,transparent 34%),linear-gradient(145deg,#e4ebe5 0%,#f7f8f5 48%,#dbe8df 100%)}
-.login form{border:1px solid #cfdad2;border-radius:24px;box-shadow:0 24px 65px #12241d20}
-.login button{background:var(--ac-green);color:#fff}
-.logo,.brand{color:var(--ac-green)}
-.logo span,.brand span{color:var(--ac-gold)}
-#app{background:var(--ac-bg)}
-aside{background:#12241d;border-right:1px solid #2b4439}
-aside a{color:#d3e2d8}
-aside a:hover,.nav-toggle:hover,.nav-toggle[aria-expanded=true]{background:#1c382b;color:#fff}
-.nav-submenu a{border-left-color:#496257}
-.nav-submenu a:hover{border-left-color:var(--ac-gold);background:#1c382b;color:#fff}
-main{background:var(--ac-bg)}
-header small,.card span,.card small,.muted,.portal-download-status{color:var(--ac-muted)}
-header h1{font-family:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;letter-spacing:-.035em}
-.online,.status-pill{background:#dff3e6;color:#17633f}
-.card,.panel{border-color:var(--ac-line);border-radius:17px;box-shadow:0 5px 18px #12241d0a}
-.card:hover{box-shadow:0 12px 28px #12241d13}
-.card b{color:var(--ac-ink);font-variant-numeric:tabular-nums}
+/* AFROCONNECT WIFI MANAGER — mise en page calquée sur la maquette jointe */
+:root{--bg:#eef2ee;--surface:#fff;--surface-2:#e4ebe5;--fg:#12241d;--muted:#5b6e64;--line:#cfdad2;--accent:#0e6b4a;--accent-fg:#fff;--ochre:#d98e04}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"DM Sans",system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.5}
+h1,h2,h3,h4{font-family:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;color:var(--fg);text-wrap:balance}
+#app{display:block;min-height:100vh;background:var(--bg)}
+#managerSidebar,.app-main>.topbar{display:none!important}
+.app-main{width:100%;max-width:1012px;margin:0 auto;padding:0 16px}
+#managerTop{position:sticky;top:0;z-index:30;background:var(--bg);padding-top:12px}
+.model-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:62px;padding:7px 0 12px}
+.model-brand{display:flex;align-items:center;gap:12px;min-width:0}
+.model-brand .mark{width:42px;height:42px;display:grid;place-items:center;flex:none;border-radius:14px;background:var(--accent);color:#fff;box-shadow:0 6px 15px #0e6b4a30}
+.model-brand .mark svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.model-brand h1{font-size:20px;line-height:1.1;margin:0;letter-spacing:-.02em}
+.model-brand small{display:block;margin-top:4px;color:var(--muted);font-size:12px}
+.model-actions{display:flex;align-items:center;gap:10px;flex:none}
+.model-status{padding:7px 11px;border:1px solid var(--line);border-radius:999px;background:var(--surface);color:var(--muted);font-size:12px;font-weight:700}
+#logout{background:var(--accent);color:#fff;border-radius:11px;padding:9px 12px;white-space:nowrap}
+#managerTabs{display:flex;gap:5px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;border-bottom:1px solid var(--line);padding:4px 0 10px}
+#managerTabs .tab{flex:none;border:1px solid transparent;border-radius:999px;padding:8px 13px;background:transparent;color:var(--muted);font:600 13px "DM Sans",system-ui,sans-serif;box-shadow:none;white-space:nowrap}
+#managerTabs .tab:hover{background:var(--surface-2);color:var(--fg);transform:none}
+#managerTabs .tab[aria-current=true]{background:var(--accent);color:#fff;box-shadow:0 5px 13px #0e6b4a25}
+.content{width:100%;max-width:none;margin:0;padding:20px 0 54px}
+.content>section{display:none;margin:0;scroll-margin-top:135px}
+.content>section.is-active{display:block}
+#apiOfflineBanner{margin:16px 0}
+.cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.card,.panel{border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:0 4px 16px #12241d0a}
+.card{transition:transform .18s ease,box-shadow .18s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 10px 24px #12241d13}
+.card span,.card small,.muted,header small{color:var(--muted)}
+.card b{color:var(--fg);font-variant-numeric:tabular-nums}
 .title{align-items:center}
-table{border-color:var(--ac-line)}
+table{border-collapse:collapse}
 th{background:#eaf0eb;color:#40554a}
-th,td{border-bottom-color:var(--ac-line)}
+th,td{border-bottom:1px solid var(--line);padding:10px 11px}
 tbody tr:hover{background:#f3f7f3}
+input,select,textarea{border:1px solid var(--line);border-radius:11px;background:#fff;color:var(--fg);font:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px #0e6b4a18}
+button{background:var(--accent);border-radius:11px;box-shadow:0 3px 8px #0e6b4a20}
+button:hover{background:#0b5039}
+button.orange{background:var(--ochre);color:#fff}
+button.gray{background:#5b6e64}
+.badge,.online,.status-pill{border-radius:999px}
 .badge{background:#dce9f7;color:#1d5fa8}
+.online,.status-pill{background:#dff3e6;color:#17633f}
 .notice,.stock-alert{background:#fbeccb;border-color:#efcf85;color:#805309}
-.portal-check input{accent-color:var(--ac-green)}
+.activity-item{background:#eaf0eb;border-left-color:var(--accent)}
 .portal-preview{background:linear-gradient(145deg,#e4ebe5,#f5f7f4)}
-.portal-preview-card{border-color:var(--ac-line);box-shadow:0 18px 44px #12241d20}
-.portal-preview-logo{color:var(--ac-green)}
-.portal-preview-button{background:var(--ac-green)}
-.activity-item{background:#eaf0eb;border-left-color:var(--ac-green)}
+.portal-preview-card{border-color:var(--line);box-shadow:0 18px 44px #12241d20}
+.portal-preview-logo{color:var(--accent)}
+.portal-preview-button{background:var(--accent)}
 .toast{background:#12241d}
-.toast.error{background:#b3341f}
-@media(max-width:650px){
-  aside{background:#12241d}
-  main{background:var(--ac-bg)}
-  .card,.panel{border-radius:15px}
-  header h1{font-size:24px}
+.login{background:radial-gradient(ellipse at 90% 8%,#f1c66b44,transparent 34%),linear-gradient(145deg,#e4ebe5,#f7f8f5 48%,#dbe8df)}
+.login form{border:1px solid var(--line);border-radius:24px;box-shadow:0 24px 65px #12241d20}
+.login button{background:var(--accent)}
+@media(max-width:720px){
+ .app-main{padding:0 12px}
+ #managerTop{padding-top:env(safe-area-inset-top,8px)}
+ .model-bar{min-height:56px}
+ .model-brand .mark{width:38px;height:38px}
+ .model-brand h1{font-size:18px}
+ .model-status{display:none}
+ #managerTabs{margin-right:-12px;padding-right:12px}
+ .content{padding-top:15px}
+ .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .sales-period-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:460px){
+ .model-brand{gap:8px}
+ .model-brand h1{font-size:16px}
+ .model-brand small{font-size:11px}
+ .model-actions{gap:5px}
+ #logout{padding:8px 9px;font-size:12px}
+ #managerTabs .tab{padding:7px 11px;font-size:12px}
+ .cards,.sales-period-grid{grid-template-columns:1fr 1fr}
 }
 </style></head>
 <body>
@@ -806,10 +828,26 @@ tbody tr:hover{background:#f3f7f3}
 <a class="nav-link side-link" href="#activityList"><span>Historique des opérations</span></a>
 <a class="nav-link side-link" href="https://www.afroconnectworld.com" target="_blank" rel="noopener"><span>Site AfroConnect ↗</span></a>
 </nav>
-<div class="sidebar-bottom"><div class="side-help"><span class="help-icon">i</span><div><b>Gestion Wi-Fi</b><small>Tickets, ventes et réseau</small></div></div><div class="sidebar-foot">AFROCONNECT <span>·</span> BÉNIN</div><button id="logout" class="red">Déconnexion</button></div>
+<div class="sidebar-bottom"><div class="side-help"><span class="help-icon">i</span><div><b>Gestion Wi-Fi</b><small>Tickets, ventes et réseau</small></div></div><div class="sidebar-foot">AFROCONNECT <span>·</span> BÉNIN</div></div>
 </aside><button id="mobileNavScrim" class="scrim" hidden aria-label="Fermer le menu"></button>
 
-<div class="app-main"><header class="topbar"><button type="button" id="mobileNavOpen" class="icon-button menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false">☰</button><div class="crumb-brand"><span class="crumb-mark">⌁</span><div><b>AFROCONNECT</b><span>Administration Wi-Fi</span></div></div><div class="top-actions"><span class="system-status">Espace administrateur</span><span class="top-divider"></span><span class="avatar">A</span></div></header><main class="content">
+<div class="app-main"><div id="managerTop" class="top">
+<div class="model-bar">
+<div class="model-brand">
+<div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 9a14 14 0 0 1 18 0M6 12.5a9.5 9.5 0 0 1 12 0M9 16a5 5 0 0 1 6 0"/></svg></div>
+<div><h1>AfroConnect WiFi</h1><small>Gestion des points d’accès</small></div>
+</div>
+<div class="model-actions"><span class="model-status">Espace administrateur</span><button id="logout" type="button">Déconnexion</button></div>
+</div>
+<nav class="tabs" id="managerTabs" aria-label="Sections du Manager">
+<button class="tab" type="button" data-screen="dashboard" aria-current="true">Accueil</button>
+<button class="tab" type="button" data-screen="tickets" aria-current="false">Tickets</button>
+<button class="tab" type="button" data-screen="resellers" aria-current="false">Revendeurs</button>
+<button class="tab" type="button" data-screen="plans" aria-current="false">Forfaits Wi-Fi</button>
+<button class="tab" type="button" data-screen="captive-portal" aria-current="false">Portail captif</button>
+<button class="tab" type="button" data-screen="mikrotik" aria-current="false">Réseau MikroTik</button>
+</nav>
+</div><main class="content">
 <div id="apiOfflineBanner" class="api-offline-banner hidden" role="status">
   <div><strong>⚠ Base de données indisponible</strong><p id="apiOfflineMessage">Les données ne peuvent pas être synchronisées avec le serveur. Les actions nécessitant PostgreSQL ne fonctionneront pas.</p></div>
   <button type="button" id="retryApiConnection" class="gray">Réessayer</button>
@@ -1927,6 +1965,29 @@ if (sessionStorage.getItem("afro_manager_auth") === "1" && adminToken) {
     $("apiOfflineMessage").textContent = "Base de données indisponible : " + error.message + ". L'interface reste accessible en lecture limitée.";
   });
 }
+
+// Navigation de la maquette : chaque onglet ouvre l’écran métier existant.
+(function(){
+ const screens=["dashboard","tickets","resellers","plans","captive-portal","mikrotik"];
+ const tabs=[...document.querySelectorAll("#managerTabs [data-screen]")];
+ function screenForHash(){
+   const id=decodeURIComponent(location.hash.replace(/^#/,""));
+   if(!id)return "dashboard";
+   if(id==="mikrotikClientsPanel")return "mikrotik";
+   if(id==="activityList"||id==="stockAlerts")return "dashboard";
+   return screens.includes(id)?id:"dashboard";
+ }
+ function showScreen(id,writeHash){
+   if(!screens.includes(id))id="dashboard";
+   document.querySelectorAll(".content>section").forEach(section=>section.classList.toggle("is-active",section.id===id));
+   tabs.forEach(tab=>tab.setAttribute("aria-current",String(tab.dataset.screen===id)));
+   if(writeHash&&location.hash!=="#"+id)history.replaceState(null,"","#"+id);
+   window.scrollTo({top:0,behavior:"smooth"});
+ }
+ tabs.forEach(tab=>tab.addEventListener("click",()=>showScreen(tab.dataset.screen,true)));
+ window.addEventListener("hashchange",()=>showScreen(screenForHash(),false));
+ showScreen(screenForHash(),false);
+})();
 </script>
 </body>
 </html>
