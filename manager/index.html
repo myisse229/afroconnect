@@ -1406,14 +1406,24 @@ async function loadFromApi() {
     apiRequest("/api/v1/tickets?limit=2000"),
     apiRequest("/api/v1/admin/reports/dashboard")
   ]);
+  const apiRows = {
+    resellers: resellerData.rows || [],
+    plans: planData.rows || [],
+    tickets: ticketData.rows || []
+  };
+  if (demoMode && !apiRows.resellers.length && !apiRows.plans.length && !apiRows.tickets.length) {
+    apiIsLive = false;
+    setDemoIndicators();
+    return;
+  }
   dashboardReport = dashboardData;
   apiIsLive=true;
   demoMode=false;
   localStorage.removeItem("afroconnect_demo_seed_v1");
   setDemoIndicators();
-  resellers = (resellerData.rows || []).map(mapApiReseller);
-  plans = (planData.rows || []).map(mapApiPlan);
-  tickets = (ticketData.rows || []).map(mapApiTicket);
+  resellers = apiRows.resellers.map(mapApiReseller);
+  plans = apiRows.plans.map(mapApiPlan);
+  tickets = apiRows.tickets.map(mapApiTicket);
 
   // Les lots sont reconstruits à partir des tickets renvoyés par l'API.
   const grouped = new Map();
@@ -1535,7 +1545,7 @@ function renderDemoMikrotik(){
  $("overviewClients").textContent="8 · Démo";
 }
 
-if(!resellers.length&&!tickets.length&&!lots.length&&!demoMode){seedManagerDemo();}
+
 
 function debounce(fn,wait){
 let t;
@@ -1554,13 +1564,14 @@ setTimeout(()=>{t.classList.remove("show");setTimeout(()=>t.remove(),300)},2800)
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 const save=()=>{
-setDemoIndicators();
 localStorage.setItem("afro_plans",JSON.stringify(plans));
 localStorage.setItem("afro_resellers",JSON.stringify(resellers));
 localStorage.setItem("afro_tickets",JSON.stringify(tickets));
 localStorage.setItem("afro_lots",JSON.stringify(lots));
 localStorage.setItem("afro_activities",JSON.stringify(activities.slice(-30)));
 };
+if(!resellers.length&&!tickets.length&&!lots.length&&!demoMode){seedManagerDemo();}
+setDemoIndicators();
 const money=n=>Number(n||0).toLocaleString("fr-FR")+" F";
 const nowISO=()=>new Date().toISOString();
 
