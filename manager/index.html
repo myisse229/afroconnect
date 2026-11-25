@@ -1055,7 +1055,7 @@ th{background:var(--surface-2);font-size:12px;color:var(--muted);text-transform:
 <button class="tab" type="button" data-screen="captive-portal" aria-current="false">Portail captif</button>
 <button class="tab" type="button" data-screen="mikrotik" aria-current="false">Réseau MikroTik</button>
 </nav>
-<div id="demoDataNotice" class="msg" hidden role="status"><b>Données de démonstration fictives.</b> Elles restent dans ce navigateur, ne sont pas transmises à l’API et ne comptent pas comme des ventes réelles.</div>
+<div id="demoDataNotice" class="msg" hidden role="status"><b>Données de démonstration fictives.</b> Ces exemples sont locaux, fictifs et non modifiables tant que les données réelles ne sont pas chargées. Ils ne comptent pas comme des ventes réelles.</div>
 </div><main class="content">
 <div id="apiOfflineBanner" class="api-offline-banner hidden" role="status">
   <div><strong>⚠ Base de données indisponible</strong><p id="apiOfflineMessage">Les données ne peuvent pas être synchronisées avec le serveur. Les actions nécessitant PostgreSQL ne fonctionneront pas.</p></div>
@@ -1336,6 +1336,8 @@ const API_BASE = "https://afroconnect-api.onrender.com";
 let adminToken = sessionStorage.getItem("afro_manager_token") || "";
 
 async function apiRequest(path, options = {}) {
+  const requestMethod=(options.method||"GET").toUpperCase();
+  if(demoMode&&requestMethod!=="GET"&&path!=="/api/v1/auth/login") throw new Error("Mode démo : les valeurs sont fictives. Rétablis la connexion aux données avant toute modification.");
   const headers = { "Content-Type": "application/json", ...(options.headers || {}) };
   if (adminToken) headers.Authorization = `Bearer ${adminToken}`;
   const response = await fetch(`${API_BASE}${path}`, {
