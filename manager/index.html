@@ -1722,7 +1722,7 @@ async function downloadPortalLogin(){
       "{{BRAND_COLOR}}":/^#[0-9a-fA-F]{6}$/.test(val("portalColor"))?val("portalColor"):"#06285f",
       "{{PURCHASE_URL}}":esc(val("portalPurchaseUrl")||"https://afroconnectworld.com"),
       "{{WHATSAPP}}":esc(val("portalWhatsapp")||"01 96 10 92 44"),
-      "{{WHATSAPP_DIGITS}}":(val("portalWhatsapp")||"0196109244").replace(/\\D/g,""),
+      "{{WHATSAPP_DIGITS}}":(val("portalWhatsapp")||"0196109244").replace(/[^0-9]/g,""),
       "{{LOGO_SRC}}":esc(logoSrc)
     };
     for(const [token,value] of Object.entries(values))html=html.replaceAll(token,value);
